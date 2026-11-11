@@ -605,3 +605,41 @@ Shortcuts to evaluate exactly instead:
   ribbons part changes textures 13/14 later (the inset shows green/blue ribbons) — parts3d-a.
 - The metaball mesh (object 1 in scene 4) and its per-frame counts [0x18d5c] / [0x18d60] (0x110d7..0x110f4; note
   0x10ff9 stores eax instead of ebx into [0x1114a], so the vertex count bookkeeping uses the face count): parts3d-b.
+
+-----------------------------------------------------------------------------------------------------------------
+
+## 12. The remake's engine (`jizz/remake/src/jizz/engine*.cpp`) checked against the original
+
+`jizz/remake/tools/enginetest` renders "cases": single renders of the original exported from `run_engine.py
+--dump-render` dumps (`export_case.py`: scene, t, window, E/S/F, the page before and after, the 17 texture buffers,
+the engine's vertex / face arrays). 13 cases: tube 3706 / 3711, tunnel 2601, tunnel inset 170x95 2614, spiky
+4707 / 4709, blobs 7802 / 7808, ribbons 1502 / 1505, ribbons inset 175x110 at 2230 (F = 228), inset 160x100 at
+2426, ribbons full screen 2333.
+
+- Objects: `buildEngineGeometry(exe, scene, 1)` equals the engine buffers in every case: 0 ulps on positions,
+  normals, texture coordinates and seam tables, all faces identical (all objects of the five scenes).
+- Camera (`EngineCameraPath::at`, double precision): the matrix rows differ from the dumped ones by at most 1.5e-6,
+  the translation by at most 0.003 units.
+- Renders at 320x200 against the page the original drew (mean |difference| 0..255 in the window): with the remake's
+  shading (perspective-correct, filtered, per-pixel highlight, float colour, exact centre) 4.3..13 (tunnel
+  4.3..4.6, ribbons 6.6, blobs 8.1..8.4, spiky 8.2..8.3, ribbons full screen 9.3, tube 11.2, ribbon insets
+  12.4..13.2); the signed means per channel are within 3 levels, the rest is nearest vs filtered texels and affine
+  vs perspective mapping. With `Engine::debug.original` (screen-linear interpolation, nearest texels, the table's
+  highlight from per-vertex coordinates, integer tables, 5:6:5), the painter's order and the original's centre:
+  tunnel 0.4, tunnel inset 0.7, tube 1.4..1.5, blobs 2.0, spiky 2.3; scene 0 5.1..9.0, nearly all of it one-pixel
+  differences along the high-contrast ribbon edges (coverage convention, below). This checks the projection, the
+  texture addressing, the highlight and the colour formula.
+- Pixel grid: in the original pixel i of a span shows the texture at x = i (the 1/8-pixel pre-step) and row j the
+  scene at y = j, while the span covers pixel i when the edge passes x = i + 1. So its picture lies (+0.5, +0.5)
+  pixels from a pixel-centre rendering for textures, (-0.5, +0.5) for edges, and the inset centre is truncated
+  (87 for 175). The remake projects about the exact viewport centre: under half an original pixel.
+- Painter's order vs depth buffer (`enginetest order`: 48 camera times spread over each part, 320x200, pixels
+  differing by more than 24/255): tunnel and metaball dome 0; spiky object at most 2 pixels; ribbons at most 13
+  pixels (where strips cross); tube 39 of 48 frames, mean 76, at most 284 pixels (0.44 %): the cones enter the bumpy
+  ball and the painter's order shows whole triangles of one or the other, a jagged junction instead of the
+  intersection curve, and once a cone's large faces near the camera are drawn over the torus. Visible only at the
+  tube's spike roots at full resolution; the depth buffer shows the true junction.
+- Near limit: the ribbon camera passes within 16.5 units of ribbon faces for 38 short stretches of the path (engine
+  t 0.06, 0.99, 1.24..1.27, 6.4..9.97 when the ribbons are not drawn, 14.1..15.3, 16.61..16.64), the other scenes
+  never (`enginetest near`, step 0.002). Dropping those faces changes no pixel at the times tested (they are back
+  faces or hidden), so clipping at z = 16 instead is not visible.
