@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Packages a MinGW build of a remake as a Windows release zip.
 #
-#   scripts/package-windows.sh <303|paper> [BUILD_DIR] [OUT_DIR]
+#   scripts/package-windows.sh <303|paper|jizz> [BUILD_DIR] [OUT_DIR]
 #
 # BUILD_DIR defaults to <repo>/<demo>/remake/build-win (as in the remakes' READMEs), OUT_DIR to <repo>/out.
 # Writes OUT_DIR/<demo>-remake-windows-x64.zip with one folder of the same name inside: the program, every DLL it
@@ -23,7 +23,8 @@ demo=${1:-}
 case "$demo" in
 303)   program=acme303.exe ;;
 paper) program=paper-remake.exe ;;
-*)     die "usage: $0 <303|paper> [BUILD_DIR] [OUT_DIR]" ;;
+jizz)  program=jizz-remake.exe ;;
+*)     die "usage: $0 <303|paper|jizz> [BUILD_DIR] [OUT_DIR]" ;;
 esac
 build=${2:-$repo/$demo/remake/build-win}
 out=${3:-$repo/out}
@@ -135,6 +136,20 @@ soundtrack, rendered at any resolution in true colour instead of 320x200 in 256 
   --ss 2            render at twice the resolution and downsample (antialiasing)
   --loop            restart at the end
   --data DIR        the folder with the original files"
+elif [ "$demo" = jizz ]; then
+    title="JIZZ by The Black Lotus - high resolution remake for Windows (x64)"
+    about='A re-implementation of "JIZZ", the 64k intro by The Black Lotus (code and design Jace, music Probe,
+vector engine Nix) that won the PC 64k intro competition at Wired '"'"'97. It plays the original'"'"'s
+effects, timing and music, rendered at any resolution in true colour instead of 320x200 in hicolor.'
+    zipfile=jizz.zip
+    needed="JIZZ.EXE (63,960 bytes)"
+    options="  --window          run in a window instead of fullscreen
+  --size 1280x960   window size
+  --start SECONDS   start position
+  --ss 2            render at twice the resolution and downsample (antialiasing)
+  --loop            restart at the end
+  --info            show the position and part in the window title
+  --exe FILE        the original JIZZ.EXE"
 else
     title="Paper by Psychic Link - high resolution remake for Windows (x64)"
     about='A re-implementation of "Paper", the 64k intro by Psychic Link (code and graphics Statix, music Vic of

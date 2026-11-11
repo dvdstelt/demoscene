@@ -1,7 +1,7 @@
 name: build
 
-# Builds all three projects for Linux and for Windows (MinGW cross-compile) on every push and pull request.
-# A tag v* also packages the two current remakes for Windows and publishes them as a GitHub Release.
+# Builds all projects for Linux and for Windows (MinGW cross-compile) on every push and pull request.
+# A tag v* also packages the current remakes for Windows and publishes them as a GitHub Release.
 
 on:
   push:
@@ -43,6 +43,11 @@ jobs:
           cmake -S paper/remake -B paper/remake/build-ci-linux -G Ninja
           cmake --build paper/remake/build-ci-linux
 
+      - name: Build JIZZ remake
+        run: |
+          cmake -S jizz/remake -B jizz/remake/build-ci-linux -G Ninja
+          cmake --build jizz/remake/build-ci-linux
+
   windows:
     name: Windows x64 (MinGW)
     runs-on: ubuntu-latest
@@ -70,11 +75,17 @@ jobs:
           mingw64-cmake -S paper/remake -B paper/remake/build-ci-win -G Ninja
           cmake --build paper/remake/build-ci-win
 
+      - name: Build JIZZ remake
+        run: |
+          mingw64-cmake -S jizz/remake -B jizz/remake/build-ci-win -G Ninja
+          cmake --build jizz/remake/build-ci-win
+
       - name: Package
         run: |
           if [ "$GITHUB_REF_TYPE" = tag ]; then export VERSION="$GITHUB_REF_NAME"; else export VERSION="development build ${GITHUB_SHA::7}"; fi
           bash scripts/package-windows.sh 303 303/remake/build-ci-win out
           bash scripts/package-windows.sh paper paper/remake/build-ci-win out
+          bash scripts/package-windows.sh jizz jizz/remake/build-ci-win out
 
       - uses: actions/upload-artifact@v4
         with:
