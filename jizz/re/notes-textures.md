@@ -671,6 +671,15 @@ route is the exact 256x256 result, filtered up. In the other textures the carry 
 warps (map14: 32605 pixels differ by up to 64 after the warps, map2: 43054 by up to 28: warped detail moves by a texel
 here and there).
 
+Measured with the remake's float path (`jizz/remake/src/jizz/texgen_hires.cpp`, 1024x1024, checked with
+`tools/texdump`): dropping the integer truncations outright moves every warp by about half a texel against the
+original, because the displacement maps come out of `scale` (`>> 8`, a floor). Replacing each truncation by its mean
+(a floor averages x - 1/2; a sum divided by n in the box blurs: x - (n-1)/(2n)) keeps the textures in register: the
+area-downsampled mean |difference| to the exact textures drops from at most 6.4 to at most 3.0 (map10 6.4 → 3.0, map14
+5.5 → 2.1, map4 4.8 → 2.8). The remaining differences are blob outlines (round discs against the 8x8 shapes, where
+5120 random greys overlap), the warps' nearest-texel reads, and the dword carries of map2 / map14, which the float
+path leaves out except in testshit (there they make the faint "9", which it keeps).
+
 ## 10. Unused code and data
 
 - Ops 0x0d, 0x16 (same handler as 0x17), 0x1e, 0x25 are never used by the 17 scripts (verified with test_ops.py).
