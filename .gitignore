@@ -1,0 +1,46 @@
+# Build output
+build/
+build-*/
+out/
+*.o
+*.obj
+
+# The original productions belong to their authors and are never committed.
+# Put them in <demo>/original/ (scripts/fetch-originals.sh does that).
+*/original/*
+!*/original/README.md
+*.EXE
+*.exe
+*.PAK
+*.pak
+*.LZW
+*.lzw
+
+# Captures, dumps and other files generated from the originals
+*.frames
+*.ticks
+*.gus
+*.dram
+*.snap
+*.mem
+paper/re/paper_img.bin
+paper/re/*.log
+
+# Media: videos go to YouTube, audio renders stay local
+*.mp4
+*.mkv
+*.webm
+*.mov
+*.wav
+videos/
+shots/
+
+# Python and editors
+__pycache__/
+*.pyc
+.venv/
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
