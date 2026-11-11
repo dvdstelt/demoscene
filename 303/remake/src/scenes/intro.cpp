@@ -149,7 +149,9 @@ float glyphAt(float x, float row) {
         float left = floor(256.0 + glyph[i].z * spread + 0.5) - floor(wd * 0.5) - 96.0;
         if (x >= left - 1.0 && x < left + wd + 1.0) {
             if (x < left || x >= left + wd) return 0.0;
-            return texture(glyphs, vec2((glyph[i].x + x - left) / 256.0, (row + 0.5) / 38.0)).r;
+            // explicit level 0: inside this per-pixel loop the implicit mip level is undefined (it made frames
+            // differ between runs); the strip is always magnified, so level 0 is what the GPU should pick anyway
+            return textureLod(glyphs, vec2((glyph[i].x + x - left) / 256.0, (row + 0.5) / 38.0), 0.0).r;
         }
     }
     return 0.0;

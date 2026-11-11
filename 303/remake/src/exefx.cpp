@@ -76,15 +76,13 @@ void exeMatrix(float a, float b, Vec3& R0, Vec3& R1, Vec3& R2) {
 
 int StepClock::steps(const Ctx& c, float hz) {
     bool reset = std::fabs(c.T - lastT - c.dt) > 0.25f || lastT < -1e8f;
+    double prev = lastT;
     lastT = c.T;
-    if (reset) {
-        acc = 0;
-        return -1;
-    }
-    acc += double(std::clamp(c.dt, 0.0f, 0.25f)) * hz;
-    int n = int(acc);
-    acc -= n;
-    return std::min(n, 8);
+    if (reset) return -1;
+    // Steps fall on the absolute grid k / hz, so where they land does not depend on where rendering started:
+    // after a seek and a short warm-up the feedback is the same as in uninterrupted playback.
+    long long n = (long long)std::floor(double(c.T) * hz) - (long long)std::floor(prev * hz);
+    return int(std::clamp(n, 0LL, 8LL));
 }
 
 // ---------------------------------------------------------------- lines

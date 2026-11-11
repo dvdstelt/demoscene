@@ -36,6 +36,9 @@ uniform float reset;
 void main() {
     vec2 px = vec2(uv.x * 320.0, (1.0 - uv.y) * 200.0);
     float X = px.x - 160.0, Y = px.y - 100.0;
+    // texture gradients worked out here, in uniform control flow: inside the loop below the implicit ones are
+    // undefined, which can pick a wrong mip level and make frames differ between runs
+    vec2 dpx = dFdx(px), dpy = dFdy(px);
     float acc = 0.0;
     for (int i = 0; i < 6; i++) {
         if (W[i].w < 0.5) continue;
@@ -44,7 +47,9 @@ void main() {
         float v = 128.0 + 0.25 * z * (-cs.y * X + cs.x * Y) - W[i].y / z;
         u = clamp(u, 0.0, 255.0); v = clamp(v, 0.0, 255.0);
         if (v < 95.5 || v > 159.5) continue;
-        acc += texture(words, vec2(u / 256.0, (float(i) * 64.0 + v - 96.0) / 384.0)).r * 255.0 / 8.0;
+        vec2 gx = 0.25 * z * vec2(cs.x * dpx.x + cs.y * dpx.y, -cs.y * dpx.x + cs.x * dpx.y) / vec2(256.0, 384.0);
+        vec2 gy = 0.25 * z * vec2(cs.x * dpy.x + cs.y * dpy.y, -cs.y * dpy.x + cs.x * dpy.y) / vec2(256.0, 384.0);
+        acc += textureGrad(words, vec2(u / 256.0, (float(i) * 64.0 + v - 96.0) / 384.0), gx, gy).r * 255.0 / 8.0;
     }
     acc = min(acc, 255.0);
     float B = reset > 0.5 ? 0.0 : texture(prev, uv).r;
@@ -101,7 +106,7 @@ void main() {
     if (vk > 0.0) {
         vec2 q = rippleUV(px, vec2(20.0 / 41.0, 12.0 / 26.0), vec2(80.0, 48.0), vec2(160.0, 100.0), 0.07, 0.02, vph);
         float l = 0.0;
-        if (q.x >= 0.0 && q.x < 160.0 && q.y >= 0.0 && q.y < 96.0) l = dot(texture(vid, q / vec2(160.0, 96.0)).rgb, vec3(0.299, 0.587, 0.114));
+        if (q.x >= 0.0 && q.x < 160.0 && q.y >= 0.0 && q.y < 96.0) l = dot(textureLod(vid, q / vec2(160.0, 96.0), 0.0).rgb, vec3(0.299, 0.587, 0.114));  // explicit LOD: per-pixel branch
         l *= vk;
         col = mix(col, vec3(1.0), clamp(l * 256.0 / 8.0 / 31.0, 0.0, 1.0));
     }
@@ -120,7 +125,7 @@ void main() {
     if (vk > 0.0) {
         vec2 q = rippleUV(px, vec2(20.0 / 41.0, 12.0 / 26.0), vec2(80.0, 48.0), vec2(160.0, 100.0), 0.07, 0.02, vph);
         float l = 0.0;
-        if (q.x >= 0.0 && q.x < 160.0 && q.y >= 0.0 && q.y < 96.0) l = dot(texture(vid, q / vec2(160.0, 96.0)).rgb, vec3(0.299, 0.587, 0.114));
+        if (q.x >= 0.0 && q.x < 160.0 && q.y >= 0.0 && q.y < 96.0) l = dot(textureLod(vid, q / vec2(160.0, 96.0), 0.0).rgb, vec3(0.299, 0.587, 0.114));  // explicit LOD: per-pixel branch
         col = mix(col, vec3(1.0), clamp(l * vk * 32.0 / 31.0, 0.0, 1.0));
     }
     frag = vec4(exePalette(col), 1.0);
@@ -162,7 +167,9 @@ uniform int cell[35];
 uniform int iconX[8], iconW[8];
 uniform int idx, n, row0, h, jx;
 uniform float step, gain, finv, reset;
-float src(float x, float y) { return texture(img, vec2(x / 320.0, y / 350.0)).r * 255.0; }
+// explicit level 0: src() is called in per-pixel branches and loops, where the implicit mip level is undefined
+// (it made the icons differ between runs); the image is always magnified, so level 0 is the right one
+float src(float x, float y) { return textureLod(img, vec2(x / 320.0, y / 350.0), 0.0).r * 255.0; }
 void main() {
     vec2 px = vec2(uv.x * 320.0, (1.0 - uv.y) * 200.0);
     float comp = 0.0;

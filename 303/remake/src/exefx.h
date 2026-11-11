@@ -51,7 +51,6 @@ void exeMatrix(float a, float b, Vec3& R0, Vec3& R1, Vec3& R2);
 // The original renders as fast as it can and applies feedback per rendered frame. These run the
 // feedback at a fixed rate instead. steps() returns how many steps to run this frame, or -1 after a seek.
 struct StepClock {
-    double acc = 0;
     float lastT = -1e9f;
     int steps(const Ctx& c, float hz = 70.0f);
 };
