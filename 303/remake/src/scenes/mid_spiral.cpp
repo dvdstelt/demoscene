@@ -57,6 +57,20 @@ M3 axisAngle(Vec3 v) {
     if (L < 1e-8f) return M3();
     return rodrigues(v * (1.0f / L), std::asin(std::min(L, 1.0f)));
 }
+// The rotation from a to b (both orthonormal, b = a R), applied by the fraction f: smooth camera turns between
+// two 70 Hz ticks.
+M3 lerpRot(const M3& a, const M3& b, float f) {
+    M3 at;
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++) at.a[i * 3 + j] = a.a[j * 3 + i];
+    const M3 R = at * b;
+    // atan2 of sine and cosine: acos alone loses the tiny per-tick angles in single precision
+    Vec3 axis(R.a[7] - R.a[5], R.a[2] - R.a[6], R.a[3] - R.a[1]);
+    const float L = axis.len();
+    const float ang = std::atan2(0.5f * L, (R.a[0] + R.a[4] + R.a[8] - 1.0f) * 0.5f);
+    if (ang < 1e-7f || L < 1e-9f) return a;
+    return a * rodrigues(axis * (1.0f / L), ang * f);
+}
 // 0x2d6a4 / 0x27444: turn the camera (rows = right, down, forward) towards a direction with gain k per tick
 void lookStep(M3& C, Vec3 d, float k, float roll = 0.0f) {
     float len = d.len();
@@ -411,6 +425,7 @@ struct CreditPart {
         ExePalette p = s.pal;
         if (sel == 1) p.level = s.shown;  // vic: the palette is uploaded before the strobe re-arms it
         if (s.n >= 3) p.level = 0x8000;   // part over: the next part starts from white
+        else if (sel == 0) p.frac = fr;   // blend the fade towards the next tick
         return p;
     }
 };
@@ -531,11 +546,17 @@ struct TentaclePart {
         pal.target = 0x4000;
         pal.speed = star ? 500 : 1000;
         for (int k = 0; k < int(tk); k++) pal.tick();
+        pal.frac = float(tk - std::floor(tk));  // blend the fade towards the next tick
         // camera (0x2d81c): orbit at radius 30, lazy look at the origin, C reset at the part init
         M3 C;
         const int K = int(tk);
         const float T0 = 2354.0f + 6.0f * float(star ? ticksA : 0.0);
         for (int k = 1; k <= K; k++) lookStep(C, squareCam(T0 + 6.0f * float(k)) * -1.0f, 0.1f);
+        {  // the camera turns once per tick: blend towards the next tick's orientation, as the position does
+            M3 C1 = C;
+            lookStep(C1, squareCam(T0 + 6.0f * float(K + 1)) * -1.0f, 0.1f);
+            C = lerpRot(C, C1, float(tk - double(K)));
+        }
         const Vec3 campos = squareCam(T0 + 6.0f * float(tk));
         // orientation delay line (0x2b908): O(k+1) = O(k) R(v(t_k)), shell g uses O(k - g)
         const float tau = float(v - start) * kFrameHz;
@@ -959,7 +980,18 @@ struct PlasmaPart {
         s.pal.speed = 100;
         const double tk = std::max(0.0, double(v - kPlasmaStart) * kHz);
         for (int k = 0; k < int(tk); k++) s.tick();
+        s.pal.frac = float(tk - std::floor(tk));  // blend the fade towards the next tick
+        // The simulation steps once per 70 Hz tick: show it blended towards the next tick, so the camera, the
+        // balls and the sprite move smoothly at any frame rate. Discrete state (phase, palette) is the current tick's.
+        PlasmaSim s1 = s;
+        s1.tick();
+        s1.path();
         s.path();
+        const float f = float(tk - std::floor(tk));
+        auto mixf = [f](float a, float b) { return a + (b - a) * f; };
+        auto mixv = [f](const Vec3& a, const Vec3& b) { return a + (b - a) * f; };
+        const Vec3 P = mixv(s.P, s1.P), Bc = mixv(s.Bc, s1.Bc);
+        const M3 M = lerpRot(s.M, s1.M, f);
 
         c.out->bind();
         setBlend(Blend::None);
@@ -976,46 +1008,55 @@ struct PlasmaPart {
         sh.set("pinkTex", 3);
         sh.set("rayTex", 4);
         sh.set("noiseTex", 5);
-        sh.set("P", s.P);
-        sh.set("R0", s.M.row(0));
-        sh.set("R1", s.M.row(1));
-        sh.set("R2", s.M.row(2));
+        sh.set("P", P);
+        sh.set("R0", M.row(0));
+        sh.set("R1", M.row(1));
+        sh.set("R2", M.row(2));
         // metaballs (D only)
         int nb = s.phase == 0 ? 4 : 0;
         float mbv[16] = {};
-        const Vec3 cg = s.Bc * 0.25f;
-        const float nn = float(s.n);
+        const Vec3 cg = Bc * 0.25f;
+        const float nn = mixf(float(s.n), float(s1.n));
         for (int k = 0; k < nb; k++) {
             const Metaball& b = s.mb[k];
-            float amp = 3.8f * s.w[k] / (1.0f + b.d);
-            Vec3 p = cg + b.dir * b.d + Vec3(std::sin(nn / b.f[0] + b.ph[0]), std::sin(nn / b.f[1] + b.ph[1]), std::sin(nn / b.f[2] + b.ph[2])) * amp;
+            const float wk = mixf(s.w[k], s1.w[k]), dk = mixf(b.d, s1.mb[k].d);
+            float amp = 3.8f * wk / (1.0f + dk);
+            Vec3 p = cg + b.dir * dk + Vec3(std::sin(nn / b.f[0] + b.ph[0]), std::sin(nn / b.f[1] + b.ph[1]), std::sin(nn / b.f[2] + b.ph[2])) * amp;
             mbv[k * 4] = p.x * 4.0f;
             mbv[k * 4 + 1] = p.y * 4.0f;
             mbv[k * 4 + 2] = p.z * 4.0f;
-            mbv[k * 4 + 3] = s.w[k];
+            mbv[k * 4 + 3] = wk;
         }
         sh.set("nballs", nb);
         gl::Uniform4fv(sh.loc("mb"), 4, mbv);
         // plasma balls
-        const float T = float(s.bT);
-        float r1 = std::max(0.0f, float(s.c) + 60.0f - 6.0f * std::sin(25.0f * 9.43e-5f * T + 43.0f));
-        float r2 = std::max(0.0f, float(s.c) + 68.0f + 6.0f * std::cos(25.0f * 5.3e-5f * T + 23.0f));
+        const float T = mixf(float(s.bT), float(s1.bT));
+        // D grows the balls' radius and brightness by one step every 10 ticks (c = s / 10, lvl = s / 10 + 32);
+        // continuous here (+0.45: the mean of C's truncation towards zero), so the balls fade in without steps
+        float cR = mixf(float(s.c), float(s1.c)), lvlF = mixf(float(s.lvl), float(s1.lvl));
+        if (s.phase == 0 && s1.phase == 0) {
+            const float q = mixf(float(s.s), float(s1.s)) / 10.0f + 0.45f;
+            cR = std::min(q, 0.0f);
+            lvlF = std::clamp(q + 32.0f, 0.0f, 32.0f);
+        }
+        float r1 = std::max(0.0f, cR + 60.0f - 6.0f * std::sin(25.0f * 9.43e-5f * T + 43.0f));
+        float r2 = std::max(0.0f, cR + 68.0f + 6.0f * std::cos(25.0f * 5.3e-5f * T + 23.0f));
         M3 m1 = rotAB(0.001f * T, 0.000732f * T), m2 = rotAB(4.0f + 0.001124f * T, 7.0f - 0.000532f * T);
-        sh.set("bc", s.Bc);
+        sh.set("bc", Bc);
         sh.set("rad", r1, r2);
         sh.set("m1a", m1.row(0));
         sh.set("m1b", m1.row(1));
         sh.set("m2a", m2.row(0));
         sh.set("m2b", m2.row(1));
         sh.set("bT", T);
-        sh.set("bLvl", float(s.lvl) / 32.0f);
+        sh.set("bLvl", lvlF / 32.0f);
         // sprite (E, F)
         int spr = 0;
         if (s.phase >= 1) {
-            Vec3 d = s.Bc - s.P;
-            float X = s.M.row(0).dot(d), Y = s.M.row(1).dot(d), Z = s.M.row(2).dot(d);
+            Vec3 d = Bc - P;
+            float X = M.row(0).dot(d), Y = M.row(1).dot(d), Z = M.row(2).dot(d);
             if (Z > 40.0f) {
-                float k = 300.0f / Z, sc = s.scale * k;
+                float k = 300.0f / Z, sc = mixf(s.scale, s1.scale) * k;
                 float w = 88.0f * sc, h = std::min(w, 200.0f);
                 w = std::min(w, 320.0f);
                 sh.set("sprRect", 160.0f + X * k, 100.0f + Y * k, w, h);
@@ -1024,8 +1065,8 @@ struct PlasmaPart {
             }
         }
         sh.set("sprite", spr);
-        sh.set("sprT", s.sprT);
-        sh.set("sprNoise", float(s.noiseOff & 255));
+        sh.set("sprT", mixf(s.sprT, s1.sprT));
+        sh.set("sprNoise", float(s.noiseOff & 255) + f);  // the rays turn 1/256 per tick: smoothly in between
         s.pal.apply(sh);
         drawFullscreen();
     }

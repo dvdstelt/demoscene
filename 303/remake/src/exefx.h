@@ -28,6 +28,9 @@ struct ExePalette {
     int level = 0x4000, target = 0x4000, speed = 0;
     bool invert = false;
     float mult = 1.0f;
+    // Fraction of the next tick to show (set after replaying the ticks): apply() blends the level and the
+    // multiplier towards the next tick, so fades are smooth at any frame rate instead of stepping at 70 Hz.
+    float frac = 0.0f;
     void tick() {
         if (level == target) speed = 0;
         if (level < target) level = std::min(level + speed, target);

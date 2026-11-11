@@ -212,6 +212,7 @@ struct Aap : Scene {
         const double ticksF = std::max(0.0, double(T - T0) * kTickHz);
         const int n = int(ticksF) + 1;
         for (int k = 0; k < n; k++) s.tick(musicPos(T0 + float(k / kTickHz)));
+        s.pal.frac = float(ticksF - std::floor(ticksF));  // blend the fade towards the next tick
         const int pos = musicPos(T);
         const bool burst = (pos & 0x7f) < 0x40;
 

@@ -61,8 +61,15 @@ vec2 sphereRayTexel(vec2 px, vec3 R0, vec3 R1, vec3 R2, float focal, float scale
 )";
 
 void ExePalette::apply(const Shader& s) const {
-    s.set("palLevel", float(level) / 256.0f);
-    s.set("palMult", mult);
+    float lv = float(level), m = mult;
+    if (frac > 0.0f) {
+        ExePalette n = *this;
+        n.tick();
+        lv += float(n.level - level) * frac;
+        m += (n.mult - mult) * frac;
+    }
+    s.set("palLevel", lv / 256.0f);
+    s.set("palMult", m);
     s.set("palInvert", invert ? 1 : 0);
 }
 

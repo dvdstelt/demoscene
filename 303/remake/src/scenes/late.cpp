@@ -239,6 +239,20 @@ M3 rot3(Vec3 a) {
     return r;
 }
 // 0x14760
+// The rotation from a to b (both orthonormal, b = a R), applied by the fraction f: smooth camera turns between
+// two 70 Hz ticks.
+M3 lerpRot(const M3& a, const M3& b, float f) {
+    M3 at;
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++) at.m[i * 3 + j] = a.m[j * 3 + i];
+    const M3 R = mul(at, b);
+    // atan2 of sine and cosine: acos alone loses the tiny per-tick angles in single precision
+    Vec3 axis(R.m[7] - R.m[5], R.m[2] - R.m[6], R.m[3] - R.m[1]);
+    const float L = axis.len();
+    const float ang = std::atan2(0.5f * L, (R.m[0] + R.m[4] + R.m[8] - 1.0f) * 0.5f);
+    if (ang < 1e-7f || L < 1e-9f) return a;
+    return mul(a, rot3(axis * (std::sin(ang * f) / L)));
+}
 M3 rot2(float a, float b) {
     M3 r;
     float ca = std::cos(a), sa = std::sin(a), cb = std::cos(b), sb = std::sin(b);
@@ -508,6 +522,7 @@ struct Late {
             bool ch = L.tick(pos);
             if (ch && (pos & 0x1f) == 0 && pos > 0x5c0) next();  // Harl starts at 0x5c0 with the init word
         }
+        pal.frac = float(tk - std::floor(tk));  // blend the fade towards the next tick
         // one frame per 6 ticks (callback 0x30990 with [0x580c0] = 5), from frame 0
         int frame = std::min(int(tk / 6.0), c.videoFrames("HARL") - 1);
         Texture& v = c.video("HARL", float(frame));
@@ -538,6 +553,7 @@ struct Late {
             }
             pal.tick();
         }
+        pal.frac = float(tk - std::floor(tk));  // blend the fade towards the next tick
         const float nt = float(tk);
         // camera (callback 0x2c360 + camera_27444): continuous in ticks
         const float camZ = 0.01f * (-4.0f * nt + 0.0081215f * nt * (nt - 1.0f) * 0.5f);
@@ -633,6 +649,7 @@ struct Late {
             if (pos != last) { last = pos; if ((pos & 3) == 0) frame = (frame + 1) % 44; }
             pal.tick();
         }
+        pal.frac = float(tk - std::floor(tk));  // blend the fade towards the next tick
         const float t1 = float(7.0 * tk), t2 = float(2.0 * tk);
         Texture& v = c.video("PARANOID", float(frame));
         Target& f = c.scratch[0];
@@ -691,7 +708,7 @@ struct Late {
         struct Tile { float x, y, z, a, b, wa, wb, ph, fr, s, c; };
         std::vector<Tile> tiles;
         ExeRand rnd(0x2e8e4);
-        for (int k = 0; k < n; k++) {
+        auto step = [&](int k) {  // one 70 Hz tick
             const float tm = tA + k * kTick;
             int pos = musicPos(tm);
             if (pos != last) { last = pos; if ((pos & 3) == 0) vframe = (vframe + 1) % 44; }
@@ -756,8 +773,38 @@ struct Late {
             cam.tick(1);
             if (phase == 2) { cam.pos.x = 0; cam.pos.y = 0; }
             rollAcc += cam.roll;
-        }
+        };
+        for (int k = 0; k < n; k++) step(k);
         (void)rollAcc;
+        // Everything above moves once per tick: show it blended towards the next tick, so the camera, the
+        // sheet and the tiles move smoothly at any frame rate (phase, video frame and palette events stay discrete).
+        {
+            const Cam cam0 = cam;
+            const float Z0 = Z, sheetT0 = sheetT, I0 = I, ovk0 = ovk;
+            const ExePalette pal0 = pal;
+            const int phase0 = phase, vframe0 = vframe;
+            const std::vector<Tile> tiles0 = tiles;
+            step(n);
+            const float f = float(tk - std::floor(tk));
+            auto mixf = [f](float x, float y) { return x + (y - x) * f; };
+            if (phase == phase0) {
+                cam.pos = cam0.pos + (cam.pos - cam0.pos) * f;
+                cam.M = lerpRot(cam0.M, cam.M, f);
+                Z = mixf(Z0, Z); sheetT = mixf(sheetT0, sheetT); I = mixf(I0, I); ovk = mixf(ovk0, ovk);
+                pal.level = int(std::lround(mixf(float(pal0.level), float(pal.level))));
+                if (tiles.size() == tiles0.size())
+                    for (size_t i = 0; i < tiles.size(); i++) {
+                        Tile& t = tiles[i];
+                        const Tile& t0 = tiles0[i];
+                        t.x = mixf(t0.x, t.x); t.y = mixf(t0.y, t.y); t.z = mixf(t0.z, t.z);
+                        t.a = mixf(t0.a, t.a); t.b = mixf(t0.b, t.b);
+                    }
+            } else {  // a phase change starts next tick: show this one
+                cam = cam0; Z = Z0; sheetT = sheetT0; I = I0; ovk = ovk0; pal = pal0; tiles = tiles0;
+                phase = phase0;
+            }
+            vframe = vframe0;
+        }
         // world -> GL: (x, -y, -z) / 290
         const float S = 1.0f / 290.0f;
         auto toGL = [&](Vec3 v) { return Vec3(v.x * S, -v.y * S, -v.z * S); };
@@ -866,6 +913,7 @@ struct Late {
         }
         const int n = int(tk) + 1;
         for (int k = 0; k < n; k++) pal.tick();
+        pal.frac = float(tk - std::floor(tk));  // blend the fade towards the next tick
         const char* clip = alex ? "ALEX" : "VS";
         int frame = std::min(int(tk / 8.0), c.videoFrames(clip) - 1);
         Texture& v = c.video(clip, float(frame));
@@ -916,6 +964,7 @@ struct Late {
             if (idx > 2) { pal.speed = 10; pal.target = 0; }
             pal.tick();
         }
+        pal.frac = float(tk - std::floor(tk));  // blend the fade towards the next tick
         if (m >= kSongEnd) J[0] = J[7] = 0;  // the song has ended; the capture froze on a calm frame (gain 1)
         c.out->bind();
         if (pal.level <= 0) {  // the loop has ended: black until a key is pressed

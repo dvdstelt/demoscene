@@ -217,6 +217,7 @@ View simulate(float m) {
     v.bd2 = prev.sub == 3 && prev.wireMode ? 2 : prev.bd2;
     v.count = prev.count;
     v.pal = prev.pal;
+    v.pal.frac = float(a);  // blend the fade towards the next tick
     auto lerp = [&](const D3& p, const D3& q) { return p + (q - p) * a; };
     v.P = lerp(prev.P, s.P).f();
     D3 r2 = lerp(prev.R[2], s.R[2]), r0 = lerp(prev.R[0], s.R[0]);

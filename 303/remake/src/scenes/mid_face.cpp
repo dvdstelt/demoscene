@@ -468,6 +468,7 @@ struct MidFace : Scene {
             s.tick(c, musicPos(tt), float((i + 1) / kTickHz) * kFrameHz);
         }
         const float frac = float(ticksF - n);
+        s.pal.frac = frac;  // blend the fade towards the next tick
         const float frames = el * kFrameHz;
         // continuous versions of the per-tick values between ticks
         const float t = float(s.t) + 4.0f * frac;
@@ -578,6 +579,7 @@ struct MidFace : Scene {
         const int n = int(ticksF);
         for (int i = 0; i < n; i++) s.tick(musicPos(T0 + float((i + 1) / kTickHz)));
         const float frac = float(ticksF - n);
+        s.pal.frac = frac;  // blend the fade towards the next tick
         const int pos = musicPos(T);
         Target& frame = c.scratch[0];
 

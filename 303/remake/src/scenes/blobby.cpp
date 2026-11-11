@@ -193,6 +193,7 @@ struct Blobby : Scene {
         const double ticksF = std::max(0.0, double(T - T0) * kTickHz);
         const int n = int(ticksF) + 1;
         for (int k = 0; k < n; k++) s.tick(c, musicPos(T0 + float(k / kTickHz)));
+        s.pal.frac = float(ticksF - std::floor(ticksF));  // blend the fade towards the next tick
         const float t = float(3.0 * ticksF);  // continuous between ticks
 
         // background (0x1cd4b + 0x135dc at scale 4 + 0x1d0dd)

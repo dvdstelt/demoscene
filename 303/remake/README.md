@@ -89,11 +89,13 @@ the original running on a Pentium MMX. The remake evaluates per pixel what the o
 8x8-pixel grid, keeps colours in floating point instead of 256 palette entries, and draws lines, contours and
 edges anti-aliased, but the algorithms, constants, motion and timing are the original's.
 
-The original schedules everything on the module position (`[0x9b844]` = 2 × (order × 64 + row) − 2,
-`musicPos()` in `fx.cpp`) and animates in 70 Hz vertical-retrace callbacks. The remake replays those callbacks
-from the start of each part every frame, so seeking is exact. In the capture the picture leads the sound by
-about 0.5 s at the start, shrinking to zero by about 2 minutes; `captureLead()` holds the measured offsets so
-that effects line up with the capture.
+The original schedules everything on the module position (`[0x9b844]` = 2 × (order × 64 + row) − 2, `musicPos()`
+in `fx.cpp`) and animates in 70 Hz vertical-retrace callbacks. The remake replays those callbacks from the start
+of each part every frame, so seeking is exact, and blends the state towards the next tick (camera, motion, palette
+fades), so the picture moves smoothly at any refresh rate instead of stepping at 70 Hz. Sudden changes, such as
+flashes, still happen on their tick. In the capture the picture leads the sound by about 0.5 s at the start,
+shrinking to zero by about 2 minutes; `captureLead()` holds the measured offsets so that effects line up with the
+capture.
 
 What is not exact, and why:
 

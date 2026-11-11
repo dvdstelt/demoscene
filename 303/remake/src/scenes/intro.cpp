@@ -146,12 +146,12 @@ uniform int invert, strip;
 float glyphAt(float x, float row) {
     for (int i = 10; i >= 0; i--) {   // later glyphs overwrite earlier ones, with a black column each side
         float wd = glyph[i].y;
-        float left = floor(256.0 + glyph[i].z * spread + 0.5) - floor(wd * 0.5) - 96.0;
+        float left = 256.0 + glyph[i].z * spread - floor(wd * 0.5) - 96.0;   // not rounded to whole pixels
         if (x >= left - 1.0 && x < left + wd + 1.0) {
             if (x < left || x >= left + wd) return 0.0;
             // explicit level 0: inside this per-pixel loop the implicit mip level is undefined (it made frames
             // differ between runs); the strip is always magnified, so level 0 is what the GPU should pick anyway
-            return textureLod(glyphs, vec2((glyph[i].x + x - left) / 256.0, (row + 0.5) / 38.0), 0.0).r;
+            return textureLod(glyphs, vec2((glyph[i].x + x - left) / 256.0, row / 38.0), 0.0).r;
         }
     }
     return 0.0;
@@ -162,9 +162,9 @@ void main() {
     float row = px.y - 81.0;
     if (strip != 0 && row >= 0.0 && row < 37.0) {
         // horizontal box blur of width blurW, dimmed by (1 - w * 1000 / 65536) as in 0x1c91d
-        float x0 = px.x - floor(blurW * 0.5), sum = 0.0;
+        float x0 = px.x - blurW * 0.5, sum = 0.0;
         const int N = 32;
-        for (int k = 0; k < N; k++) sum += glyphAt(x0 + (float(k) + 0.5) * blurW / float(N), floor(row));
+        for (int k = 0; k < N; k++) sum += glyphAt(x0 + (float(k) + 0.5) * blurW / float(N), row);
         float v = sum / float(N) * (1.0 - blurW * 1000.0 / 65536.0) * 255.0 / 4.0;   // 0..63
         p += vec3(v * 9.0 / 255.0);
     }
@@ -210,6 +210,22 @@ struct Intro : Scene {
         const double ticksF = std::max(0.0, double(T - kStart) * kTickHz);
         const int n = T >= kStart ? int(ticksF) + 1 : 0;
         for (int k = 0; k < n; k++) s.tick(musicPos(kStart + float(k / kTickHz)));
+        // The callbacks change the palette, the credits fade and the 303 strip once per tick: show them blended
+        // towards the next tick, so they move smoothly at any frame rate.
+        IntroState s1 = s;
+        if (n > 0) s1.tick(musicPos(kStart + float(n / kTickHz)));
+        const float fr = n > 0 ? float(ticksF - std::floor(ticksF)) : 0.0f;
+        auto mixf = [fr](float x, float y) { return x + (y - x) * fr; };
+        // the palette level and the flash multiplier only blend along their regular decay: a flash that starts at
+        // the next tick must not show early
+        int nextLevel = s.level;
+        if (s.level < s.target) nextLevel = std::min(s.level + s.speed, s.target);
+        if (s.level > s.target) nextLevel = std::max(s.level - s.speed, s.target);
+        const float level = mixf(float(s.level), float(nextLevel));
+        const float flash = mixf(s.flash, (s.flash - 1.0f) * 0.98f + 1.0f), F1 = mixf(s.F1, s1.F1), F2 = mixf(s.F2, s1.F2);
+        const bool both = s.stripW > 0 && s1.stripW > 0;
+        const float spread = both ? mixf(s.stripSpread, s1.stripSpread) : s.stripSpread;
+        const float blurW = both ? mixf(float(s.stripW), float(s1.stripW)) : float(std::max(s.stripW, 1));
         // clocks, continuous between ticks: the camera counter runs +3 per tick, the credits clock +6
         const float cnt = float(3.0 * ticksF), C = float(25034.0 + 6.0 * ticksF);
 
@@ -256,8 +272,8 @@ struct Intro : Scene {
         feedback.set("phX", C * 0.0005f);
         feedback.set("phY", C * 0.000309214595f);
         feedback.set("lightPh", C * 0.00427350427f);
-        feedback.set("F1", s.F1);
-        feedback.set("F2", s.F2);
+        feedback.set("F1", F1);
+        feedback.set("F2", F2);
         drawFullscreen();
 
         c.out->bind();
@@ -275,12 +291,12 @@ struct Intro : Scene {
             g[i * 4 + 3] = 0.0f;
         }
         gl::Uniform4fv(present.loc("glyph"), 11, g);
-        present.set("level", T >= kStart ? float(s.level) / 256.0f : 0.0f);
-        present.set("flashM", s.flash);
+        present.set("level", T >= kStart ? level / 256.0f : 0.0f);
+        present.set("flashM", flash);
         present.set("invert", s.invert ? 1 : 0);
         present.set("strip", s.stripW > 0 ? 1 : 0);
-        present.set("spread", s.stripSpread);
-        present.set("blurW", float(std::max(s.stripW, 1)));
+        present.set("spread", spread);
+        present.set("blurW", blurW);
         drawFullscreen();
         cur ^= 1;
     }
