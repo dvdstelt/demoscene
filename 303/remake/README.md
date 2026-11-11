@@ -1,0 +1,110 @@
+# 303 by Acme (X'97) — high resolution remake
+
+A C++/OpenGL re-implementation of Acme's *303*, the PC demo that won the X'97 demo competition
+(code: Statix, music and vocals: Vic, graphics/design: Aap). It runs on Linux and Windows at any
+resolution in true colour, instead of 320×200 in 256 colours, and it plays the original soundtrack.
+
+The remake loads the original data files directly. They are not included: get them with
+`scripts/fetch-originals.sh 303` (or `.ps1` on Windows) from the repository root, which puts them in `303/original/`.
+
+| file | contents | how it is used |
+|------|----------|----------------|
+| `MUSTARD.PAK` | 45 LZW-compressed files: palettised textures, fonts, 3D objects, fade tables | textures upscaled on the GPU, fonts turned into signed distance fields, meshes rendered with smooth normals |
+| `GARLIC.PAK` | 30-channel PolyTracker (PTM) module | played with libopenmpt (8-tap sinc interpolation) |
+| `KETCHUP.PAK` | MPEG-1 layer II stream with Vic's vocals and drum loops | decoded with minimp3 and put back into the module's sample slots 48–90, as Statix's MIDAS hack did |
+| `ALEX/HARL/VS/PARANOID.LZW` | video clips (custom 4×4 DCT codec, YIQ) | decoded in floating point and converted with the original YIQ matrix, with no 16-level dithering |
+| `303.EXE` | the program (Watcom C/C++, DOS/4GW LE, 414,153 bytes) | loaded with its fixups at start-up and checked by size and hash; the lyric and song tables, the credit layout, the web and icon tables, the jitter table and the marching-cubes case table are read from it by address |
+
+## Running
+
+The program looks for the original files next to itself, in its parent folders, and in an `original` folder in
+any of those, so `303/original/` is found from the build folder. Or pass `--data DIR`.
+
+```
+acme303 [--window] [--size 1280x960] [--start SECONDS] [--ss 2] [--loop]
+```
+
+Keys: `Esc` quit, `Space` pause, `←/→` seek ±5 s, `↑/↓` seek ±30 s, `F`/`F11` toggle fullscreen.
+`--ss 2` renders at twice the resolution and downsamples, for supersampled antialiasing.
+
+Analysis helpers: `--wav out.wav` renders the soundtrack, and `--shots 10,20.5 --shotdir DIR --shotsize WxH`
+writes frames at given music times to PNG. `--video out.mp4 [--from S] [--to S] [--fps 60] [--shotsize WxH] [--vcodec "ffmpeg args"]`
+renders the demo with its sound through `ffmpeg`, frame by frame (see `docs/videos.md` in the repository).
+
+## Building
+
+Requirements: a C++20 compiler, CMake ≥ 3.20, SDL3, libopenmpt. If SDL3 or libopenmpt is not installed,
+CMake downloads and builds them (SDL 3.2.24, libopenmpt 0.8.8 pinned by hash). Pass
+`-DACME303_FETCH_DEPS=ON` to always do that.
+
+**Linux (Fedora)**
+
+```
+sudo dnf install gcc-c++ cmake ninja-build SDL3-devel libopenmpt-devel
+cmake -S . -B build -G Ninja && cmake --build build
+./build/acme303 --window
+```
+
+On Fedora Atomic or without root, the same works inside a toolbox (`toolbox create acme303`, then install the
+packages above with `sudo dnf` inside it).
+
+**Windows (Visual Studio 2022)**
+
+```
+cmake -S . -B build
+cmake --build build --config Release
+```
+
+SDL3 and libopenmpt are built from source automatically, and `SDL3.dll` is copied next to `acme303.exe`.
+With vcpkg (`vcpkg install sdl3 libopenmpt`) the installed packages are used instead.
+
+**Windows from Linux (MinGW cross-compile, Fedora)**
+
+```
+sudo dnf install mingw64-gcc-c++ mingw64-SDL3 mingw64-winpthreads-static
+mingw64-cmake -S . -B build-win -G Ninja && cmake --build build-win
+```
+
+## How it is put together
+
+- `src/exe.*`: loads `303.EXE` (LE objects and fixups) and reads it by address
+- `src/assets.*`: the LZW variant (Nelson's LZW15V), the PAK directory, the video codec, the three mesh formats
+- `src/audio.*`: rebuilds the PTM with the vocal samples, playback and timing through SDL3
+- `src/exefx.*`: building blocks ported from the executable and shared by several parts: the palette system
+  (fades, flashes, negative strobes, brightness kicks), Watcom `rand()`, the sphere-ray grid, soft additive
+  lines, the lyric renderer, and the inverted thumbnail inset
+- `src/scenes/*.cpp`: one port per part. `intro`, `aap`, `blobby`; `mid_face` (rings tunnel, flowers, relief
+  face); `mid_blobs` (face sheet, typo, metaballs, wire blobs); `mid_spiral` (photo and credit parts, spiral,
+  tentacle star, plasma); `late` (harl, web, paranoid, face floor, dance, icons, ending)
+- `src/timeline.cpp`: running order; `src/fx.*`, `src/demo.*`, `src/render.*`: engine and shared effects
+- `tools/`: the reverse-engineering helpers (LE/DOS4GW loader with fixups, capstone disassembly helper,
+  LZW decoder, video frame dumper, module row timing)
+- [`../re/`](../re/): the decompiled notes for every part (pseudo-C with all constants), the briefs the agents
+  worked from, and the comparison scripts
+
+## Fidelity
+
+Everything is ported from the executable, routine by routine, then checked side by side against a capture of
+the original running on a Pentium MMX. The remake evaluates per pixel what the original computed on an
+8x8-pixel grid, keeps colours in floating point instead of 256 palette entries, and draws lines, contours and
+edges anti-aliased, but the algorithms, constants, motion and timing are the original's.
+
+The original schedules everything on the module position (`[0x9b844]` = 2 × (order × 64 + row) − 2,
+`musicPos()` in `fx.cpp`) and animates in 70 Hz vertical-retrace callbacks. The remake replays those callbacks
+from the start of each part every frame, so seeking is exact. In the capture the picture leads the sound by
+about 0.5 s at the start, shrinking to zero by about 2 minutes; `captureLead()` holds the measured offsets so
+that effects line up with the capture.
+
+What is not exact, and why:
+
+- **Randomness.** Many choices come from `rand()` (Aap's compositions, the blobby mode switches, lyric jumps
+  and inversions, web tiles, blob wobble, icon layout). The sequence depends on the machine's frame rate, so
+  every run of the original differed. The remake uses fixed seeds, and scripts the realisation seen in the
+  capture where it matters (mode switches, lyric and word positions, ball paths, which were searched for).
+- **Frame rate.** The original applies feedback (trails, ghosting, spin) per rendered frame and never waits
+  for vsync; the remake runs those at fixed rates estimated from the capture (35–140 fps depending on the part).
+- **Palette effects.** Fade tables snap to the nearest palette colour. The remake lerps in true colour and only
+  reproduces the hue shifts where they are visible (the purple lyric smears in the blobby part).
+- **Known differences.** The plasma section's camera roll and the look of its balls in places. The web
+  words, which the code colours red and violet, but the capture shows in blue and yellow (the remake follows
+  the capture).
