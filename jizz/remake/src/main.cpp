@@ -287,7 +287,11 @@ int main(int argc, char** argv) {
             readFrame(demo.render(t), px);
             char name[512];
             std::snprintf(name, sizeof name, "%s/shot_%07.3f.png", opt.shotDir.c_str(), t);
-            stbi_write_png(name, rw, rh, 4, px.data(), rw * 4);
+            if (!stbi_write_png(name, rw, rh, 4, px.data(), rw * 4)) {
+                SDL_Log("cannot write %s", name);
+                rc = 1;
+                break;
+            }
             SDL_Log("wrote %s (%s)", name, demo.partAt(t));
         }
     } else if (!opt.videoOut.empty()) {
