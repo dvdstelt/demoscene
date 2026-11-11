@@ -10,6 +10,10 @@ not include them, and the license in [LICENSE.md](LICENSE.md) does not cover the
   breakdancer.
 - **Paper** by Psychic Link (Wired '96, 1996): code, graphics and design Statix, music Vic of Acme. It uses PMODE by
   Tran.
+- **JIZZ** by The Black Lotus (Wired '97, 1997): code, design and graphics Jace, music Probe, vector engine and
+  metaballs Nix, VESA code Ballein, "jizz" logo Sjaak of Trepaan. It uses the DOS32 extender by Adam Seychell and
+  MXMPlay by Niklas Beisert. Its documentation allows copying it for non-commercial use only, in its complete and
+  original form; this repository does not include or change it.
 
 The remakes read the original files at run time. You need your own copy of each original release:
 `scripts/fetch-originals.sh` (or `fetch-originals.ps1` on Windows) downloads it from scene.org. The source code

@@ -73,9 +73,12 @@ afterwards.
 
 - Every remake has offline modes: `--shots T1,T2 --shotdir DIR --shotsize WxH` writes frames to PNG, `--wav`
   renders the soundtrack, `--video` renders a range through ffmpeg, `--bench` reports GPU time per frame.
-- Compare against the original, not against your expectations: `paper/remake/tools/compare.py` puts remake frames
-  next to the emulator capture (regenerate it with `paper/re/run_paper.py`, see `paper/re/README.md`);
-  `303/re/compare.sh` does the same against a video capture of 303. Look at the resulting image.
+- Compare against the original, not against your expectations: `paper/remake/tools/compare.py` and
+  `jizz/remake/tools/compare.py` put remake frames next to the emulator capture (regenerate it with
+  `paper/re/run_paper.py` or `jizz/re/run_jizz.py`, see the `re/README.md`); `303/re/compare.sh` does the same
+  against a video capture of 303. Look at the resulting image.
+- JIZZ's music has a checker: `cmake --build jizz/remake/build --target test_music` compares the module, the GUS
+  register stream, the GUS memory and the music positions with the capture.
 - Seek determinism: rendering a time after seeking forwards and after seeking backwards must give identical frames.
 - Performance target: 60+ fps at 2560x1920 on a mid-range GPU; all initialisation together under 2 s.
 
@@ -84,7 +87,10 @@ afterwards.
 - Portable C++20, small readable functions. Every source file starts with a comment saying what it draws or
   provides and which original routines (by address) it ports.
 - Look in `src/demo.h` (framework, `Scene`, `REGISTER_SCENE`, the context) and `src/render.h` (GL helpers) before
-  adding helpers; parts share code through the demo's core library (`paper/remake/src/paper/`, `303/remake/src/exefx.*`).
+  adding helpers; parts share code through the demo's core library (`paper/remake/src/paper/`, `jizz/remake/src/jizz/`,
+  `303/remake/src/exefx.*`).
+- Paper and 303 count time in their original's timer ticks; JIZZ counts seconds of music time and gets the
+  original's timer from `ctx.timer(t)`, because its parts animate from MXMPlay's timer.
 - Colours are display-space floats (a 6-bit VGA value v is v/63). The original 320x200 screen is shown at 4:3.
 
 ## Documentation
