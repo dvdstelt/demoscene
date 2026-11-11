@@ -205,6 +205,14 @@ void Demo::resize(int w, int h) {
     ctx.pool.clear();
 }
 
+void Demo::release() {
+    scenes_.clear();
+    ctx.scenes = nullptr;
+    ctx.shared_.clear();
+    ctx.pool.clear();
+    frame_.destroy();
+}
+
 double Demo::length() const { return cues_.empty() ? 0.0 : cues_.back().end; }
 
 const Target& Demo::render(double t) {

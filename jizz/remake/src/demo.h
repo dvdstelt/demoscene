@@ -161,6 +161,8 @@ public:
     double length() const;  // music time at which the intro exits
     const char* partAt(double t) const;
     const std::vector<Cue>& cues() const { return cues_; }
+    // Frees every GL object of the parts and the shared core objects. Call it while the GL context still exists.
+    void release();
     Ctx ctx;
 
 private:

@@ -361,6 +361,7 @@ int main(int argc, char** argv) {
         }
         music.stopPlayback();
     }
+    demo.release();  // the parts' GL objects go before the context
     SDL_GL_DestroyContext(glc);
     SDL_DestroyWindow(win);
     SDL_Quit();
