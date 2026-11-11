@@ -25,6 +25,13 @@ out/
 *.mem
 paper/re/paper_img.bin
 paper/re/*.log
+jizz/re/jizz_img.bin
+jizz/re/jizz_unp.txt
+jizz/re/*.flips
+jizz/re/*.log
+jizz/re/dump/
+jizz/re/snaps/
+jizz/re/overview.jpg
 
 # Media: videos go to YouTube, audio renders stay local
 *.mp4
