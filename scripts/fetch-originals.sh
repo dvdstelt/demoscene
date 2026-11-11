@@ -2,11 +2,12 @@
 # Downloads the original MS-DOS releases from scene.org and puts the files the remakes read into place,
 # checking every file's SHA-256.
 #
-#   scripts/fetch-originals.sh          both demos
+#   scripts/fetch-originals.sh          all demos
 #   scripts/fetch-originals.sh 303      only 303 by Acme (X'97)
 #   scripts/fetch-originals.sh paper    only Paper by Psychic Link (Wired '96)
+#   scripts/fetch-originals.sh jizz     only JIZZ by The Black Lotus (Wired '97)
 #
-# In the repository the files go into <repo>/303/original/ and <repo>/paper/original/. Anywhere else (next to
+# In the repository the files go into <repo>/<demo>/original/. Anywhere else (next to
 # a released program) they go into an original/ folder next to this script, and without an argument only the
 # demo whose program is there is fetched.
 #
@@ -42,6 +43,15 @@ demo_info() {
         program=paper-remake
         files=(
             "PAPER.EXE    e60c3eccc4b38df0461d78fd884758886de9b4c1fa31505d6556874ec6b8ef4d"
+        )
+        ;;
+    jizz)
+        title="JIZZ by The Black Lotus (Wired '97, 1997)"
+        zip_name=jizz.zip
+        zip_path=demos/groups/tbl/pc/jizz.zip
+        program=jizz-remake
+        files=(
+            "JIZZ.EXE     8bf022ea25fc6c02504e915441cc40ec0a2226d21eda4ffe1a1a46d2dca99593"
         )
         ;;
     *) return 1 ;;
@@ -91,7 +101,7 @@ check_download_tools() {
 # ---------------------------------------------------------------- where the files go
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd "$script_dir/.." && pwd)
-if [ -d "$repo_root/303/remake" ] || [ -d "$repo_root/paper/remake" ]; then
+if [ -d "$repo_root/303/remake" ] || [ -d "$repo_root/paper/remake" ] || [ -d "$repo_root/jizz/remake" ]; then
     in_repo=1
 else
     in_repo=0
@@ -185,8 +195,8 @@ fetch_demo() {  # demo
 demos=()
 for arg in "$@"; do
     case "$arg" in
-    303 | paper) demos+=("$arg") ;;
-    all) demos+=(303 paper) ;;
+    303 | paper | jizz) demos+=("$arg") ;;
+    all) demos+=(303 paper jizz) ;;
     -h | --help) usage; exit 0 ;;
     *) fail "unknown argument '$arg'"; usage >&2; exit 2 ;;
     esac
@@ -194,12 +204,12 @@ done
 if [ ${#demos[@]} -eq 0 ]; then
     if [ "$in_repo" = 0 ]; then
         # next to a released program: fetch what that program needs
-        for d in 303 paper; do
+        for d in 303 paper jizz; do
             demo_info "$d"
             if [ -e "$script_dir/$program" ] || [ -e "$script_dir/$program.exe" ]; then demos+=("$d"); fi
         done
     fi
-    if [ ${#demos[@]} -eq 0 ]; then demos=(303 paper); fi
+    if [ ${#demos[@]} -eq 0 ]; then demos=(303 paper jizz); fi
 fi
 
 failed=0

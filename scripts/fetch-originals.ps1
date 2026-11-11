@@ -4,12 +4,13 @@ Downloads the original MS-DOS releases from scene.org and puts the files the rem
 checking every file's SHA-256.
 
 .DESCRIPTION
-  fetch-originals.ps1          both demos (next to a released program: the demo of that program)
+  fetch-originals.ps1          all demos (next to a released program: the demo of that program)
   fetch-originals.ps1 303      only 303 by Acme (X'97)
   fetch-originals.ps1 paper    only Paper by Psychic Link (Wired '96)
+  fetch-originals.ps1 jizz     only JIZZ by The Black Lotus (Wired '97)
 
-In the repository the files go into <repo>\303\original\ and <repo>\paper\original\. Anywhere else (next to a
-released program such as acme303.exe or paper-remake.exe) they go into an original\ folder next to this script,
+In the repository the files go into <repo>\<demo>\original\. Anywhere else (next to a released program such
+as acme303.exe, paper-remake.exe or jizz-remake.exe) they go into an original\ folder next to this script,
 and without an argument only the demo whose program is there is fetched.
 
 A file that is already there and verifies is never touched. A file that is there but differs is renamed to
@@ -24,7 +25,7 @@ powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 paper
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('303', 'paper', 'all')]
+    [ValidateSet('303', 'paper', 'jizz', 'all')]
     [string]$Demo
 )
 
@@ -63,6 +64,15 @@ $Releases = [ordered]@{
             'PAPER.EXE' = 'e60c3eccc4b38df0461d78fd884758886de9b4c1fa31505d6556874ec6b8ef4d'
         }
     }
+    'jizz' = @{
+        Title   = "JIZZ by The Black Lotus (Wired '97, 1997)"
+        ZipName = 'jizz.zip'
+        ZipPath = 'demos/groups/tbl/pc/jizz.zip'
+        Program = 'jizz-remake'
+        Files   = [ordered]@{
+            'JIZZ.EXE' = '8bf022ea25fc6c02504e915441cc40ec0a2226d21eda4ffe1a1a46d2dca99593'
+        }
+    }
 }
 
 function Get-Urls([string]$ZipPath) {
@@ -88,7 +98,7 @@ $ScriptDir = $PSScriptRoot
 $RepoRoot = Split-Path -Parent $ScriptDir
 $InRepo = $false
 if ($RepoRoot) {
-    foreach ($d in '303', 'paper') {
+    foreach ($d in '303', 'paper', 'jizz') {
         if (Test-Path -LiteralPath (Join-Path (Join-Path $RepoRoot $d) 'remake') -PathType Container) { $InRepo = $true }
     }
 }
@@ -186,7 +196,7 @@ function Get-Original([string]$Name) {
 # ---------------------------------------------------------------- which demos
 $names = @()
 if ($Demo -eq 'all') {
-    $names = @('303', 'paper')
+    $names = @('303', 'paper', 'jizz')
 } elseif ($Demo) {
     $names = @($Demo)
 } else {
@@ -197,7 +207,7 @@ if ($Demo -eq 'all') {
             if ((Test-Path -LiteralPath "$p.exe") -or (Test-Path -LiteralPath $p)) { $names += $k }
         }
     }
-    if ($names.Count -eq 0) { $names = @('303', 'paper') }
+    if ($names.Count -eq 0) { $names = @('303', 'paper', 'jizz') }
 }
 
 $failed = $false
