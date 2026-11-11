@@ -1,0 +1,48 @@
+# Rendering the videos
+
+The remakes are meant to be watched on YouTube too, so nobody has to build or run anything. The videos are not
+kept in the repository.
+
+## What to render
+
+| video | contents |
+|---|---|
+| `paper-remake-2160p60.mp4` | Paper remake, 2880×2160, 60 fps |
+| `paper-original-vs-remake.mp4` | the original (emulator capture, pixels kept sharp) next to the remake, 2880×1080 |
+| `303-remake-2160p60.mp4` | 303 remake, 2880×2160, 60 fps |
+
+2880×2160 is 4:3 at 2160 lines, so YouTube offers it in 4K. The remakes render offline, frame by frame, so the result does not depend on how fast the
+machine is.
+
+```
+scripts/render-videos.sh                  # all
+scripts/render-videos.sh paper            # one
+SIZE=1920x1440 FPS=60 scripts/render-videos.sh paper
+```
+
+The script needs the remakes built, the originals in `<demo>/original/`, and an `ffmpeg` with `libsvtav1` (AV1).
+YouTube accepts AV1 in MP4. At CRF 18 the files are large but clean, which is what an upload needs. The
+comparison video also needs the emulator capture (`paper/re/README.md`).
+
+By hand, the Paper remake does it itself:
+
+```
+paper/remake/build/paper-remake --video out.mp4 --from 0 --to 12235 --fps 60 --shotsize 2880x2160 \
+    --vcodec "-c:v libsvtav1 -crf 18 -preset 5"
+```
+
+`--from` and `--to` are in the intro's 70 Hz ticks.
+
+The 303 remake takes the same options, with `--from` and `--to` in seconds:
+
+```
+303/remake/build/acme303 --video out.mp4 --fps 60 --shotsize 2880x2160 --vcodec "-c:v libsvtav1 -crf 18 -preset 5"
+```
+
+## Uploading
+
+Suggested title: *Paper by Psychic Link (Wired '96 64k intro), 4K remake*. In the description, put the credits of
+the original, a link to this repository and the original's pouet.net page, and a note that it is a non-commercial
+fan remake. Turn off monetisation for the video. The music is Vic's, and nobody should earn from it.
+
+After uploading, put the links in the root README and the demo's README.
