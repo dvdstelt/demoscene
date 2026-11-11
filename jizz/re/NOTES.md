@@ -228,12 +228,19 @@ except:
   drives the colour pulse (0x13f98; a triangle wave of 128 frames). At the capture's 22 fps that is 1.3 s, 0.5 s
   and 5.8 s; at 25 M instructions/s (5.7 fps) 5.1 s, 2.1 s and 22 s. The level ([0x1210d] >> 3 → [0x11f72]) is
   the brightness given to 0x11f73.
-- The flash in 0x638b: [0x1a478] (brightness of the colour tables, 0x1a229) -= [0x6386] per frame. Part 0x17003
-  sets 0xff / 9 at event 311 (03:10): a white flash that fades in 29 frames (0.8 s at 35 fps).
+- The flash in 0x638b: [0x1a478] (the inversion F of the engine's colour tables, 0x1a229) -= [0x6386] per frame.
+  Part 0x17003 sets 0xff / 9 at event 311 (03:10). It is not white: engine pixels turn into their negative and
+  fade back in 30 frames (0.85 s at 35 fps). The same rebuild leaves the ribbons with plain tables (notes-core §6).
+- The glow lines (notes-core §8.6): the >> 3 decay, the trail and the jitter of the rectangles run per frame in
+  0x17003 (events 130 / 225 / 230 / 300) and 0x169e7 (event 510), and the rings of 0x18009 step their angles and
+  radii per frame (notes-parts3d-a).
+- Part 0x17c8a: the speed factor S drops by 3 per frame from 1024 to 512 (171 frames, 3.05 s in the capture;
+  notes-parts2d).
 - All part changes and sync reactions happen once per frame (0x638b), so they lag the music by up to two frames.
 
 The music sync, all 3D objects, textures, tunnels, warps and the timer fades (0x17979 / 0x17999) use the timer.
-No part is skipped or broken at any of the three speeds.
+No part is skipped or broken at any of the three speeds. (The frozen-timer runs started at the first ticks of each
+part, before the glow phases; the decompiled notes found the per-frame state listed above.)
 
 ## Dump modes ("a way to get the intro writing all the gfx and music to disk")
 

@@ -40,7 +40,7 @@ file and your own scratch directory.
   shows the values).
 - Dynamic analysis: `run_jizz.py` runs the intro headless in unicorn (see its docstring and NOTES.md).
   Snapshots (pickle: `'mem'` = 32 MB from linear 0, `'lfb'` = 2 MB video memory, `'ctx'`, `'st'`, `'gus'`, ...)
-  are in `jizz/re/snaps/t<tick>.snap` at ticks 430 (precalc done, before the mode set), 440, 1365, 2515, 3285,
+  are in `jizz/re/snaps/t<tick>.snap` at ticks 430 (still building map15), 440 (textures done), 1365, 2515, 3285,
   4050, 4435, 5205, 5970, 7506, 9045 (a few ticks into each part). Unpickling needs unicorn imported, so run inside
   the toolbox. Read generated tables, textures and objects straight from `snap['mem']`. To run on from a snapshot
   with your own hooks, COPY `run_jizz.py` into your scratch directory and edit the copy (never the shared one):
