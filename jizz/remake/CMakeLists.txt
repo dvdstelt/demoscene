@@ -50,6 +50,8 @@ add_executable(jizz WIN32
   ${SRC}/adam.cpp
   ${SRC}/music.cpp
   ${SRC}/mxmplay.cpp
+  ${SRC}/mp4synth.cpp
+  ${SRC}/gf1.cpp
   ${SRC}/gl.cpp
   ${SRC}/render.cpp
   ${SRC}/demo.cpp
@@ -68,6 +70,20 @@ else()
 endif()
 if(MINGW)
   target_link_options(jizz PRIVATE -static -static-libgcc -static-libstdc++)
+endif()
+# The module expander must round exactly like the original's x87 at 24 bits (IEEE double, no contraction into
+# FMAs); the GF1 mix is kept identical to the Python model's.
+set_source_files_properties(${SRC}/mp4synth.cpp ${SRC}/gf1.cpp PROPERTIES
+  COMPILE_OPTIONS "$<IF:$<CXX_COMPILER_ID:MSVC>,/fp:precise,-ffp-contract=off>")
+# tools/test_music: checks the soundtrack against the capture and the Python models (not built by default)
+add_executable(test_music EXCLUDE_FROM_ALL
+  tools/test_music.cpp ${SRC}/mxmplay.cpp ${SRC}/mp4synth.cpp ${SRC}/gf1.cpp ${SRC}/exe.cpp ${SRC}/adam.cpp)
+target_include_directories(test_music PRIVATE src)
+if(MSVC)
+  target_compile_options(test_music PRIVATE /W3 /utf-8)
+  target_compile_definitions(test_music PRIVATE _CRT_SECURE_NO_WARNINGS)
+else()
+  target_compile_options(test_music PRIVATE -Wall)
 endif()
 if(WIN32 AND TARGET SDL3::SDL3-shared)
   add_custom_command(TARGET jizz POST_BUILD
