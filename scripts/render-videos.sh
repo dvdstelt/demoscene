@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Render the YouTube videos of the remakes into videos/ (git-ignored).
 #
-#   scripts/render-videos.sh [paper|paper-compare|303 ...]     (default: all that can be made)
+#   scripts/render-videos.sh [paper|paper-compare|303|jizz ...]     (default: all that can be made)
 #
 # Needs the remakes built in <demo>/remake/build, the originals in <demo>/original/, and ffmpeg with libsvtav1
 # (Fedora's ffmpeg-free has it). paper-compare also needs the emulator capture paper/re/full.frames (see
@@ -48,13 +48,21 @@ r303() {
   "$bin" --video "$OUT/303-remake-2160p60.mp4" --fps "$FPS" --shotsize "$SIZE" --vcodec "$VCODEC"
 }
 
-targets=("$@"); [ ${#targets[@]} -gt 0 ] || targets=(paper paper-compare 303)
+jizz() {
+  local bin=$ROOT/jizz/remake/build/jizz-remake
+  [ -x "$bin" ] || { echo "build jizz/remake first"; return 1; }
+  # --from/--to are in seconds of music time: the whole intro is 0..147.75
+  "$bin" --video "$OUT/jizz-remake-2160p60.mp4" --fps "$FPS" --shotsize "$SIZE" --vcodec "$VCODEC"
+}
+
+targets=("$@"); [ ${#targets[@]} -gt 0 ] || targets=(paper paper-compare 303 jizz)
 for t in "${targets[@]}"; do
   echo "== $t"
   case $t in
     paper) paper ;;
     paper-compare) paper_compare || true ;;
     303) r303 || true ;;
+    jizz) jizz || true ;;
     *) echo "unknown target $t"; exit 2 ;;
   esac
 done

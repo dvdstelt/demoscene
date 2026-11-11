@@ -41,6 +41,20 @@ python3 re303.py func 0x2d81c         # list a routine
 
 [`paper/re/README.md`](../paper/re/README.md) lists the commands in order.
 
+## JIZZ (DOS32, VESA 2.0 hicolor, hand-written 32-bit assembly)
+
+| tool | what it does |
+|---|---|
+| [`jizz/re/unadam.py`](../jizz/re/unadam.py) | runs the DOS32 kernel's own loader routine (decompress, relocate, clear the BSS) in unicorn, twice at different bases, and checks a Python reimplementation against it |
+| [`jizz/re/rep.py`](../jizz/re/rep.py) | capstone helper on the program image: `func`, `dis`, `calls`, `xref`, `funcs`, `str`, `ints` |
+| [`jizz/re/run_jizz.py`](../jizz/re/run_jizz.py) | runs the whole intro headless in unicorn with fake DOS32 services, a VESA 2.0 BIOS with a linear frame buffer, the timer chip and a Gravis UltraSound. Records per timer tick: the visible page, the music position and sync event, the page flips, GUS writes. Snapshots, a frozen timer and per-part CPU speeds help find frame-rate dependent state |
+| [`jizz/re/fpscheck.py`](../jizz/re/fpscheck.py) | compares two runs made at different CPU speeds at equal timer values |
+| [`jizz/re/frames2mp4.py`](../jizz/re/frames2mp4.py), [`sheet.py`](../jizz/re/sheet.py) | turn a capture into a video or a contact sheet |
+| [`jizz/re/models/`](../jizz/re/models/) | the agents' Python models: textures, the music synthesiser and MXMPlay, the engine, every part |
+| [`jizz/remake/tools/compare.py`](../jizz/remake/tools/compare.py) | the remake's frames next to the capture's, with an optional difference score |
+
+[`jizz/re/README.md`](../jizz/re/README.md) lists the commands in order.
+
 ## The emulator harness in short
 
 `run_paper.py` doesn't emulate a PC. It emulates just enough for this one program:
@@ -56,7 +70,8 @@ python3 re303.py func 0x2d81c         # list a routine
   emulated PC, which matters for anything the intro does per drawn frame.
 
 That is a few hundred lines of Python. It gives an exact, repeatable run of the original that can be stopped,
-inspected and resumed at any tick.
+inspected and resumed at any tick. `run_jizz.py` does the same for JIZZ, with DOS32's services and a VESA BIOS
+instead of PMODE and VGA.
 
 ## In the remakes
 
@@ -65,3 +80,4 @@ The remakes do their own loading at run time, in C++:
 - `paper/remake/src/pklite.cpp` unpacks PAPER.EXE. Its output is byte-identical to the stub's.
 - `paper/remake/src/exe.*` reads by address from the unpacked image.
 - `303/remake/src/assets.*` reads the PAK archives, the LZW codec, the video codec and the meshes.
+- `jizz/remake/src/adam.cpp` unpacks JIZZ.EXE like the DOS32 loader; `jizz/remake/src/exe.*` reads by address.
