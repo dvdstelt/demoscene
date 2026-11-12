@@ -571,13 +571,26 @@ Random numbers: none.
 - Cosine table with amplitude 1023 and 12-bit angles: use exact sin / cos of `angle * 2 pi / 4096` (fractional
   angles from the tick interpolation).
 - Affine (screen-linear) interpolation of the env and texture coordinates: perspective-correct interpolation is the
-  better evaluation (the triangles are small, the difference is slight). For the texture coordinates keep the
-  original's short-way wrap: per triangle, unwrap the three 8-bit (u, v) relative to one corner into −128..127.
-- Environment map: instead of the 256x256 byte map with `isqrt` rings and the 32 / 16 / 8 shade steps, evaluate
-  per pixel `r = 64 * |n̂_xy|` (mode 3 / 15 / 20 / 21; 128 for mode 2) from the interpolated (and renormalised)
-  rotated normal, the colour table interpolated between its entries, and blend between neighbouring palette shade
-  bands (index = band * N + texture colour, N = 16 or 8, 7.3) in true colour. The bee and star read their maps from
-  files: sample them bilinearly in true colour (palette applied first).
+  better evaluation (the triangles are small, the difference is slight). Keep the original's short-way wrap: per
+  triangle, unwrap the three 8-bit (u, v) relative to one corner into −128..127 (texture coordinates; env
+  coordinates can wrap only in mode 2, whose range is 0..255: 4 faces of the mirror, file 45, could).
+- Environment map: instead of the 256x256 byte map with `isqrt` rings and the 32 / 16 / 8 shade steps, read the
+  colour table at the continuous radius `r = |e − 128|` of the env coordinate e (interpolated between its entries)
+  and blend between neighbouring palette shade bands (index = band * N + texture colour, N = 16 or 8, 7.3) in true
+  colour. The bee and star read their maps from files: sample them bilinearly in true colour (palette applied
+  first). The env coordinate itself is the original's design and stays: the per-vertex coordinates `128 + R n̂_xy`
+  (R = 63.75, 127.5 for mode 2, without the truncation) interpolated across the face, not a coordinate computed per
+  pixel from the interpolated normal.
+  Found by the port (`remake/tools/enginetest`, then the whole parts against the capture): on coarse meshes the two
+  differ visibly. With five vertices round the ring's section (torso) the per-vertex coordinates of a face cut
+  across the map, nearer its bright centre, where the direction of the interpolated normal follows the arc; the
+  per-pixel version makes the ring and the wall's face dome darker than in the capture. Mean absolute difference to
+  the capture over 15 frames per part (640x480 area-averaged to 320x200, the capture taken 50–70 ms later to
+  compensate the remake's lead), per-vertex / per-pixel: bee 11.37 / 11.69, spike ball 9.96 / 9.79, wall 8.00 /
+  7.94, star 9.50 / 9.96, torso 10.10 / 10.24; the 95th percentile of the brightness is closer to the capture with
+  the per-vertex coordinates for the bee, the spike ball, the wall and the torso (the star's is 2.4 / 255 above it
+  instead of 1.9 below), and the spike ball's frames are about 1.7 / 255 brighter on average. The
+  remake interpolates the per-vertex coordinates (perspective-correct) by default.
 - Bump offsets: the table is read per texel (nearest) and adds whole texels; filter the offsets (as signed values)
   at the higher resolution.
 - Texture maps: filter in true colour after the palette lookup of `texture + shade`; nearest only for the index sum.
@@ -592,7 +605,7 @@ Random numbers: none.
   stripes over the abdomen (capture frame 6747), drawn in file order ([0x582ac] = 1) the outer surface covers them
   as in the capture. 24 vertices of the bee have zero normals (objects 20, 34, 35, 44, 57, 65, 66: mostly the
   wings): their env coordinate is the map centre (128, 128), the brightest texel, which a remake that renormalises
-  the normal per pixel loses (the remake interpolates the normals' lengths separately).
+  the normal per pixel loses (interpolating the per-vertex coordinates keeps it).
 - The blended normals are not renormalised; the morph uses 64 steps per key.
 - Black rows 0, 198, 199 (7.2): a 320x200 artefact of the copy routine.
 - The filler details listed at the end of 7.2 (borrows, stale gradients, carries) are invisible at this scale and

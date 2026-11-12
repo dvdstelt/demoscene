@@ -45,9 +45,9 @@ std::vector<Cue> buildTimeline(const Ctx& c) {
     // 0x11f48 free, 0x65ef spike ball set-up (black)
     wait(0x1700);
     part("spikeball", 0x6534, c.positionTime(0x2700));  // ends when the order is 0x27 (4.4)
-    // 0x65ad free, 0x9d17 warp set-up: the last spike ball frame stays
+    // 0x65ad free, 0x9d17 warp set-up: it sets the palette to black first (notes-parts2d-a 2.2), so the frames
+    // between (capture 9476, 9477) are black
     wait(0x2700);
-    holdUntilNext();
     {
         // 0x975b: five blocks of 0x104 + 1 and 4 x (0x186 + 1) ticks; each waits for its position (notes-parts2d-a 2.4)
         double b = t + ticks(0x104 + 1);
@@ -69,9 +69,12 @@ std::vector<Cue> buildTimeline(const Ctx& c) {
     wait(0x6100);
     notBefore(18451);
     part("particles", 0x133ad, c.positionTime(0x6900));  // ends when the order passes 0x68 (notes-parts2d-b 4.2)
-    // 0x1339d free, clear, 0x1528c dissolve set-up
+    // 0x1339d free, clear, 0x1528c dissolve set-up. The capture shows the last particle frame up to record 18996
+    // (in which the cue ends) and the cleared screen from 18997, all under a black palette since 18918
     wait(0x6900);
-    part("dissolve", 0x1535c, c.afterPos(0x6b30));  // ends at 6b:31 (5.2); main clears the screen
+    // ends at 6b:31 (5.2); main clears the screen. The capture shows the last dissolve frame up to record 19468 (in
+    // which the cue ends, at 6b:31) and the cleared screen from 19469, under a black palette since 19463
+    part("dissolve", 0x1535c, c.afterPos(0x6b30));
     // 0x1530a free, 0x16d86 torso set-up
     wait(0x6c00);
     part("torso", 0x16f7c, t + ticks(2447));  // ends by its fade at tick 2447 (5.2); main clears the screen

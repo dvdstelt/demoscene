@@ -16,16 +16,19 @@
 //     vectors, exact sin / cos of fractional 12-bit angles instead of the 1023-amplitude table), the eye at z = +F
 //     looking along -z, focal length 1024 / 2^shift pixels of the 320x200 frame, centre (160, 100), no aspect
 //     correction (on the 4:3 screen the picture is 1.2 times taller, as in mode 13h). The GPU rasterises with MSAA;
-//     texture coordinates and normals are interpolated perspective-correctly.
+//     texture and env coordinates are interpolated perspective-correctly.
 //   - Back faces are culled on the screen like 0x78b08. Faces nearer than z = -F (2F from the eye) are clipped per
 //     pixel at that plane instead of being dropped whole (Debug::dropNearFaces drops them as the original does).
 //     Objects of a scene list are dropped whole like 0x79483 when their bounding sphere is off screen, reaches
 //     z >= -F or the centre is farther than 8000 units: that is composition and stays.
-//   - The env ("phong") coordinate is computed per pixel, e = 128 + R n.xy texels (R = 63.75 for modes 3, 15, 20,
-//     21, 127.5 for mode 2), from the interpolated rotated normal: its direction renormalised, its length the
-//     interpolated length of the vertex normals (the original interpolates the per-vertex coordinates, so the few
-//     zero normals of the bee's wings are the map's centre and morphed normals between keys are shorter). Normals
-//     are rotated by the object's angles plus the env angles only, never by the camera (0x78a35 / 0x79a17).
+//   - The env ("phong") coordinate of each vertex is e = 128 + R n.xy texels (R = 63.75 for modes 3, 15, 20, 21,
+//     127.5 for mode 2; 0x4d4b4 / 0x4d4e7 / 0x4da28 in float, without the truncation), interpolated across the face
+//     as the fillers do, but perspective-correct; like the fillers' 8-bit differences a face goes the short way round
+//     the map (only mode 2's range can wrap). So the zero normals of the bee's wings are the map's centre and
+//     morphed normals between keys are shorter, and on coarse meshes a face's coordinates cut across the map nearer
+//     its bright centre than its normals' directions would (Debug::Env::Pixel evaluates the env coordinate per pixel
+//     from the interpolated normal instead, for comparison). Normals are rotated by the object's angles plus the env
+//     angles only, never by the camera (0x78a35 / 0x79a17).
 //   - The light maps of 0x7873a (rings of isqrt radius, 16 or 32 levels) are the light curve read at the
 //     continuous radius (interpolated between its 128 entries); the level stays continuous and the colour is
 //     interpolated between the palette's level rows. The bump offsets are read filtered; the texture's colour is
@@ -156,7 +159,7 @@ public:
 private:
     friend class Engine;
     void upload() const;
-    mutable std::vector<float> data_;   // 3 vertices per face: position, normal, uv (unwrapped per face), type
+    mutable std::vector<float> data_;   // 3 vertices per face: position, normal, uv (unwrapped), type, 1st normal
     mutable bool dirty_ = true;
     mutable GLuint vao_ = 0, vbo_ = 0;
     mutable int count_ = 0;
@@ -373,7 +376,10 @@ public:
     struct Debug {
         bool dropNearFaces = false;   // drop faces whose depth key (z_a + z_b) / 4 + z_c / 2 >= -F (0x78b08)
         bool noObjectCull = false;    // draw scene objects that 0x79483 drops
-        bool affineEnv = false;       // env coordinates interpolated screen-linearly from the unnormalised normals
+        // How the env coordinate is interpolated across a face: Vertex = the vertices' coordinates (0x4d4b4 /
+        // 0x4d4e7 / 0x4da28), perspective-correct (default); Affine = the same, screen-linear as the fillers step
+        // them; Pixel = from the interpolated normal per pixel (direction renormalised, length interpolated)
+        enum class Env { Vertex, Affine, Pixel } env = Env::Vertex;
     } debug;
 
 private:

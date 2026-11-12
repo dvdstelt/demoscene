@@ -8,11 +8,10 @@
 // rectangle, so anti-aliased edges blend with the background. Faces are ordered by a depth buffer, or as the
 // original orders them (Order::Sorted: the 0x78b08 depth key and the quicksort 0x7898d; Order::File: file order;
 // scene objects by their centres). The fillers' integer screen vertices, affine 8.8 interpolation, nearest texels,
-// isqrt rings and 16 / 32 shade levels become: float projection, perspective-correct interpolation of the rotated
-// normal and the texture coordinate, the env coordinate per pixel from the interpolated normal (direction
-// renormalised, length interpolated), the light curve at the continuous radius, the level and the texels' colours
-// interpolated through the palette, and a box filter over the pixel (up to 3 x 3 samples) where the texture is
-// minified.
+// isqrt rings and 16 / 32 shade levels become: float projection, perspective-correct interpolation of the vertices'
+// env coordinates (unwrapped the short way like the fillers' 8-bit differences) and texture coordinates, the light
+// curve at the continuous radius, the level and the texels' colours interpolated through the palette, and a box
+// filter over the pixel (up to 3 x 3 samples) where the texture is minified.
 #include <SDL3/SDL.h>
 
 #include <algorithm>
@@ -25,41 +24,49 @@ namespace stars {
 
 namespace {
 
-constexpr int kFloats = 9;  // per vertex: position 3, normal 3, uv 2, face type 1
+constexpr int kFloats = 12;  // per vertex: position 3, normal 3, uv 2, face type 1, first corner's normal 3
 
 const char* kVS = R"(
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNrm;
 layout(location = 2) in vec2 aUV;
 layout(location = 3) in float aType;
+layout(location = 4) in vec3 aNrm0;   // the normal of the face's first corner (the wrap of mode 2)
 uniform mat4 uMV;      // object -> the engine's camera space (x right, y down, z towards the eye)
 uniform mat3 uN;       // object normal -> env space (object angles + env angles, no camera)
 uniform vec4 uProj;    // clip x = p.x X + p.y w, clip y = p.z Y + p.w w, w = F - Z
 uniform vec3 uDepth;   // F, clip z = d.y w + d.z
-out vec3 vN;
-out float vLen;               // the vertex normal's length (1 = 255 in the file; 0 for the few zero normals)
+uniform float uEnvR;   // env radius in texels: 127.5 (mode 2, n >> 11) or 63.75 (n >> 12)
+out vec2 vE;                  // the vertex's env coordinate (0x4d4b4 / 0x4d4e7 / 0x4da28), perspective-correct
+noperspective out vec2 vEA;   // Debug::Env::Affine: the same, screen-linear (the fillers' interpolation)
+out vec3 vN;                  // Debug::Env::Pixel: the rotated normal and its length (1 = 255 in the file)
+out float vLen;
 out vec2 vUV;
-noperspective out vec3 vNA;   // Debug::affineEnv: screen-linear, not renormalised (the fillers' interpolation)
 flat out int vType;
 void main() {
     vec4 v = uMV * vec4(aPos, 1.0);
     float w = uDepth.x - v.z;
     gl_Position = vec4(uProj.x * v.x + uProj.y * w, uProj.z * v.y + uProj.w * w, uDepth.y * w + uDepth.z, w);
-    vN = vNA = uN * aNrm;
+    vN = uN * aNrm;
     vLen = length(aNrm);
+    // 128 + R n.xy; the fillers take the differences of the 8-bit coordinates as -128..127, so a triangle goes the
+    // short way round the map (only mode 2's range 0..255 can wrap): unwrapped relative to the first corner
+    vec2 e = 128.0 + uEnvR * vN.xy, e0 = 128.0 + uEnvR * (uN * aNrm0).xy, d = e - e0;
+    vE = vEA = e0 + d - 256.0 * floor((d + 128.0) / 256.0);
     vUV = aUV;
     vType = int(aType + 0.5);
 }
 )";
 
 const char* kFS = R"(
+in vec2 vE;
+noperspective in vec2 vEA;
 in vec3 vN;
 in float vLen;
 in vec2 vUV;
-noperspective in vec3 vNA;
 flat in int vType;
 out vec4 o;
-uniform int uAffineEnv;
+uniform int uEnvInterp;     // Engine::Debug::Env: 0 per vertex (perspective-correct), 1 affine, 2 per pixel
 uniform int uMode;          // 0: env (modes 2, 3); 1: texture + bump light (15); 2: type 1 env, else bump light (20, 21)
 uniform float uEnvR;        // env radius in texels: 127.5 (mode 2, n >> 11) or 63.75 (n >> 12)
 uniform sampler2D uPal, uEnvRGB, uEnvLevel, uRamp, uTexA, uTexB, uBumpA, uBumpB;
@@ -153,13 +160,15 @@ vec3 lightColour(vec2 e, vec2 p, float bandW) {
 }
 
 void main() {
-    // the env coordinate from the interpolated normal: its direction renormalised, its length interpolated from
-    // the vertices' (the original interpolates the per-vertex coordinates: a zero normal is the map's centre, a
-    // morphed normal between keys is shorter)
-    float l = length(vN);
-    vec2 nxy = l > 1e-6 ? vN.xy * (vLen / l) : vec2(0.0);
-    if (uAffineEnv != 0) nxy = vNA.xy;
-    vec2 e = 128.0 + uEnvR * nxy;
+    // the env coordinate: the vertices' coordinates interpolated across the face, as the fillers do (so a zero
+    // normal is the map's centre, a morphed normal between keys is shorter); or, for comparison, from the
+    // interpolated normal per pixel, its direction renormalised and its length interpolated
+    vec2 e = vE;
+    if (uEnvInterp == 1) e = vEA;
+    if (uEnvInterp == 2) {
+        float l = length(vN);
+        e = 128.0 + uEnvR * (l > 1e-6 ? vN.xy * (vLen / l) : vec2(0.0));
+    }
     vec2 dex = dFdx(e), dey = dFdy(e);
     vec3 c;
     if (uMode == 0 || (uMode == 2 && vType == 1)) {
@@ -207,7 +216,8 @@ void setupVao(GLuint& vao, GLuint& vbo) {
     gl::VertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, st, (void*)12);
     gl::VertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, st, (void*)24);
     gl::VertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, st, (void*)32);
-    for (GLuint i = 0; i < 4; i++) gl::EnableVertexAttribArray(i);
+    gl::VertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, st, (void*)36);
+    for (GLuint i = 0; i < 5; i++) gl::EnableVertexAttribArray(i);
 }
 
 // Pixel rectangle of a VGA rectangle in a target of w x h pixels covering the view (GL rows from the bottom).
@@ -225,7 +235,8 @@ void pixelRect(const View& v, int w, int h, float x, float y, float rw, float rh
 // =============================================================================================== object upload
 void Object3D::upload() const {
     // 3 vertices per face; the texture coordinates of each face are unwrapped the short way round relative to its
-    // first corner (the fillers take every 8-bit difference as -128..127)
+    // first corner (the fillers take every 8-bit difference as -128..127), and each vertex carries the first
+    // corner's normal so that the shader can do the same with the env coordinates
     data_.clear();
     data_.reserve(faces.size() * 3 * kFloats);
     for (const EngineFace& f : faces) {
@@ -233,8 +244,18 @@ void Object3D::upload() const {
         for (int k = 0; k < 3; k++) {
             const EngineVertex& v = *c[k];
             int du = ((int(v.u) - int(c[0]->u) + 128) & 255) - 128, dv = ((int(v.v) - int(c[0]->v) + 128) & 255) - 128;
-            const float d[kFloats] = {v.x,  v.y,  v.z,  v.nx / 255.0f, v.ny / 255.0f, v.nz / 255.0f,
-                                      float(c[0]->u + du), float(c[0]->v + dv), float(f.type)};
+            const float d[kFloats] = {v.x,
+                                      v.y,
+                                      v.z,
+                                      v.nx / 255.0f,
+                                      v.ny / 255.0f,
+                                      v.nz / 255.0f,
+                                      float(c[0]->u + du),
+                                      float(c[0]->v + dv),
+                                      float(f.type),
+                                      c[0]->nx / 255.0f,
+                                      c[0]->ny / 255.0f,
+                                      c[0]->nz / 255.0f};
             data_.insert(data_.end(), d, d + kFloats);
         }
     }
@@ -398,7 +419,7 @@ void Engine::beginOn(GLuint fbo, int w, int h, const View& view, const Camera& c
     // original's -87891
     double zn = 2.0 * cam.F, zf = cam.F + 90000.0;
     shader_.use();
-    shader_.set("uAffineEnv", debug.affineEnv ? 1 : 0);
+    shader_.set("uEnvInterp", int(debug.env));
     shader_.set("uProj", float(px), float(qx), float(py), float(qy));
     shader_.set("uDepth", float(cam.F), float((zf + zn) / (zf - zn)), float(-2.0 * zf * zn / (zf - zn)));
 }

@@ -11,7 +11,8 @@
 //       (scenes.cpp: their motion ported from the notes, drawn with stars::Engine) in place of the parts, as
 //       DIR/shot_<T>.png like stars-remake --shots; compare with the capture by tools/compare.py. Also the star and
 //       the torso (modes 2, 20, 21 and the reflection map). --sharp: texels as squares; --bench N: time N frames
-//       at each T instead; --dropnear / --nocull / --affine: the Engine::Debug switches; --samples N: MSAA.
+//       at each T instead; --dropnear / --nocull / --affine / --pixelenv: the Engine::Debug switches; --samples N:
+//       MSAA.
 //
 // Build (a separate project: the framework, the core library and these files):
 //   cmake -S tools/enginetest -B build-enginetest -G Ninja && cmake --build build-enginetest
@@ -228,7 +229,7 @@ int main(int argc, char** argv) {
     std::string shotDir = ".", cmd;
     std::vector<double> shots;
     int W = 960, H = 720, samples = 4;
-    bool dropNear = false, affine = false, noCull = false;
+    bool dropNear = false, affine = false, pixelEnv = false, noCull = false;
     int bench = 0;
     for (int i = 1; i < argc; i++) {
         std::string a = argv[i];
@@ -242,6 +243,7 @@ int main(int argc, char** argv) {
         else if (a == "--samples") samples = std::atoi(next().c_str());
         else if (a == "--dropnear") dropNear = true;
         else if (a == "--affine") affine = true;
+        else if (a == "--pixelenv") pixelEnv = true;
         else if (a == "--nocull") noCull = true;
         else if (a == "--sharp") g_sharpTexels = true;
         else if (a == "--bench") bench = std::atoi(next().c_str());
@@ -286,7 +288,8 @@ int main(int argc, char** argv) {
         Engine& eng = demo.ctx.shared<Engine>();
         eng.samples = samples;
         eng.debug.dropNearFaces = dropNear;
-        eng.debug.affineEnv = affine;
+        if (affine) eng.debug.env = Engine::Debug::Env::Affine;
+        if (pixelEnv) eng.debug.env = Engine::Debug::Env::Pixel;
         eng.debug.noObjectCull = noCull;
         std::vector<uint8_t> px;
         for (double t : shots) {
