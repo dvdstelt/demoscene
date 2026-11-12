@@ -123,7 +123,8 @@ public:
         osc0_ = c.exe->u32(0x9618);
         for (int n = 11; n <= 13; n++) {
             if (c.picture(n).redraw) continue;
-            // original pixels (13 always, all with --original-art): a mipmapped copy, the patch minifies them
+            // original pixels (with --original-art, or a picture without a redraw): a mipmapped copy, the patch
+            // minifies them
             const auto& f = c.exe->file(n);
             Palette pal = vgaPalette(std::span<const uint8_t>(f.data(), 0x300));
             Image im;

@@ -8,9 +8,9 @@
 // (every second retrace, 35.04 Hz in the capture) the buffer is zoomed by 128/119 about a centre that circles twice
 // a second and blurred, so the picture explodes into a brown swirl. The remake replays the same steps in float RGB
 // at 3 times the original resolution (zoomblur.h):
-//   - the stamps: the redraws of 11 and 12 masked like the original (the background of the original pictures,
-//     indices 0 and 102..108, decided per pixel of the redraw near the outline of files 36 / 37), file 13's
-//     6:6:6 pixels (file 38 / 41) as they are (13 has no redraw); with --original-art all three from files 36..41;
+//   - the stamps: the redraws of 11, 12 and 13 masked like the original (the background of the original pictures,
+//     indices 0 and 102..108, decided per pixel of the redraw near the outline of files 36..38); with
+//     --original-art, or for a picture without a redraw, the 6:6:6 pixels of files 36..41 as they are;
 //   - the zoom: the fitted continuous map (scale 119/128 about (162.1, 93.4), notes 3.2) plus the offset of the
 //     callback as a continuous function (dx = 1023 sin / 256 + 0.5, dy = 1023 cos / 256 - 0.5, notes 5.7);
 //   - the blur and the truncation as for the particles;
@@ -76,8 +76,8 @@ public:
             }
             stamp_[k].create(im, false, false);
         }
-        // with art: the redraws of 11 and 12 masked at their resolution
-        for (int k = 0; k < 2; k++) {
+        // with art: the redraws of 11..13 masked at their resolution
+        for (int k = 0; k < 3; k++) {
             const Picture& p = c.picture(11 + k);
             if (c.art() && p.redraw) maskRedraw(c, k, p);
         }
@@ -293,7 +293,7 @@ void main() {
             work.bind();
             setBlend(Blend::Premul);
             stampShader_.use();
-            bool redraw = st.stamp < 2 && haveRedraw_[st.stamp];
+            bool redraw = haveRedraw_[st.stamp];
             if (redraw) {
                 redrawStamp_[st.stamp].bindTex(0);
             } else {
@@ -311,8 +311,8 @@ void main() {
     Schedule sched_;
     std::vector<uint8_t> mask_[3], rgb_[3];
     Texture stamp_[3];
-    Target redrawStamp_[2];
-    bool haveRedraw_[2] = {false, false};
+    Target redrawStamp_[3];
+    bool haveRedraw_[3] = {false, false, false};
     p2b::FeedbackHistory hist_;
     p2b::ZoomBlur zoom_;
     Shader maskShader_, stampShader_, show_;
