@@ -115,11 +115,27 @@ Known differences:
 - **What a part shows at t.** The original draws a frame from the state at the moment it starts drawing and shows it
   one or two retraces later (the warp and the tunnel draw at 35 fps, straight into video memory, so the capture also
   shows half old, half new frames); the remake shows the state at t. Against the capture the warp and the tunnel are
-  30–45 ms ahead.
+  30–45 ms ahead, the bee and the spike ball about 50 ms (a 3D frame drawn in one pass of the loop is shown in the
+  next).
 - **Intro.** The flower texture, the petal outline and the radial offset are evaluated per pixel instead of along
   4096 integer rays; the band brightness and the card fade are continuous instead of 8-bit products of 6-bit
   colours. The band phases run on from card to card by the number of drawn frames, which depends on where in a frame
   each card starts: the remake counts with the average, so a card can be one drawn frame (1/41 of a pulse) off.
+- **Cloud.** Angle and depth are evaluated per pixel from their continuous formulas instead of the table of
+  integer rays; both layers are read filtered (mipmapped near the centre, where the original's point samples are
+  noise) and their colour is looked up bilinearly in the 16x16 palette; layer 2 is read per pixel instead of once
+  per pixel pair, and the offsets move continuously instead of in whole texels. Near the centre, where a whole
+  texture row wraps round a few pixels, the texture's large-scale variation shows as soft spokes. Dropped: the 2x2
+  centre of stale memory and the undrawn rows 0, 198, 199.
+- **Bee.** The background, file 27, is a still of the cloud effect: with the redraws on it is rendered by the cloud
+  effect at the offsets that reproduce it (`--original-art` shows file 27). The frame after the cloud is the last
+  cloud frame with its palette doubled, the evident intent (the original doubles uninitialised memory there and
+  shows garbage colours for one frame). The whole frame is drawn (the original leaves rows 0, 198, 199 dark purple).
+  The text "23806 faces" blinks every 7 drawn frames in the original; the remake shows it during the ticks the
+  capture shows it (at 25.6 fps).
+- **Spike ball.** The DAC keeps the last fade-in level the loop sent (62 at the capture's 32.5 fps) until tick 1604;
+  the remake uses 63 / 64 throughout. The path stalls for the ticks of every 256th drawn frame (a byte counter):
+  replayed as the capture shows them (2, 3 and 2 ticks).
 - **Warp.** Blocks 2–4 start on the tick at which the block before ends; the capture starts each up to one drawn
   frame later (about 1 tick each). The patch is evaluated in floats (the original's packed 8.8 sums are off by up to
   3.6 texels) and the pictures are read with a filter. Picture 13 has no redraw and shows its original pixels in both
@@ -128,6 +144,21 @@ Known differences:
   covers about 10 original pixels, the original's flat streaks become smooth gradients and sharp steps in the colour
   map (the darker band at columns 240–0) become soft. The forward motion is continuous (the original moves in whole
   texels). Kept: steps 0 and 1 read the same column, step 0 without the twist.
+- **Wall.** The shape is evaluated at the same tick as the motion (the original morphs after drawing, so its shape is
+  one drawn frame behind). The two grey-level textures are blended continuously through the original's eight
+  crossfade frames and coloured afterwards. Kept from the capture: the fade-in stops at 63/64 and stays there until
+  the crossfade, and the crossfade triangle starts at tick 1080 (the first drawn frame at or after tick 1079).
+  Against the capture the wall is about 70 ms ahead.
+- **Star.** The callback's state is stepped tick by tick and interpolated, so the pulses and the bounce fade are
+  smooth; the race that mixes two ticks' palette levels in 6 frames of the capture is dropped. The carousel is
+  rendered live at the continuous frame t / 2 instead of 64 pre-rendered frames at 35 fps (object 0's left-over angle
+  and the cut at row 78 are kept). About 60 ms ahead of the capture.
+- **Torso.** Kept from the capture: the rise is updated per drawn frame and its last update there was at tick 158,
+  so the torso stays 22.9 units low and spins from angle 43. The mirror phases start exactly at ticks 736 and 1600
+  (the original: at the first drawn frame from then). The reflection map is rendered at 1024x1024. The ring's env
+  index is 0x60 + 31 v / 63 so that the filtered map stays on the red ramp. The ring is darker than in the capture:
+  with five vertices round its section, the per-pixel env coordinate follows the arc where the original's per-vertex
+  coordinates cut across, nearer the bright centre of file 29. About 50 ms ahead of the capture.
 - **3D engine** (`src/stars/engine.h`; bee, spike ball, wall, star, torso). Vertices are projected in float with
   exact sin / cos (the original's 1023-amplitude table makes objects 0.1–0.3 % smaller) and rasterised with MSAA
   instead of integer corners; texture coordinates and normals are interpolated perspective-correctly, and the env
@@ -138,3 +169,25 @@ Known differences:
   2F to the eye are clipped at that plane instead of disappearing whole (visible as the star flies into the camera).
   Where the parts use a depth buffer the order of faces is the geometric one instead of the painter's sort; the bee
   keeps the original's file order, because its objects overlap themselves.
+- **Particles** (`src/scenes/particles.cpp`, `zoomblur.h`). The feedback runs on a float level buffer at 3 times the
+  original resolution: the zoom is the continuous map the integer maps follow on average (15/16 about (164.0, 93.1))
+  instead of 4-pixel groups, so the static 16-pixel cross at the centre of the original's maps (a vertical seam; the
+  glow stays a little longer there) is gone; the 4-neighbour average is a Gaussian of the same variance (plus the
+  1/12 px² of the original's nearest reads); the `>> 2` truncation is a loss of up to 3/8 level per step where the
+  neighbours differ (it keeps the mean level within a few per cent of the integer model). The blobs are anti-aliased
+  ellipses of the same area, the words file 58's lettering as a smooth mask, the 32-colour ramp continuous. The
+  random generator is replayed from its seed (variant 2 continues variant 1); which drawn frame sees which PIT tick
+  follows the capture's frame timing (`CaptureClock`), so the words are on the same frames as in the capture.
+- **Dissolve.** Float RGB at 3 times the resolution, stamped with the redraws of 11 and 12 masked like the original
+  (decided per pixel of the redraw near the outline of files 36 / 37) and file 13's pixels (no redraw). The G / R-B
+  checkerboard is shown as true colour at 0.73 of the planes, the light the eye mixed from it (half the light:
+  0.5^(1/2.2) in display values), so the remake is about 1.46 times as bright as the capture averaged per pixel.
+  The 35 Hz steps of the capture are kept (the original's speed depends on the machine).
+- **Face.** The index feedback runs at 4 times the resolution with nearest reads, so the remap tables of file 35
+  still decide how the trails fade; the screen interpolates the colours of four index texels and draws the head at
+  the output resolution (its map coordinates interpolated, the map read as a continuous level of the ramp). The warp
+  is evaluated in float with the mean of the original's floors. Dropped: the column carry of 0x11a0a (one map texel
+  on half of the head) and the 132 pixels at the end of the screen that are not remapped.
+- **Per-frame feedback** (particles, dissolve, face): the screen blends the frames before and after t, so a new
+  frame (a stamp, a strobe flash) fades in over one frame instead of appearing at once. After a seek the feedback is
+  replayed from the last checkpoint (every 48 or 64 frames; about 110 MB of GPU memory for the four parts).

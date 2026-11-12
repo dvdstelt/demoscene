@@ -707,3 +707,40 @@ The runs take 5..30 s each. Results:
 - Whether the remake should keep the expansion centres of the fitted maps (164, 93) / (169, 86) (they come from
   floors) or use the screen centre: the shift is 4..14 px of 320, visible as the point the trails stream from.
   These notes recommend the fitted values.
+
+## 10. Timing details measured for the remake
+
+Found while porting (`src/scenes/zoomblur.h`, `particles.cpp`, `dissolve.cpp`, `face.cpp`); measured in the
+snapshots and with a timing hook (PIT callback 0x1353d, draw start 0x135c5, word read 0x13676 with the emulator's
+clock) over 0x133f1.
+
+- **PIT phase.** Every snapshot (f15972 .. f25163) gives the next PIT tick after its vertical sync; in music time all
+  ticks fall at `t * 70.0635 = 0.924 (mod 1)`. A part sees the ticks after it installs its callback: 0x133ad /
+  0x133f1 just before their first retrace wait (no callback yet at the sync of f18451 / f21956), 0x1535c and
+  0x1089c at their start (one callback before the sync of f23436).
+- **When the capture draws.** The emulator lets a loop polling 0x3da jump to the next change of the retrace bit after
+  half a quantum (1/64 of a 70 Hz frame), so the wait of 0x4a830 normally ends at line 449 (= line 0 of the next
+  record), not at the end of the sync (line 414). An interrupt inside the sync ends it earlier: at the interrupt when
+  it falls 7 or more lines after line 412, otherwise at line 414. Interrupts there: the PIT ticks, the GUS timer 2
+  (the player's ticks; the emulator raises them 8 lines after the music's tick times) and the GUS timer 1, which keeps
+  running every 20 ms (phase 0.000735 s) after the player has switched its IRQ off. With this rule 1473 of the 1477
+  draws of 0x133f1 come out within 0.3 lines of the timing run (2 within a line, 2 at line 414 instead of 449), and
+  every frame sees the same PIT ticks as there. That decides the words where a tick falls close to a draw: the
+  trigger of 84:1e is seen by frame 1133, and frame 1155 sees two ticks (timer 1 -> -1, entry 0 for one frame), so
+  BRING appears at 86:1e. Both variants' word frames (546 + 1477) then match the capture exactly. On a real machine
+  the draw follows line 414 and the GUS handler delays it by its run time instead; the outcome near such
+  coincidences is a matter of the machine.
+- **Dissolve.** The frames are on screen from records 19001 + 2j (1.35 retraces after the part's start, then every
+  second retrace). An iteration reads the position 1.50..1.76 retraces before its frame is shown (the stamp records of
+  5.3 are those reads; the bounds come from 6b:00 and 6b:30); the remake uses 1.6. The last frame (stamped at 6b:30)
+  is shown from record 19469, after the cue's end at 6b:31.
+- **Face.** The first frame is on screen from record 23437 (1.53 retraces after the start), then one per retrace;
+  1727 frames.
+- **Truncation in float.** A float step with the loss `0.375 * clamp(spread / 0.5, 0, 1)` levels, spread = max - min
+  of the four neighbours, keeps the mean level of variant 1 within 1..4 % of the integer model at every 50th frame
+  (the integer maps and blobs as the original, with the words); a constant 3/8 is 5..30 % darker where large areas
+  are flat (the original's flat areas are equal integers and lose nothing). A single blob's trail sums agree within
+  1 % over its 10 frames on screen.
+- **The zoom maps' centre.** Both maps leave a 16-pixel band unmoved (columns 156..171, rows 85..100 for the
+  particles): the 4-pixel staircase rounds the shift to 0 there. In the mean the maps are the linear zoom about
+  (164.0, 93.1); the band keeps content near the centre longer and shows as a vertical seam.
