@@ -131,6 +131,19 @@ Known differences:
   triangles with every corner left or right of the screen, the never-drawn column 319 of clipped env-only spans.
 - **p1.** The logo scrolls continuously instead of one pixel every second retrace, and its violet-to-orange
   cross-fade is continuous instead of 1/256 steps every 8 retraces with both products floored (up to 2/63 darker).
+- **p2's motion blur** blends four times per retrace with the same decay per second, so trails of fast motion stay
+  smooth at high resolution. The original blends once per drawn frame; in the capture's slow close-ups (46–62 drawn
+  frames per second) its trails are shorter and fall apart into separate copies. The blend is a moving average of
+  continuous ramp levels without the table's floor, so a still picture under heavy blur is not darkened (the original
+  sits up to 256 / s ramp levels lower: 10 at s = 24, 23 at s = 11). The credits fade in to full white instead of
+  stopping a few shades short. From about 136 s to the end of p2 (the close-ups of steps 150–152), the original's
+  16-bit back-face test drops the near disc's big faces and shows the "C" and the stand through them; the remake
+  draws the disc, which then fills most of the screen. After a seek the blur is rebuilt from black, starting far
+  enough back that the history before it weighs less than 1/1000 (at most 1/255 different from playing through).
+- **p3's Phong map** is the radial gradient it was painted as, fitted to the stored map at start-up and evaluated
+  continuously along the palette ramp: without the ramp's 1-index steps, the paint program's irregularities (up to 2
+  indices) and the hard edge of the white highlight disc. The object's mean colour stays within 0.5/255 of the
+  capture's.
 - **p4's fire** is computed per output pixel instead of in 160 two-pixel columns, as a float recursion (the integer
   one has a dead zone; the mean colour stays within about 3 % of the capture's), with its 15 levels interpolated
   instead of dithered and blended between its steps (35 per second). The swirl map is its polar formula (fitted to
@@ -142,3 +155,19 @@ Known differences:
 - **p4's palette weights** are not floored: the one-step darkening of every colour at p4's start and at its end is
   dropped, so p4 ends on the chequerboard at the brightness of its picture (the original leaves it one 6-bit step
   darker for p5).
+- **p5** shows the chequerboard at that brightness too, under the torus and in the hand-over. The BUMP glow's depth
+  pulses continuously (no truncated table, no floored offsets). Each bump texel keeps one offset, as in the original
+  (the patchy relief of the glow at the same scale), with the env read inside it filtered and an edge about one pixel
+  wide between texels instead of hard pixel steps; where the texels are smaller than a pixel (the far torus) their
+  offsets are averaged, so the original's speckle there is smoother. Red-map lookups that leave the map at the
+  silhouette are clamped to its edge.
+- **p6.** The cat's light map is its radial formula with a continuous shade instead of 64 levels. The 32 shadow masks
+  (64 x 64 bits, switched every 4 retraces) are smoothed into distance fields and interpolated between neighbouring
+  masks (centred on the 4 retraces each original mask is shown), so the ring shadows glide with smooth edges instead
+  of jumping in 2-texel steps. The material morph and the fur's strength change continuously, the fur's offsets are
+  interpolated: smooth streaks where the original shows blocky ones.
+- **p7.** The light map is rendered at 4 x 4 samples per texel with the five spots at continuous positions (up to 1.8
+  texels from the original's whole-texel ones) and the photo and spot interpolated; its level runs continuously
+  through the grey ramp. Through the interpolated bumps the faint photo shows as a smooth marbling of the tentacle
+  where the original shows grainy noise. The bump table's packed-word carry (codes without a column offset read one
+  row up) is dropped.
