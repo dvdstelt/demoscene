@@ -1,5 +1,6 @@
 // The art folder (art.h): lists the redrawn pictures and restored video frames and decodes them with stb_image on
-// worker threads (all pictures at start-up; video frames on demand, two ahead of the frame shown).
+// worker threads (all pictures at start-up; video frames on demand, two ahead of the frame shown, and the first three
+// frames of every clip kept ready).
 #include "art.h"
 
 #include <SDL3/SDL.h>
@@ -125,11 +126,13 @@ int ArtStore::videoFiles(const std::string& clip) const {
 }
 
 void ArtStore::prefetch(Clip& c, int frame) {
-    // decode frame .. frame + 2 (not the one already shown), drop the others (a seek); dropping a future waits for
-    // its decode to finish
+    // decode frame .. frame + 2 and the clip's first three frames (every part starts its clip at frame 0, and
+    // PARANOID starts again in 0x2e8e4 and loops there), not the one already shown; drop the others (a seek);
+    // dropping a future waits for its decode to finish
+    auto wanted = [frame](int f) { return f <= 2 || (f >= frame && f <= frame + 2); };
     for (auto it = c.pending.begin(); it != c.pending.end();)
-        it = (it->first < frame || it->first > frame + 2) ? c.pending.erase(it) : std::next(it);
-    for (int f = frame; f <= frame + 2; f++) {
+        it = wanted(it->first) ? std::next(it) : c.pending.erase(it);
+    for (int f : {0, 1, 2, frame, frame + 1, frame + 2}) {
         auto file = c.files.find(f);
         if (file != c.files.end() && f != c.current && !c.pending.count(f))
             c.pending[f] = std::async(std::launch::async, decode, file->second);

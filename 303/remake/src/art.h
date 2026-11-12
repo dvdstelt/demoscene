@@ -33,7 +33,8 @@ public:
     bool hasPicture(const std::string& name) const;
 
     // The restored frame `frame` of clip (ALEX, HARL, VS, PARANOID), RGBA, or nullptr when art is off or that frame
-    // has no file. Waits for the frame and decodes the next two ahead; valid until the next call for this clip.
+    // has no file. Waits for the frame and decodes the next two ahead (and keeps the clip's first three frames
+    // ready, where the parts start it); valid until the next call for this clip.
     const Image* videoFrame(const std::string& clip, int frame);
     int videoFiles(const std::string& clip) const;  // restored frames present for clip
 

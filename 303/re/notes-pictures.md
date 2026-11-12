@@ -151,11 +151,14 @@ to 8 bits, no dither; PARANOID as grey (R = G = B = luma).
 
 The frame counts are (decompressed size - 1) / frame size. "Frames shown" come from the part lengths in
 notes-late.md (sections 2, 3a, 3b, 4.1); the remake picks the same frames (`late.cpp`: `tk / 6`, `tk / 8`, the
-4-half-row counter).
+4-half-row counter). Measured in the remake (the index `Ctx::video()` is asked for, rendering the parts every
+0.02 s): HARL 0..116, VS 0..56, ALEX 0..22, PARANOID 0..24 in the paranoid part. In 0x2e8e4 the PARANOID counter
+runs on through C (0..43, looping), but in C the strength is 0 and nothing of it is visible.
 
 Display shape: a 160x96 frame is shown over 320x192 screen pixels, which are 1.2 times as tall as wide on the 4:3
 screen, so the picture is seen at about 25:18 (1.39:1), slightly wider than the 4:3 video it was digitised from.
-Restored frames keep the stored 5:3 shape (e.g. 640x384); the remake stretches them like the decoded frames.
+Restored frames keep the stored 5:3 shape (e.g. 640x384); the remake stretches them like the decoded frames. The
+remake's `art/video/` holds SeedVR2 restorations at 1280x768 (`remake/art/README.md`).
 
 Dumps: `re/dump/video/<CLIP>/NNNN.png` (all frames, 160x96 RGB) and `re/dump/video/<CLIP>.mp4`: VP9 lossless in
 MP4, yuv444p, at 70.086/6 (HARL), 70.086/8 (VS, ALEX) and 4000/839 (PARANOID) frames per second. The only loss is

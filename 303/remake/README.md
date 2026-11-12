@@ -30,13 +30,15 @@ Keys: `Esc` quit, `Space` pause, `←/→` seek ±5 s, `↑/↓` seek ±30 s, `F
 Analysis helpers: `--wav out.wav` renders the soundtrack, and `--shots 10,20.5 --shotdir DIR --shotsize WxH`
 writes frames at given music times to PNG. `--video out.mp4 [--from S] [--to S] [--fps 60] [--shotsize WxH] [--vcodec "ffmpeg args"]`
 renders the demo with its sound through `ffmpeg`, frame by frame (see `docs/videos.md` in the repository).
+`--bench T0,T1 --shotsize WxH` renders music times T0..T1 at 60 frames per second offscreen and reports the time
+per frame (median, 95th percentile and the five slowest frames, including waits for a restored video frame).
 
 ## Redrawn pictures and restored video
 
 The remake can show high-resolution redraws of MUSTARD.PAK's pictures and restored frames of the video clips from
 an `art` folder: next to the program or in its parents, or `remake/art` there (so `303/remake/art` is found from
-the build folder), or `--art DIR`. `--original-art` shows the original pixels and frames. There are no redraws yet;
-without an `art` folder, or with an empty one, the demo looks exactly as with `--original-art`.
+the build folder), or `--art DIR`. `--original-art` shows the original pixels and frames. Without an `art` folder,
+or with an empty one, the demo looks exactly as with `--original-art`.
 
 - `art/<name>.png` (or `.jpg`): a redraw of `<name>.raw` (`final.png`, `tex3d.png`), RGB or RGBA, any resolution,
   covering the file's whole pixel grid; a stacked file (`tex3d`, `bd2`, `blobby`, `tunnel`) is one picture with
@@ -47,7 +49,13 @@ without an `art` folder, or with an empty one, the demo looks exactly as with `-
 - `art/video/<CLIP>/NNNN.png` (or `.jpg`): a restored frame of `<CLIP>.LZW` (ALEX, HARL, VS, PARANOID), one file per
   original frame numbered from `0000`, any resolution with the original's 5:3 shape (160x96). The parts draw it
   through the same mapping, ripple and fades as the decoded frame; frames without a file keep the decoded one.
-  Frames are decoded on worker threads two ahead of the one shown.
+  Frames are decoded on worker threads two ahead of the one shown, and the first three frames of every clip are
+  kept ready, so a clip starts without waiting (also PARANOID when the face floor starts it again). After a seek
+  into a clip the first frame waits for its decode (about 7 ms at 1280x768).
+
+`art/video/` holds the four clips restored with SeedVR2, an AI video restoration model, at 1280x768: the frames the
+parts show plus a few (HARL 0–121, VS 0–60, ALEX 0–26, PARANOID 0–30), 241 JPEGs, 32 MB.
+[`art/README.md`](art/README.md) says how they were made, with which settings, and what to look at.
 
 [`../re/notes-pictures.md`](../re/notes-pictures.md) lists every picture and clip, how the parts read them, which
 ones a redraw can replace and what it has to keep (tileable textures, environment-map discs, element positions).
@@ -100,7 +108,8 @@ mingw64-cmake -S . -B build-win -G Ninja && cmake --build build-win
   tentacle star, plasma); `late` (harl, web, paranoid, face floor, dance, icons, ending)
 - `src/timeline.cpp`: running order; `src/fx.*`, `src/demo.*`, `src/render.*`: engine and shared effects
 - `tools/`: the reverse-engineering helpers (LE/DOS4GW loader with fixups, capstone disassembly helper,
-  LZW decoder, video frame dumper, module row timing)
+  LZW decoder, video frame dumper, module row timing), and `video_art.py`, which makes the SeedVR2 uploads and
+  turns the restored clips into `art/video/`
 - [`../re/`](../re/): the decompiled notes for every part (pseudo-C with all constants), the briefs the agents
   worked from, and the comparison scripts
 
@@ -132,3 +141,7 @@ What is not exact, and why:
 - **Known differences.** The plasma section's camera roll and the look of its balls in places. The web
   words, which the code colours red and violet, but the capture shows in blue and yellow (the remake follows
   the capture).
+- **Restored video.** By default the clips are AI restorations (SeedVR2) of the 160x96 frames, not the frames
+  themselves. They keep each frame's content, position, colours and timing, but the model invents fine detail the
+  original does not have: faces, hands and textures are plausible guesses, not the real people's faces
+  (`art/README.md`, "What to look at"). `--original-art` shows the decoded frames.

@@ -39,6 +39,7 @@ struct Options {
     std::string videoOut;
     double vFrom = 0, vTo = -1, vFps = 60;
     std::string vCodec = "-c:v libopenh264 -b:v 40M";
+    double bFrom = -1, bTo = -1;  // --bench
 };
 
 void usage() {
@@ -56,11 +57,13 @@ void usage() {
         "  --wav FILE        render the soundtrack to a WAV file and exit\n"
         "  --shots T1,T2,..  render frames at these times to PNG and exit\n"
         "  --shotdir DIR     output directory for --shots\n"
-        "  --shotsize WxH    size for --shots and --video (default 960x720)\n"
+        "  --shotsize WxH    size for --shots, --video and --bench (default 960x720)\n"
         "  --video FILE      render the demo with its sound to a video through ffmpeg and exit\n"
         "  --from S --to S   time range for --video in seconds (default: all)\n"
         "  --fps F           frame rate for --video (default 60)\n"
         "  --vcodec ARGS     ffmpeg video codec arguments (default \"-c:v libopenh264 -b:v 40M\")\n"
+        "  --bench T0,T1     render music times T0..T1 at 60 frames per second at --shotsize offscreen and report\n"
+        "                    the time per frame\n"
         "keys: esc quit, space pause, left/right seek 5s, up/down seek 30s, f fullscreen");
 }
 
@@ -157,6 +160,7 @@ bool parse(int argc, char** argv, Options& o) {
         else if (a == "--to") o.vTo = std::atof(next().c_str());
         else if (a == "--fps") o.vFps = std::max(1.0, std::atof(next().c_str()));
         else if (a == "--vcodec") o.vCodec = next();
+        else if (a == "--bench") std::sscanf(next().c_str(), "%lf,%lf", &o.bFrom, &o.bTo);
         else if (a == "--help" || a == "-h") { usage(); return false; }
         else { SDL_Log("unknown option %s", a.c_str()); usage(); return false; }
     }
@@ -268,7 +272,8 @@ int main(int argc, char** argv) {
     }
 
     const bool videoMode = !opt.videoOut.empty();
-    const bool shotMode = !opt.shots.empty() || videoMode;
+    const bool benchMode = opt.bFrom >= 0 && opt.bTo > opt.bFrom;
+    const bool shotMode = !opt.shots.empty() || videoMode || benchMode;
     if (!SDL_Init(SDL_INIT_VIDEO | (shotMode ? 0 : SDL_INIT_AUDIO))) {
         SDL_Log("SDL_Init: %s", SDL_GetError());
         return 1;
@@ -319,6 +324,36 @@ int main(int argc, char** argv) {
         SDL_DestroyWindow(win);
         SDL_Quit();
         return rc;
+    }
+    if (benchMode) {
+        // live playback's frame sequence; the time of each frame includes waits for restored video frames
+        struct Frame {
+            double ms, t;
+        };
+        std::vector<Frame> fr;
+        for (int i = 0;; i++) {
+            double t = opt.bFrom + i / 60.0;
+            if (t >= opt.bTo) break;
+            uint64_t t0 = SDL_GetTicksNS();
+            demo.render(float(t), 1.0f / 60.0f);
+            gl::Finish();
+            fr.push_back({double(SDL_GetTicksNS() - t0) * 1e-6, t});
+        }
+        std::sort(fr.begin(), fr.end(), [](const Frame& a, const Frame& b) { return a.ms > b.ms; });
+        if (!fr.empty()) {
+            std::string slow;
+            for (size_t i = 0; i < std::min<size_t>(5, fr.size()); i++) {
+                char b[64];
+                std::snprintf(b, sizeof(b), "%s%.2f ms at %.3f s", i ? ", " : "", fr[i].ms, fr[i].t);
+                slow += b;
+            }
+            SDL_Log("bench %dx%d %.2f-%.2f s: %d frames, median %.2f ms, 95%% %.2f ms; slowest: %s", rw, rh,
+                    opt.bFrom, opt.bTo, int(fr.size()), fr[fr.size() / 2].ms, fr[fr.size() / 20].ms, slow.c_str());
+        }
+        SDL_GL_DestroyContext(glc);
+        SDL_DestroyWindow(win);
+        SDL_Quit();
+        return 0;
     }
     if (shotMode) {
         std::vector<uint8_t> px(size_t(rw) * rh * 4), flip(px.size());
