@@ -31,6 +31,7 @@ A 4K video of the remake is coming to YouTube.
 | [`re/`](re/) | The reverse-engineering notes for every routine, the unpacker, the emulator harness and the scripts the agents used to check their models. |
 | [`original/`](original/) | Put `JIZZ.EXE` here (it is not in the repository). |
 | [`docs/making-of.md`](docs/making-of.md) | How the remake was made. |
+| [`docs/techniques.md`](docs/techniques.md) | What The Black Lotus achieved in 64 KB in 1997 and how: the synthesised music, the texture and object scripts. |
 
 ## Run it
 

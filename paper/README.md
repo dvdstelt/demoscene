@@ -26,6 +26,7 @@ Links: [pouet.net](https://www.pouet.net/prod.php?which=75) · [demozoo](https:/
 | [`re/`](re/) | The reverse-engineering notes for every routine, the emulator harness, the music player model and the scripts the agents used to check their models. |
 | [`original/`](original/) | Put `PAPER.EXE` here (it is not in the repository). |
 | [`docs/making-of.md`](docs/making-of.md) | How the remake was made. |
+| [`docs/techniques.md`](docs/techniques.md) | What Statix achieved in 64 KB in 1996 and how, including his self-modifying code. |
 
 ## Run it
 

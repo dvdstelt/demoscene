@@ -24,6 +24,7 @@ A 4K video of the remake is coming to YouTube.
 | [`re/`](re/) | The reverse-engineering notes: every part as pseudo-C with all constants, plus the briefs the agents worked from and the comparison scripts. |
 | [`original/`](original/) | Put the original files here (they are not in the repository). |
 | [`docs/making-of.md`](docs/making-of.md) | How both versions were made. |
+| [`docs/techniques.md`](docs/techniques.md) | What Acme achieved in 1997 and how: the video clips, the MPEG vocals and Statix's patch of the GUS driver. |
 
 ## Run it
 

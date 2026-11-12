@@ -11,14 +11,14 @@ one in this folder, also supports Sound Blaster cards and no sound, and is 400 K
 
 The demo opens with title cards: "join us", "Bring the family", the four authors' names over colour-cycling flowers
 with a word each (BARTi "Atomic", KARL "Powerful", GROO "Magic", RA "Nutritive"), RA's pin-up women and a green
-poodle, and the "STARS wonders of the World" title. Then a purple cloud tunnel; a golden bee of 23,806 faces
-flying close to the camera; a ball of long spikes turning in front of a dark spiral; the three women warped over a
-star shape; a voxel tunnel through green and blue earth; a stone wall that turns and bulges into faces in relief,
-then changes to a texture of Celtic knots; a spiky ornament; a chrome star over a ring of small spiky shapes;
-glowing blue particles with soft trails; a woman dissolving into a brown swirl; a stone torso with a red ring and a
-pink mirror that reflects both; white particles that spell "NOOON", "BRING", "YOUR", "BEAUTY", "FAMILY"; a blue
-sculpted face with trails flowing out of it; and the credits, ending on "NOOON 50 $". It lasts about 6 minutes 20
-seconds.
+poodle, and the "STARS wonders of the World" title. Then a purple cloud tunnel; a golden bee flying close to the
+camera under a "23806 faces" caption (the bee file has 5,595); a ball of long spikes turning in front of a dark
+spiral; the three women warped over a star shape; a voxel tunnel through green and blue earth; a stone wall that
+turns and bulges into faces in relief, then changes to a texture of Celtic knots; a spiky ornament; a chrome star
+over a ring of small spiky shapes; glowing blue particles with soft trails; a woman dissolving into a brown swirl; a
+stone torso with a red ring and a pink mirror that reflects both; white particles that spell "NOOON", "BRING",
+"YOUR", "BEAUTY", "FAMILY"; a blue sculpted face with trails flowing out of it; and the credits, ending on "NOOON 50
+$". It lasts about 6 minutes 20 seconds.
 
 Links: [pouet.net](https://www.pouet.net/prod.php?which=301) · [demozoo](https://demozoo.org/productions/648/) ·
 [Assembly '95 results](https://demozoo.org/parties/103/#competition_705) ·
@@ -36,6 +36,7 @@ A 4K video of the remake is coming to YouTube.
 | [`re/`](re/) | The reverse-engineering notes for every routine, the unpacker, the emulator harness and the scripts the agents used to check their models. |
 | [`original/`](original/) | Put `STARS.EXE` here (it is not in the repository). |
 | [`docs/making-of.md`](docs/making-of.md) | How the remake was made, and the decisions taken on the way. |
+| [`docs/techniques.md`](docs/techniques.md) | What NoooN achieved in 1995 and how: the loader, the code it writes at run time, the bee and the live mirror. |
 
 ## Run it
 

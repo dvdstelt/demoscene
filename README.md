@@ -91,6 +91,10 @@ each on one part of a demo:
 [STARS](stars/docs/making-of.md), [DOPE](dope/docs/making-of.md). The tools are described in
 [docs/reverse-engineering.md](docs/reverse-engineering.md).
 
+What the original coders did in their time, and how, is on a page per demo: [303](303/docs/techniques.md),
+[Paper](paper/docs/techniques.md), [JIZZ](jizz/docs/techniques.md), [STARS](stars/docs/techniques.md),
+[DOPE](dope/docs/techniques.md). It comes from the decompiled code and the scene's own record of the time.
+
 ## Repository layout
 
 ```
@@ -102,7 +106,7 @@ each on one part of a demo:
   remake/art/         STARS and DOPE: the redrawn pictures
   remake-v1/          303 only: the first version, rebuilt from a video
   re/                 reverse-engineering notes and scripts
-  docs/               making-of and images
+  docs/               making-of, the original's techniques, images
 docs/                 how it was made, tools, redrawing pictures, rendering the videos
 scripts/              fetch the originals, package releases, render videos
 AGENTS.md             instructions for AI coding agents working on this repository

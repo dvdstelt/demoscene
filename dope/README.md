@@ -41,6 +41,7 @@ A 4K video of the remake is coming to YouTube.
 | [`re/`](re/) | The reverse-engineering notes for every routine, the unpacker, the emulator harness and the scripts the agents used to check their models. |
 | [`original/`](original/) | Put `DOPE.EXE` and `DOPE.MOD` here (they are not in the repository). |
 | [`docs/making-of.md`](docs/making-of.md) | How the remake was made, and the decisions taken on the way. |
+| [`docs/techniques.md`](docs/techniques.md) | What Complex achieved in 1995 and how, and what the grand effect labels really do. |
 
 ## Run it
 
