@@ -11,9 +11,9 @@
 //     without the truncations and with the phase continuous between retraces; the offsets (k - 8) A / 256 texels
 //     without the floor and without the extra row on negative column offsets (bumpNibbles());
 //   - the bump texels as the original reads them (nearest, one offset per texel: the patchy relief of the glow),
-//     with only the env read filtered and an edge about one pixel wide between texels (makeTexelBump). Filtering
-//     the offsets between texels instead turns the patches into smooth relief with thin bright veins: another
-//     look (dope/re/dump/p5-bump-compare.jpg);
+//     with only the env read filtered and an edge about one pixel wide between texels (BumpMap::Read::PerTexel).
+//     Filtering the offsets between texels instead turns the patches into smooth relief with thin bright veins:
+//     another look (dope/re/dump/p5-bump-compare.jpg);
 //   - the red map's lookup clamped to its 128 x 128 map (the original reads the gold map's last columns and the RIX
 //     header at the extreme silhouette);
 //   - the hand-over: the palette mix DAC[16 hi + lo] = (1 - w) pal1[lo] + w pal2[hi] (A000 = the chequerboard in the
@@ -78,8 +78,7 @@ public:
         // (selector 0) the gold map 03d7 (the env RIX's left half), env only; BUMP (selector 1) the red map 03df
         // (right half) through texture 1c96. Selectors 2 and 3 (32 KB further, outside the picture) are never used.
         const auto texSegs = segmentTable(img, part_.texTable);
-        bump_.create(img, texSegs[1], bumpNibbles(), part_);
-        makeTexelBump(img, texSegs[1]);
+        bump_.create(img, texSegs[1], bumpNibbles(), part_);   // one offset per texel (BumpMap::Read::PerTexel)
         const Picture& env = c.picture("p5-envmaps");
         mat_.env[0] = EnvMap::picture(env, 0);
         mat_.env[1] = EnvMap::picture(env, 1);
@@ -98,32 +97,6 @@ public:
     }
 
 private:
-    // 1b30's texel read: one texel of the bump texture (nearest, rows 4j + 1) and its offset for the whole texel.
-    // The offsets are held constant over each texel of a texture kSub times finer (kSub x 4 kSub per texel: the
-    // texels are 4 times as long in rows as in columns), so the engine's filtered read gives the texel's own offset
-    // inside it and a transition about one pixel wide at its edges (the mipmaps widen it to the pixel's footprint);
-    // only the env read is filtered. BumpMap's addressing (rows, scales) stays; its texture is replaced.
-    void makeTexelBump(const DopeImage& img, uint16_t seg) {
-        constexpr int kSub = 8;
-        const int s = part_.texShift - 8, rows = bump_.rows, sx = kSub, sy = kSub << s;
-        const BumpOffsets o = bumpNibbles();
-        const int w = 128 * sx, h = rows * sy;
-        std::vector<float> px(size_t(w) * size_t(h) * 2);
-        for (int r = 0; r < rows; r++) {
-            int src = (r << s) + part_.rowPhase;   // the row the original reads (BumpMap::create's lowResRows)
-            for (int col = 0; col < 128; col++) {
-                const auto& d = o[img.u8(seg, uint16_t(src * 256 + col))];
-                for (int y = r * sy; y < (r + 1) * sy; y++)
-                    for (int x = col * sx; x < (col + 1) * sx; x++) {
-                        px[(size_t(y) * size_t(w) + size_t(x)) * 2 + 0] = d[0];
-                        px[(size_t(y) * size_t(w) + size_t(x)) * 2 + 1] = d[1];
-                    }
-            }
-        }
-        bump_.tex.destroy();
-        bump_.tex.createRaw(w, h, GL_RG16F, GL_RG, GL_FLOAT, px.data(), true, true, true);
-    }
-
     void frame(Ctx& c, double r) {
         int k = int(std::floor(r));
         uint16_t m = uint16_t(log_.valueAt(kMaterial, k, material0_));

@@ -3,8 +3,9 @@
 //   enginetest [--exe FILE] model F1.bin F2.bin ... [--pngdir DIR] [--painter] [--samples N]
 //       frames of the bit-exact engine model (export_model.py: the records, maps, bump table and DAC of an emulator
 //       dump, the model's vertex arrays, face list and render target): the float transform of dope::projectObject
-//       against the model's integer screen positions, env coordinates, texture words and depth words; the float
-//       back-face test against the model's face list (and the 16-bit test, notes-engine 5.4); then the frame drawn
+//       against the model's integer screen positions, env coordinates, texture words and depth words; the engine's
+//       back-face test (float winding, the 16-bit test where it overflows: EnginePart::cull16, notes-engine 5.4)
+//       against the model's face list; then the frame drawn
 //       by dope::Engine with the same maps over the same background at 1280 x 800 (--scale 4), box-filtered to 320 x 200 and
 //       compared with the model's target (mean colour difference in 0..255 over the 3D pixels and their interior;
 //       --scale N: drawn at 320 N x 200 N instead;
@@ -227,14 +228,21 @@ int checkModel(Ctx& c, const DopeExe& exe, const std::string& path, const std::s
         kept.insert(k);
         sel[k] = {f.c & 3, f.b & 3};
     }
-    int both = 0, modelOnly = 0, floatOnly = 0, sixteen = 0, selBad = 0;
+    int both = 0, modelOnly = 0, floatOnly = 0, sixteen = 0, selBad = 0, engine16 = 0;
     double worst = 0;
     g = 0;
+    std::vector<FaceCull> fc;
     for (const Object& o : objects) {
-        for (const EngineMesh::Face& f : o.mesh->faces) {
+        // the engine's 16-bit decisions (EnginePart::cull16) on its own integer positions
+        std::vector<ProjectedVertex> pv(all.begin() + std::ptrdiff_t(g),
+                                        all.begin() + std::ptrdiff_t(g + o.mesh->verts.size()));
+        if (part.cull16) engine16 += overflowFaces(o, pv, fc);
+        else fc.assign(o.mesh->faces.size(), FaceCull::Float);
+        for (size_t j = 0; j < o.mesh->faces.size(); j++) {
+            const EngineMesh::Face& f = o.mesh->faces[j];
             const ProjectedVertex &a = all[g + f.a], &b = all[g + f.b], &cc = all[g + f.c];
             double cr = (b.x - a.x) * (cc.y - a.y) - (cc.x - a.x) * (b.y - a.y);
-            bool drawF = o.cullFlip ? cr < 0 : cr >= 0;
+            bool drawF = fc[j] == FaceCull::Float ? (o.cullFlip ? cr < 0 : cr >= 0) : fc[j] == FaceCull::Force;
             std::array<uint32_t, 3> k{uint32_t(g + f.a), uint32_t(g + f.b), uint32_t(g + f.c)};
             bool drawM = kept.count(k) != 0;
             // the model's 16-bit products on its integer vertices
@@ -254,9 +262,9 @@ int checkModel(Ctx& c, const DopeExe& exe, const std::string& path, const std::s
         }
         g += o.mesh->verts.size();
     }
-    std::printf("  faces: %d drawn by both, %d only by the model, %d only by the float test (largest %.0f px^2); "
-                "16-bit products wrong for %d; selectors wrong for %d\n",
-                both, modelOnly, floatOnly, worst, sixteen, selBad);
+    std::printf("  faces: %d drawn by both, %d only by the model, %d only by the engine's test (largest %.0f px^2); "
+                "16-bit products wrong for %d (the engine's 16-bit test decides %d); selectors wrong for %d\n",
+                both, modelOnly, floatOnly, worst, sixteen, engine16, selBad);
 
     // ---- the frame: the same maps, bump table, palette and background through dope::Engine
     Palette pal = vgaPalette(std::span<const uint8_t>(m.dac, 768));

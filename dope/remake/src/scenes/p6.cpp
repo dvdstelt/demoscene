@@ -21,7 +21,8 @@
 //     distance fields (their staircase and stray pixels smoothed away), interpolated between neighbouring masks by
 //     the fractional mask index, so the ring shadows move continuously; the edge is anti-aliased;
 //   - the palette morph (ramps of 1/256 weights, both products floored) is a continuous mix of pal1 and pal2 in
-//     display space with w = m / 4096; the bump strength scales continuous offsets (engine: bumpNibbles);
+//     display space with w = m / 4096; the bump strength scales continuous offsets (engine: bumpNibbles), one
+//     offset per fur texel as the filler reads it (the blocky streaks; dope/re/dump/p6-bump-compare.jpg);
 //   - the exit fade (v * L) >> 8 is a colour multiply, interpolated between its steps (one per retrace).
 #include <algorithm>
 #include <array>

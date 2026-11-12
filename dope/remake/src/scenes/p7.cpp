@@ -17,7 +17,9 @@
 //     and the spot sampled bicubically, the five spots at continuous positions (the sine of the continuous counter,
 //     no >> 9 truncation, no every-second-retrace step of light 1); the level indexes the grey ramp continuously
 //     (interpolated between its entries) instead of in 216 integer steps;
-//   - the bump table 0010:0000 without the carry of its packed words (codes with column offset 0 read one row up);
+//   - the bump table 0010:0000 without the carry of its packed words (codes with column offset 0 read one row up),
+//     one offset per bump texel as the filler reads it (the texels are mostly smaller than a pixel here, so this
+//     looks the same as filtered offsets: dope/re/dump/p7-bump-compare.jpg);
 //   - the exit fade (v * L) >> 8 is a colour multiply interpolated between its 257 steps (one per retrace).
 #include <algorithm>
 #include <array>

@@ -14,8 +14,9 @@
 //     in both art modes (the map is generated, not a picture);
 //   - camera and label motion continuous between retraces (dope::Integrator, dope::LabelSlide).
 // Kept: the bump texture 2341 addressed by the object-space normal with the 15-bit wrap (the engine's
-// EnginePart::of(3)), whose wrapped faces draw the zig-zag contour bands; the bump table's dx = 0 rows one row up;
-// the point-mirrored map; the 0.75 vertical scale and the centre (160, 99).
+// EnginePart::of(3)), whose wrapped faces draw the zig-zag contour bands; one offset per bump texel, as the filler
+// reads it (the patchy relief; dope/re/dump/p3-bump-compare.jpg); the bump table's dx = 0 rows one row up; the
+// point-mirrored map; the 0.75 vertical scale and the centre (160, 99).
 #include <algorithm>
 #include <cmath>
 #include <vector>

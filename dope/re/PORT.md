@@ -25,13 +25,14 @@ The original has been reverse engineered. Read the notes before writing code:
   random numbers.
 - Evaluate exactly instead of copying low-resolution shortcuts: the 2048-entry Q15 sine table becomes
   `sin(angle * 2 pi / 65536)`; integer matrices, projections and vertex positions become float; per-retrace integer
-  steps are interpolated between retraces; nearest-neighbour texel reads (env maps, bump maps, the fire's cloud
-  texture, the landscape) become filtered reads; the 4x4 dither and the 15 fire levels, the 32- and 64-step shade
+  steps are interpolated between retraces; nearest-neighbour texel reads (env maps, the fire's cloud texture, the
+  landscape) become filtered reads (the bump maps keep one offset per texel, which is their look; the env read
+  inside a texel is filtered); the 4x4 dither and the 15 fire levels, the 32- and 64-step shade
   ramps and the 1/256 palette weights become continuous values; painter's order becomes a depth buffer with MSAA
   (unless the order itself is visible: the notes say where); 160-wide or 2-pixel effects become per-pixel.
 - Drop artefacts that only exist because of 320x200 / 8 bit (truncation steps, carries between packed halves,
-  16-bit overflows of the back-face test, never-drawn columns, tearing), but never change what a viewer would
-  describe as the content.
+  never-drawn columns, tearing), but never change what a viewer would describe as the content. The 16-bit overflow
+  of the back-face test is kept (p2's close-ups show the "C" through the near disc: the engine's `cull16`).
 - Nothing from DOPE.EXE or DOPE.MOD may be copied into the source: read every table, palette, picture, mesh and
   string at run time through `DopeExe` (`src/exe.h`, below). Constants that are code (multipliers, loop counts,
   retrace counts of the scripts, velocities the scripts set as immediates, addresses, offsets, format constants) may
@@ -118,14 +119,19 @@ Interpolate the fades between steps (`dope::Fade`); `c.captureFrame(t)` maps the
 (the capture's fades are compressed four to one), which `tools/compare.py` uses.
 
 **What a frame shows** (the capture's records are taken at the end of their frame; the remake shows record f during
-[f, f + 1) / 70.0863 s, and during the record of the (n+1)-th per-retrace call `c.retraces(t)` runs from n to n + 1):
+[f, f + 1) / 70.0863 s, and during the record of the (n+1)-th per-retrace call `c.retraces(t)` runs from n to n + 1).
+Measured in the capture for every part (the labels' slides to the pixel, the motion at many records):
 
-- engine parts (p2, p3, p5, p6, p7): the 3D scene of record start + n is built from the state after n calls (it is
-  built before call n + 1 and copied after it): use the state at `r = c.retraces(t)`. The label is drawn by the
-  frame copy after call n + 1 with the position after it: use `r + 1` for the label.
-- p1 and p4 change the screen in the handler itself (p1's start address, panning and DAC; p4's palette on odd
-  IRQs, its frame loop draws continuously): record start + n shows the state after call n + 1: use `r + 1` (p1:
-  `pos = 2 r` from the notes' "pos = 2 (k - 1) after the k-th run" is the same thing).
+- p3, p5, p6, p7: the 3D scene of record start + n is built from the state after n calls (it is built before call
+  n + 1 and copied after it): use the state at `r = c.retraces(t)`. The label is drawn by the frame copy after call
+  n + 1 with the position after it: use `r + 1` for the label.
+- p2: its frame copy 360c blends 64000 pixels before it copies, so the copy made after call m reaches record
+  start + m: the scene of record start + n is the state after n - 1 calls (`r - 1`), its label the position after n
+  calls (`r`); the DAC writes of the per-retrace routine (the white fade) show in the record of their call (`r + 1`).
+- p1 changes the screen in the handler itself (the start address, panning and DAC): record start + n shows the state
+  after call n + 1, pos = 2 n (the notes' "pos = 2 (k - 1) after the k-th run"): `pos = 2 r`.
+- p4: its frame loop draws continuously, and record start + n shows the state after IRQ n and the main loop's answer
+  to it (the label's slide and the landscape): use `k = r` (not r + 1).
 - the last frame: at `t` just below `c.end` (the held frame) clamp continuous motion to the last state the original
   drew (p3: state 3604, not an interpolation towards 3605).
 

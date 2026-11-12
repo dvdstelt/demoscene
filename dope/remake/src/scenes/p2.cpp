@@ -15,10 +15,11 @@
 // the capture, the frame copy 360c made after call m (after its blend of 64000 pixels) reaches record start + m,
 // while the DAC writes of call m (the white fade) show in record start + m - 1: so at r = c.retraces(t) the screen
 // shows the frame built after r - 1 calls (the camera record's state then, continuous), its label at the position
-// after r calls, and the fade after r + 1 calls (one retrace later than dope/re/PORT.md's r and r + 1 for the engine
-// parts). What the script switches (pivot, "C", backdrop, env maps, band, blur weight) applies from the step's first
-// frame. The blend of the original's frame n is spread over the frame clock (n - 1, n] (P2Blur), so at whole r = n + 1
-// the screen is what record start + n + 1 shows.
+// after r calls, and the fade after r + 1 calls (one retrace later than the other engine parts, which show r and
+// r + 1: dope/re/PORT.md "What a frame shows"). What the script switches (pivot, "C", backdrop, env maps, band, blur weight) applies from the step's first
+// frame. The blend of the original's frame n is made at frame clock n (one per retrace, P2Blur) and the screen
+// between two retraces mixes the buffers after the blends before and after it, so at whole r = n + 1 the screen is
+// what record start + n + 1 shows.
 //
 // Evaluated exactly instead of the original's shortcuts (besides the engine's, engine.h, and the blend's, p2_blur.cpp):
 //   - the credit text's grey-ramp blend y' = (3 x + 13 y) / 16 per frame (1998, whose integer steps stop white text
@@ -29,7 +30,10 @@
 // Kept: the "C" drawn with f = 1300 against the discs' 4000 and sorted with its depth times 1300 / 4000 (notes-p2
 // 7.2), the backdrop from the frame after step 25 starts (360c restores it after the copy), the label's black trail,
 // the band hiding the scene while it is on, the black screen row 199, the bump noise from the "C" mesh bytes the
-// discs read at one corner (the bump map 23d1 read as it is), the frames of white before p3.
+// discs read at one corner (the bump map 23d1 read as it is, one offset per texel: the broken highlights of
+// dope/re/dump/p2-bump-compare.jpg), the 16-bit back-face test of the close-ups from about 136 s (the engine's
+// EnginePart::cull16: the near disc's big faces vanish and the "C" and its stand show through, notes-p2 7.4), the
+// frames of white before p3.
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -229,18 +233,15 @@ public:
         eng.end();
     }
 
-    P2Blend blend(int m) const override {
-        // blend m belongs to the original's frame n = ceil(m / kSub)
-        constexpr int K = P2Blur::kSub;
-        int n = m <= 0 ? 0 : (m + K - 1) / K;
-        double r = double(m) / K;
-        return params(r, n, 1.0 / K);
-    }
-
-    P2Blend partial(double r) const override {
-        constexpr int K = P2Blur::kSub;
-        double m = std::floor(r * K);
-        return params(r, frameOf(r), (r * K - m) / K);
+    P2Blend blend(int n) const override {
+        P2Blend b;
+        b.r = n;
+        // 1967: T[old][new] = (new s + old (256 - s)) >> 8 per frame
+        b.weight = float(std::min(step(n).s, 256) / 256.0);
+        b.label = label_.position(n + 1.0);
+        b.zeroY0 = zero_[size_t(frameOf(n))].first;
+        b.zeroY1 = zero_[size_t(frameOf(n))].second;
+        return b;
     }
 
 private:
@@ -351,6 +352,7 @@ private:
     // f: the frame clock (the state the screen's frame was built from), r: the retraces (the DAC)
     P2Show show(double f, double r) const {
         P2Show s;
+        s.label = label_.position(f + 1);
         int n = frameOf(f);
         s.greyY0 = grey_[size_t(n)].first;
         s.greyY1 = grey_[size_t(n)].second;
@@ -369,18 +371,6 @@ private:
             s.fadeAdd = float(k / 63.0);
         }
         return s;
-    }
-
-    P2Blend params(double r, int n, double dt) const {
-        P2Blend b;
-        b.r = r;
-        // 1967: T[old][new] = (new s + old (256 - s)) >> 8 per frame; per dt retraces
-        double s = step(n).s / 256.0;
-        b.weight = float(s >= 1 ? (dt > 0 ? 1.0 : 0.0) : 1.0 - std::pow(1.0 - s, dt));
-        b.label = label_.position(r + 1);
-        b.zeroY0 = zero_[size_t(n)].first;
-        b.zeroY1 = zero_[size_t(n)].second;
-        return b;
     }
 
     int frameOf(double r) const {

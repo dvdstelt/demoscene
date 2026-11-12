@@ -1,7 +1,8 @@
 // The 3D engine's renderer (engine.h): the frame build of p2 354a / 3585 / 3310 and its copies in p3, p5, p6, p7 on
 // the GPU. The vertex shader is the vertex loop (1c60 / 1b60: matrix 1d86 applied to the vertex plus pivot, the
 // projection with the per-object f and the 0.75 vertical scale, the env coordinates from the rotated normal, the
-// texture words from the mesh or the object-space normal); culling is 3377's screen winding; the fragment shader is
+// texture words from the mesh or the object-space normal); culling is 3377's screen winding (the faces whose 16-bit
+// products overflow decided on the CPU as the original decides them); the fragment shader is
 // both fillers (2881 / 2660 texture + env: texel code -> bump offset -> env texel; 3030 / 2ea0 env only) with the
 // colours computed in float from filtered maps. Faces are ordered by a depth buffer, or as the radix sort 3585
 // orders them (Order::Painter: by the sum of the vertices' local depth times f, far first). Drawing goes into an
@@ -296,6 +297,13 @@ void Engine::draw(const Object& o, const Materials& m) {
         pending_->push_back({o, m});
         return;
     }
+    if (part_.cull16) {
+        projectObject(part_, cam_, o, pv_);
+        if (overflowFaces(o, pv_, cull_) > 0) {
+            drawCulled16(o, m);
+            return;
+        }
+    }
     shader_.use();
     setObject(o);
     gl::BindVertexArray(o.mesh->vao_);
@@ -306,47 +314,90 @@ void Engine::draw(const Object& o, const Materials& m) {
     gl::BindVertexArray(0);
 }
 
+void Engine::uploadIndices(const std::vector<uint32_t>& idx) {
+    if (!sortIbo_) gl::GenBuffers(1, &sortIbo_);
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, sortIbo_);
+    gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, GLsizeiptr(idx.size() * 4), idx.data(), GL_STREAM_DRAW);
+}
+
+// An object some of whose faces the 16-bit test of 3377 decides differently from the exact one: the faces by
+// material, those it keeps culled by their float winding, those it draws although they face away without culling.
+void Engine::drawCulled16(const Object& o, const Materials& m) {
+    struct Run { uint16_t attr; bool force; int first, count; };
+    std::vector<Run> runs;
+    std::vector<uint32_t> idx;
+    idx.reserve(o.mesh->faces.size() * 3);
+    for (const EngineMesh::Group& g : o.mesh->groups_)
+        for (int force = 0; force < 2; force++) {
+            Run r{g.attr, force != 0, int(idx.size()), 0};
+            for (size_t j = 0; j < o.mesh->faces.size(); j++) {
+                const EngineMesh::Face& f = o.mesh->faces[j];
+                if (f.attr != g.attr || cull_[j] == FaceCull::Drop || (cull_[j] == FaceCull::Force) != (force != 0))
+                    continue;
+                idx.insert(idx.end(), {f.a, f.b, f.c});
+                r.count += 3;
+            }
+            if (r.count) runs.push_back(r);
+        }
+    shader_.use();
+    setObject(o);
+    gl::BindVertexArray(o.mesh->vao_);
+    if (!idx.empty()) uploadIndices(idx);
+    for (const Run& r : runs) {
+        setMaterial(m, (r.attr & 0xff) + o.envAdd + m.envAdd, (r.attr >> 8) + o.texAdd + m.texAdd);
+        if (r.force) gl::Disable(GL_CULL_FACE);
+        gl::DrawElements(GL_TRIANGLES, r.count, GL_UNSIGNED_INT, (void*)(size_t(r.first) * 4));
+        if (r.force) gl::Enable(GL_CULL_FACE);
+    }
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, o.mesh->ibo_);   // the VAO's own index buffer again
+    gl::BindVertexArray(0);
+}
+
 // 3377 + 3585 + 3310: every face of the frame keyed by the sum of its vertices' local depth V.z times f (the
 // translation not included), sorted ascending (far first), stable in object and face order, drawn in that order.
 void Engine::drawPainter() {
-    struct Key { double key; uint32_t draw, face; };
+    struct Key { double key; uint32_t draw, face; bool force; };
     std::vector<Key> keys;
-    std::vector<ProjectedVertex> pv;
+    std::vector<ProjectedVertex>& pv = pv_;
     for (size_t i = 0; i < pending_->size(); i++) {
         const Pending& p = (*pending_)[i];
         projectObject(part_, cam_, p.o, pv);
+        if (part_.cull16) overflowFaces(p.o, pv, cull_);
+        else cull_.assign(p.o.mesh->faces.size(), FaceCull::Float);
         for (size_t j = 0; j < p.o.mesh->faces.size(); j++) {
+            if (cull_[j] == FaceCull::Drop) continue;
             const EngineMesh::Face& f = p.o.mesh->faces[j];
-            keys.push_back({(pv[f.a].vz + pv[f.b].vz + pv[f.c].vz) * p.o.f, uint32_t(i), uint32_t(j)});
+            keys.push_back({(pv[f.a].vz + pv[f.b].vz + pv[f.c].vz) * p.o.f, uint32_t(i), uint32_t(j),
+                            cull_[j] == FaceCull::Force});
         }
     }
     std::stable_sort(keys.begin(), keys.end(), [](const Key& a, const Key& b) { return a.key < b.key; });
     // runs of faces of one draw with one material
-    struct Run { uint32_t draw; uint16_t attr; int first, count; };
+    struct Run { uint32_t draw; uint16_t attr; bool force; int first, count; };
     std::vector<Run> runs;
     std::vector<uint32_t> idx;
     idx.reserve(keys.size() * 3);
     for (const Key& k : keys) {
         const EngineMesh::Face& f = (*pending_)[k.draw].o.mesh->faces[k.face];
-        if (runs.empty() || runs.back().draw != k.draw || runs.back().attr != f.attr)
-            runs.push_back({k.draw, f.attr, int(idx.size()), 0});
+        if (runs.empty() || runs.back().draw != k.draw || runs.back().attr != f.attr || runs.back().force != k.force)
+            runs.push_back({k.draw, f.attr, k.force, int(idx.size()), 0});
         idx.push_back(f.a);
         idx.push_back(f.b);
         idx.push_back(f.c);
         runs.back().count += 3;
     }
     if (idx.empty()) return;
-    if (!sortIbo_) gl::GenBuffers(1, &sortIbo_);
     shader_.use();
     for (const Run& r : runs) {
         const Pending& p = (*pending_)[r.draw];
         setObject(p.o);
         setMaterial(p.m, (r.attr & 0xff) + p.o.envAdd + p.m.envAdd, (r.attr >> 8) + p.o.texAdd + p.m.texAdd);
         gl::BindVertexArray(p.o.mesh->vao_);
-        gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, sortIbo_);
-        if (&r == &runs.front())
-            gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, GLsizeiptr(idx.size() * 4), idx.data(), GL_STREAM_DRAW);
+        if (&r == &runs.front()) uploadIndices(idx);
+        else gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, sortIbo_);
+        if (r.force) gl::Disable(GL_CULL_FACE);
         gl::DrawElements(GL_TRIANGLES, r.count, GL_UNSIGNED_INT, (void*)(size_t(r.first) * 4));
+        if (r.force) gl::Enable(GL_CULL_FACE);
         gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, p.o.mesh->ibo_);   // the VAO's own index buffer again
         gl::BindVertexArray(0);
     }

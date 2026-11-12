@@ -10,13 +10,14 @@
 //     of their colours: the trails fade through dark blue, not grey). Each colour c is split into the level L whose
 //     ramp colour has the same component sum (the sum grows along the ramp) and the residual c - ramp(L) (0 on the
 //     ramp; what a true-colour redraw or an anti-aliased edge adds); both are averaged and the screen shows
-//     ramp(L) + residual, which is c itself where nothing is blended. kSub blends per retrace with the weight
-//     1 - (1 - s / 256)^(1 / kSub), in a 16-bit buffer; the floor's darkening (up to 256 / s shades below a still
-//     picture) is gone, and the trails of fast motion are kSub copies per retrace instead of one;
-//   - the screen between two blends is the last blend followed by a partial one (the weight for the fraction of the
-//     step) with the scene at that moment, so the picture moves continuously;
-//   - T[240..254][*] = 0 (the label's pixels become black in the next blend, the black trail where it moved away)
-//     and the label drawn over the blend, with the label's area covered analytically per output pixel;
+//     ramp(L) + residual, which is c itself where nothing is blended. One blend per retrace with the weight s / 256,
+//     as the original on a PC fast enough to draw every retrace, in a 16-bit buffer: the floor's darkening (up to
+//     256 / s shades below a still picture) is gone;
+//   - the screen between two retraces mixes the buffers after the blends before and after it by the fraction of the
+//     retrace, so the trails and the newest copy move continuously;
+//   - T[240..254][*] = 0 (the label's pixels become black in the next blend, the black trail where it moved away):
+//     the buffers keep the label's area black, and the screen draws the label over them at its position at that
+//     moment, covered analytically per output pixel;
 //   - the grey ramp of the credit band (T[old < 64 or grey][grey] = grey (3 x + 13 y) / 16, scene pixels into the
 //     grey ramp, grey pixels to 0 after 3a5d) as rows whose pixels hold no scene; the text level itself is a closed
 //     form in p2.cpp, shown here through the palette's grey ramp (colours 128..191) instead of stopping at 59 / 63;
@@ -36,30 +37,14 @@
 
 namespace {
 
-const char* kFS = R"(
+// shared by both passes
+const char* kCommon = R"(
 in vec2 uv;
 out vec4 o;
-uniform sampler2D acc;       // the blend buffer after the previous blend (5517): ramp level / 127, residual / 2 + 1/2
-uniform int hasAcc;          // 0: black (the part start, or the start of a rebuild)
-uniform sampler2D frame;     // the render buffer of this blend (4527), colours
-uniform float weight;        // its weight
-uniform float labelPrev;     // the label position written after the previous blend (36a2)
-uniform float labelCur;      // ... after this one
-uniform sampler2D label;     // p2-label-blur, 70 x 44, opaque
-uniform int labelSharp;
-uniform vec2 zeroRows;       // rows in the grey ramp: no scene
 uniform vec2 pix;            // one output pixel in VGA units
 uniform sampler2D pal;       // p2's DAC palette
 uniform sampler2D level;     // component sum / 3 -> the ramp level with that sum, / 127
 uniform float levelN;        // entries of `level`
-uniform int display;         // 1: the screen (credit text, row 199, the DAC fade)
-uniform vec2 greyRows;
-uniform int slots;
-uniform vec4 slotStrip, slotRow, slotCoef;
-uniform sampler2D credits;   // p2-credits: grey = text level / 63, four strips of 32 rows
-uniform int creditsSharp;
-uniform float creditsHalf;   // half a texel of the credits texture, in picture rows
-uniform float fadeAdd;
 
 const vec4 kBlack = vec4(0.0, 0.5, 0.5, 0.5);
 // a colour as (ramp level / 127, residual / 2 + 1/2): blended linearly, this is the original's index blend
@@ -77,6 +62,46 @@ float cover(float a, float b, float p, float h) {
 float labelCover(float a, vec2 p) {
     return cover(max(a - 70.0, 0.0), max(a, 0.0), p.x, pix.x) * cover(8.0, 52.0, p.y, pix.y);
 }
+vec2 vgaPos() { return vec2(uv.x * 320.0, (1.0 - uv.y) * 200.0); }
+)";
+
+// One blend (360c steps 2 and 3): T[old][new] for the scene, the label's old area to 0, the grey rows.
+const char* kBlendFS = R"(
+uniform sampler2D acc;       // the blend buffer after the previous blend (5517)
+uniform int hasAcc;          // 0: black (the part start, or the start of a rebuild)
+uniform sampler2D frame;     // the render buffer of this blend (4527), colours
+uniform float weight;        // its weight s / 256
+uniform float labelPrev;     // the label position written after the previous blend (36a2)
+uniform float labelCur;      // ... after this one: black in the buffer (the next blend's T[240..254][*] = 0)
+uniform vec2 zeroRows;       // rows in the grey ramp: no scene
+void main() {
+    ivec2 ij = ivec2(gl_FragCoord.xy);
+    vec2 p = vgaPos();
+    vec4 old = hasAcc != 0 ? texelFetch(acc, ij, 0) : kBlack;
+    vec4 a = mix(old, toRamp(texelFetch(frame, ij, 0).rgb), weight);
+    a = mix(a, kBlack, labelCover(labelPrev, p));                    // T[240..254][*] = 0
+    a = mix(a, kBlack, cover(zeroRows.x, zeroRows.y, p.y, pix.y));   // the grey ramp holds no scene
+    o = mix(a, kBlack, labelCover(labelCur, p));
+}
+)";
+
+// The screen (360c step 4 and the DAC): two consecutive blend buffers mixed, the label, the credit text, row 199,
+// the white fade.
+const char* kDisplayFS = R"(
+uniform sampler2D accA, accB;  // the buffers after blends n and n + 1
+uniform int hasA, hasB;        // 0: black
+uniform float k;               // the fraction of the retrace between them
+uniform float labelPos;        // the label position at this moment
+uniform sampler2D label;       // p2-label-blur, 70 x 44, opaque
+uniform int labelSharp;
+uniform vec2 greyRows;
+uniform int slots;
+uniform vec4 slotStrip, slotRow, slotCoef;
+uniform sampler2D credits;     // p2-credits: grey = text level / 63, four strips of 32 rows
+uniform int creditsSharp;
+uniform float creditsHalf;     // half a texel of the credits texture, in picture rows
+uniform float fadeAdd;
+
 // the credit text level 0..63 (the grey ramp's index - 128): the strips' levels times their coefficients
 float textLevel(vec2 p) {
     float y = 0.0;
@@ -91,19 +116,12 @@ float textLevel(vec2 p) {
 }
 void main() {
     ivec2 ij = ivec2(gl_FragCoord.xy);
-    vec2 p = vec2(uv.x * 320.0, (1.0 - uv.y) * 200.0);
-    vec4 old = hasAcc != 0 ? texelFetch(acc, ij, 0) : kBlack;
-    vec4 a = mix(old, toRamp(texelFetch(frame, ij, 0).rgb), weight);
-    a = mix(a, kBlack, labelCover(labelPrev, p));                    // T[240..254][*] = 0
-    a = mix(a, kBlack, cover(zeroRows.x, zeroRows.y, p.y, pix.y));   // the grey ramp holds no scene
-    vec2 lt = vec2((p.x - (labelCur - 70.0)) / 70.0, (p.y - 8.0) / 44.0);
-    vec4 l = labelSharp != 0 ? texSharp(label, lt) : texture(label, lt);
-    a = mix(a, toRamp(l.rgb), labelCover(labelCur, p));
-    if (display == 0) {
-        o = a;
-        return;
-    }
+    vec2 p = vgaPos();
+    vec4 a = mix(hasA != 0 ? texelFetch(accA, ij, 0) : kBlack, hasB != 0 ? texelFetch(accB, ij, 0) : kBlack, k);
     vec3 c = clamp(fromRamp(a), 0.0, 1.0);
+    vec2 lt = vec2((p.x - (labelPos - 70.0)) / 70.0, (p.y - 8.0) / 44.0);
+    vec4 l = labelSharp != 0 ? texSharp(label, lt) : texture(label, lt);
+    c = mix(c, l.rgb, labelCover(labelPos, p));
     float y = textLevel(p);
     c = mix(c, dpPalLerp(pal, 128.0 + y), cover(greyRows.x, greyRows.y, p.y, pix.y));
     c *= 1.0 - cover(199.0, 200.0, p.y, pix.y);   // buffer row 200 is never blended: colour 0
@@ -111,14 +129,16 @@ void main() {
 }
 )";
 
-enum Unit { kAcc, kFrame, kLabel, kCredits, kPal, kLevel };
+enum Unit { kAcc, kAccB, kFrame, kLabel, kCredits, kPal, kLevel };
 
 constexpr int kLevelN = 2048;   // entries of the sum -> level table
 
 }  // namespace
 
 void P2Blur::init(Ctx& c, const Palette& pal) {
-    shader_.build(kFullscreenVS, std::string(dope::kGLSL) + kFS, "p2 blur");
+    std::string common = std::string(dope::kGLSL) + kCommon;
+    blend_.build(kFullscreenVS, common + kBlendFS, "p2 blend");
+    display_.build(kFullscreenVS, common + kDisplayFS, "p2 display");
     pal_.set(pal);
     // the ramp 0..127 between its entries (as dpPalLerp reads it): the level whose colour has the component sum 3 s,
     // for s = 0..1 (the sum grows along the ramp; where two entries have the same sum, steeply from one to the next)
@@ -157,90 +177,117 @@ void P2Blur::ensure(int w, int h) {
     valid_ = false;
 }
 
-void P2Blur::pass(Ctx& c, const Target* prev, double prevLabel, const P2Blend& b, const P2Show* show) {
-    const Picture& label = c.picture("p2-label-blur");
-    const Picture& credits = c.picture("p2-credits");
+void P2Blur::bindCommon(Ctx&) {
     setBlend(Blend::None);
-    shader_.use();
+    pal_.bind(kPal);
+    level_.bind(kLevel);
+}
+
+void P2Blur::blendPass(Ctx& c, const Target* prev, double prevLabel, const P2Blend& b) {
+    bindCommon(c);
+    Shader& s = blend_;
+    s.use();
     gl::ActiveTexture(GL_TEXTURE0 + kAcc);
     gl::BindTexture(GL_TEXTURE_2D, prev ? prev->tex : 0);
     new_.bindTex(kFrame);
-    label.tex.bind(kLabel);
-    credits.tex.bind(kCredits);
-    pal_.bind(kPal);
-    level_.bind(kLevel);
     gl::ActiveTexture(GL_TEXTURE0);
-    shader_.set("acc", int(kAcc));
-    shader_.set("frame", int(kFrame));
-    shader_.set("label", int(kLabel));
-    shader_.set("credits", int(kCredits));
-    shader_.set("pal", int(kPal));
-    shader_.set("level", int(kLevel));
-    shader_.set("levelN", float(kLevelN));
-    shader_.set("hasAcc", prev ? 1 : 0);
-    shader_.set("weight", b.weight);
-    shader_.set("labelPrev", float(prevLabel));
-    shader_.set("labelCur", float(b.label));
-    shader_.set("labelSharp", label.redraw ? 0 : 1);
-    shader_.set("zeroRows", b.zeroY0, b.zeroY1);
-    shader_.set("pix", 320.0f / float(w_), 200.0f / float(h_));
-    shader_.set("display", show ? 1 : 0);
-    if (show) {
-        shader_.set("greyRows", show->greyY0, show->greyY1);
-        shader_.set("slots", show->slots);
-        shader_.set("slotStrip", show->strip[0], show->strip[1], show->strip[2], show->strip[3]);
-        shader_.set("slotRow", show->row[0], show->row[1], show->row[2], show->row[3]);
-        shader_.set("slotCoef", show->coef[0], show->coef[1], show->coef[2], show->coef[3]);
-        shader_.set("creditsSharp", credits.redraw ? 0 : 1);
-        shader_.set("creditsHalf", 0.5f * float(credits.srcH) / float(std::max(1, credits.tex.h)));
-        shader_.set("fadeAdd", show->fadeAdd);
-    }
+    s.set("pal", int(kPal));
+    s.set("level", int(kLevel));
+    s.set("levelN", float(kLevelN));
+    s.set("pix", 320.0f / float(w_), 200.0f / float(h_));
+    s.set("acc", int(kAcc));
+    s.set("frame", int(kFrame));
+    s.set("hasAcc", prev ? 1 : 0);
+    s.set("weight", b.weight);
+    s.set("labelPrev", float(prevLabel));
+    s.set("labelCur", float(b.label));
+    s.set("zeroRows", b.zeroY0, b.zeroY1);
     drawFullscreen();
 }
 
-void P2Blur::advance(Ctx& c, P2Source& src, int m) {
-    const int first = firstBlend();
-    m = std::max(m, first - 1);
-    if (valid_ && have_ == m) return;
-    // the oldest blend that still counts: before it, everything weighs less than kForget (or the part start)
+void P2Blur::displayPass(Ctx& c, const Target* a, const Target* b, float k, const P2Show& show) {
+    const Picture& label = c.picture("p2-label-blur");
+    const Picture& credits = c.picture("p2-credits");
+    bindCommon(c);
+    Shader& s = display_;
+    s.use();
+    gl::ActiveTexture(GL_TEXTURE0 + kAcc);
+    gl::BindTexture(GL_TEXTURE_2D, a ? a->tex : 0);
+    gl::ActiveTexture(GL_TEXTURE0 + kAccB);
+    gl::BindTexture(GL_TEXTURE_2D, b ? b->tex : 0);
+    label.tex.bind(kLabel);
+    credits.tex.bind(kCredits);
+    gl::ActiveTexture(GL_TEXTURE0);
+    s.set("pal", int(kPal));
+    s.set("level", int(kLevel));
+    s.set("levelN", float(kLevelN));
+    s.set("pix", 320.0f / float(w_), 200.0f / float(h_));
+    s.set("accA", int(kAcc));
+    s.set("accB", int(kAccB));
+    s.set("hasA", a ? 1 : 0);
+    s.set("hasB", b ? 1 : 0);
+    s.set("k", k);
+    s.set("label", int(kLabel));
+    s.set("credits", int(kCredits));
+    s.set("labelPos", float(show.label));
+    s.set("labelSharp", label.redraw ? 0 : 1);
+    s.set("greyRows", show.greyY0, show.greyY1);
+    s.set("slots", show.slots);
+    s.set("slotStrip", show.strip[0], show.strip[1], show.strip[2], show.strip[3]);
+    s.set("slotRow", show.row[0], show.row[1], show.row[2], show.row[3]);
+    s.set("slotCoef", show.coef[0], show.coef[1], show.coef[2], show.coef[3]);
+    s.set("creditsSharp", credits.redraw ? 0 : 1);
+    s.set("creditsHalf", 0.5f * float(credits.srcH) / float(std::max(1, credits.tex.h)));
+    s.set("fadeAdd", show.fadeAdd);
+    drawFullscreen();
+}
+
+void P2Blur::advance(Ctx& c, P2Source& src, int n) {
+    n = std::max(n, -1);
+    if (valid_ && have_ == n) return;
+    // the oldest blend that still counts for blend n - 1: before it, everything weighs less than kForget (or the
+    // part start); stepping forwards from the buffers we have if they are recent enough
     bool forward = false;
-    int m0 = m;
+    int m0 = n - 1;
     double keep = 1;
-    while (m0 >= first && keep > kForget) {
-        if (valid_ && m0 == have_) {   // the buffer we have is recent enough: step forwards from it
+    while (m0 >= 0 && keep > kForget) {
+        if (valid_ && m0 == have_) {
             forward = true;
             break;
         }
         keep *= 1.0 - src.blend(m0).weight;
         m0--;
     }
-    double label = forward ? haveLabel_ : m0 >= first ? src.blend(m0).label : -1.0;
-    bool black = !forward;
-    for (int k = m0 + 1; k <= m; k++) {
+    if (valid_ && have_ == n - 1 && !forward) forward = true, m0 = n - 1;
+    double label = forward ? haveLabel_ : m0 >= 0 ? src.blend(m0).label : -1.0;
+    if (!forward) {   // from black after blend m0
+        curBlack_ = prevBlack_ = true;
+        have_ = m0;
+    }
+    for (int k = m0 + 1; k <= n; k++) {
+        if (k < 0) continue;
         P2Blend b = src.blend(k);
         src.drawScene(c, new_, b.r);
-        acc_[1 - cur_].bind();
-        pass(c, black ? nullptr : &acc_[cur_], label, b, nullptr);
-        cur_ = 1 - cur_;
-        black = false;
+        int next = 3 - cur_ - prev_;   // the buffer that is neither
+        acc_[next].bind();
+        blendPass(c, curBlack_ ? nullptr : &acc_[cur_], label, b);
+        prev_ = cur_;
+        prevBlack_ = curBlack_;
+        cur_ = next;
+        curBlack_ = false;
         label = b.label;
     }
-    if (black) {   // nothing blended since the start (r before the first blend): black
-        acc_[cur_].bind();
-        gl::ClearColor(0, 0.5f, 0.5f, 0.5f);   // kBlack: level 0, no residual
-        gl::Clear(GL_COLOR_BUFFER_BIT);
-    }
-    have_ = m;
+    have_ = n;
     haveLabel_ = label;
     valid_ = true;
 }
 
-void P2Blur::render(Ctx& c, P2Source& src, double r, const P2Show& show) {
+void P2Blur::render(Ctx& c, P2Source& src, double f, const P2Show& show) {
     Target& out = *c.out;
     ensure(out.w, out.h);
-    advance(c, src, int(std::floor(r * kSub)));
-    P2Blend b = src.partial(r);
-    if (b.weight > 0) src.drawScene(c, new_, b.r);
+    // the screen at f lies between the buffers after blends floor(f) and floor(f) + 1
+    double n = std::floor(f);
+    advance(c, src, int(n) + 1);
     out.bind();
-    pass(c, &acc_[cur_], haveLabel_, b, &show);
+    displayPass(c, prevBlack_ ? nullptr : &acc_[prev_], curBlack_ ? nullptr : &acc_[cur_], float(f - n), show);
 }

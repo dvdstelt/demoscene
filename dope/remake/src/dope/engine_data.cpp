@@ -2,7 +2,8 @@
 // p5 1412, p6 1620, p7 1810) and meshes (3.2) read from the part images, env maps, the bump tables (7.4: the data
 // at p2 / p3 / p7 0010:0000, the generators p5 3099 and p6 3913 as continuous offsets) and bump maps with the
 // fillers' texel addressing (7.3: `shld ebx, ecx, k`), and the float form of the vertex transform (5.1, 5.2 and
-// 11.1: the matrix 1d86 and the vertex loop 1c60 / 1b60 of p2 and their copies) on the CPU.
+// 11.1: the matrix 1d86 and the vertex loop 1c60 / 1b60 of p2 and their copies) on the CPU, with the integer screen
+// positions and the 16-bit facing test of 3377 (5.2, 5.4).
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
@@ -252,15 +253,16 @@ BumpOffsets bumpNibbles() {
     return o;
 }
 
-bool BumpMap::create(const DopeImage& img, uint16_t seg, const BumpOffsets& o, const EnginePart& part) {
+bool BumpMap::create(const DopeImage& img, uint16_t seg, const BumpOffsets& o, const EnginePart& part, Read read) {
     try {
-        return create(img.span(seg, 0, 127 * 256 + 128), 256, o, part);
+        return create(img.span(seg, 0, 127 * 256 + 128), 256, o, part, read);
     } catch (const std::out_of_range&) {
         return false;
     }
 }
 
-bool BumpMap::create(std::span<const uint8_t> codes, int stride, const BumpOffsets& o, const EnginePart& part) {
+bool BumpMap::create(std::span<const uint8_t> codes, int stride, const BumpOffsets& o, const EnginePart& part,
+                     Read read) {
     if (codes.size() < size_t(127 * stride + 128)) return false;
     // 7.3: column = (hi << s) / 256, row = (lo << s) / 256 + phase (s = k - 8); with lowResRows the rows the
     // original reads, (j << s) + phase, form a map of 128 >> s rows addressed by lo / 256
@@ -271,17 +273,23 @@ bool BumpMap::create(std::span<const uint8_t> codes, int stride, const BumpOffse
     colScale = float(1 << s) / 256.0f;
     rowScale = low ? 1.0f / 256.0f : float(1 << s) / 256.0f;
     rowOffset = low ? 0.0f : float(phase);
-    std::vector<float> px(size_t(rows) * 128 * 2);
-    for (int r = 0; r < rows; r++) {
+    // PerTexel: kSub x (kSub << s) values per texel (square in texture words: a low-resolution row is 2^s times as
+    // tall as a column is wide)
+    const int sx = read == Read::PerTexel ? kSub : 1;
+    const int sy = read == Read::PerTexel ? (low ? kSub << s : kSub) : 1;
+    const int w = 128 * sx, h = rows * sy;
+    std::vector<float> px(size_t(w) * size_t(h) * 2);
+    for (int y = 0; y < h; y++) {
+        int r = y / sy;
         int src = low ? (r << s) + phase : r;
-        for (int c = 0; c < 128; c++) {
-            const auto& d = o[codes[size_t(src) * size_t(stride) + size_t(c)]];
-            px[(size_t(r) * 128 + size_t(c)) * 2 + 0] = d[0];
-            px[(size_t(r) * 128 + size_t(c)) * 2 + 1] = d[1];
+        for (int x = 0; x < w; x++) {
+            const auto& d = o[codes[size_t(src) * size_t(stride) + size_t(x / sx)]];
+            px[(size_t(y) * size_t(w) + size_t(x)) * 2 + 0] = d[0];
+            px[(size_t(y) * size_t(w) + size_t(x)) * 2 + 1] = d[1];
         }
     }
     tex.destroy();
-    tex.createRaw(128, rows, GL_RG16F, GL_RG, GL_FLOAT, px.data(), true, true, true);
+    tex.createRaw(w, h, GL_RG16F, GL_RG, GL_FLOAT, px.data(), true, true, true);
     return true;
 }
 
@@ -326,6 +334,41 @@ void projectObject(const EnginePart& part, const Pose& camera, const Object& o, 
         }
         out.push_back(q);
     }
+}
+
+ScreenInt screenInt(const ProjectedVertex& v) {
+    // 1c60: q = Px f / D (idiv, truncated), x = (q >> 3) + ((q >> 2) & 1) + 160; q = 3 (Py f / D),
+    // row = (q >> 5) + ((q >> 4) & 1) + 100. In the float form Px f / D = 8 (x - 160), Py f / D = 32 (row - 100) / 3.
+    constexpr double kBig = 1e15;   // far beyond any 16-bit value; keeps the conversion defined
+    int64_t qx = int64_t(std::trunc(std::clamp(8.0 * (v.x - 160.0), -kBig, kBig)));
+    int64_t qy = 3 * int64_t(std::trunc(std::clamp(32.0 * (v.y + 1.0 - 100.0) / 3.0, -kBig, kBig)));
+    return {(qx >> 3) + ((qx >> 2) & 1) + 160, (qy >> 5) + ((qy >> 4) & 1) + 100};
+}
+
+int overflowFaces(const Object& o, const std::vector<ProjectedVertex>& pv, std::vector<FaceCull>& out) {
+    out.assign(o.mesh ? o.mesh->faces.size() : 0, FaceCull::Float);
+    if (!o.mesh || pv.size() < o.mesh->verts.size()) return 0;
+    thread_local std::vector<ScreenInt> s;
+    s.resize(pv.size());
+    for (size_t i = 0; i < pv.size(); i++) s[i] = screenInt(pv[i]);
+    // scr[g] holds 16-bit words; 3377 subtracts and multiplies them with 16-bit sub / imul
+    auto w16 = [](int64_t v) { return int16_t(uint16_t(uint64_t(v) & 0xffff)); };
+    int n = 0;
+    for (size_t j = 0; j < out.size(); j++) {
+        const EngineMesh::Face& f = o.mesh->faces[j];
+        const ScreenInt &a = s[f.a], &b = s[f.b], &c = s[f.c];
+        int16_t xa = w16(a.x), ya = w16(a.y), xb = w16(b.x), yb = w16(b.y), xc = w16(c.x), yc = w16(c.y);
+        int16_t p1 = w16(int32_t(w16(xb - xa)) * int32_t(w16(yc - ya)));
+        int16_t p2 = w16(int32_t(w16(xc - xa)) * int32_t(w16(yb - ya)));
+        int16_t ax = w16(int32_t(p1) - int32_t(p2));
+        int64_t exact = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
+        bool draw16 = o.cullFlip ? ax < 0 : ax >= 0;
+        bool drawExact = o.cullFlip ? exact < 0 : exact >= 0;
+        if (draw16 == drawExact) continue;
+        out[j] = draw16 ? FaceCull::Force : FaceCull::Drop;
+        n++;
+    }
+    return n;
 }
 
 }  // namespace dope

@@ -12,9 +12,9 @@
 // only). Dropped with that: the one-step darkening of every colour while a < 16 / 4096 (the start of p4, and its
 // last frames: the chequerboard is shown at full brightness, as in its picture). The label is opaque and not faded.
 //
-// Time (dope/re/PORT.md "Time"): p4's frame loop draws continuously and its palette changes in the handler, so the
-// record of IRQ k shows the state after IRQ k and the main loop's answer to it (a step's writes come before the next
-// IRQ, notes-p4 3): k = c.retraces(t) + 1, continuous; the state is interpolated between IRQ k and k + 1. The fire
+// Time (dope/re/PORT.md "Time"): measured in the capture (the label's slide, the landscape's motion), record start + n
+// shows the state after IRQ n and the main loop's answer to it (a step's writes come before the next IRQ, notes-p4
+// 3): k = c.retraces(t), continuous; the state is interpolated between IRQ k and k + 1. The fire
 // steps once per odd IRQ (step m at IRQ 2m - 1) and is blended between steps. The script's state is replayed from
 // the part start at start-up (7430 IRQs of integer arithmetic), so every time is a lookup.
 #include <algorithm>
@@ -52,7 +52,7 @@ public:
 
     void render(Ctx& c, double t) override {
         int last = int(st_.size()) - 1;
-        double k = std::clamp(c.retraces(t) + 1.0, 1.0, double(last));
+        double k = std::clamp(c.retraces(t), 0.0, double(last));
         int k0 = int(std::floor(k)), k1 = std::min(k0 + 1, last);
         double f = k - k0;
         const State& s0 = st_[size_t(k0)];

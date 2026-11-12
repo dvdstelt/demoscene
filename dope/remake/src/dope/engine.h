@@ -20,7 +20,8 @@
 //     (the buffer's row 100 is screen row 99), f per object. No rounding to whole pixels; the GPU rasterises with
 //     MSAA. The 0.75 vertical scale and the per-object f stay (part of the look).
 //   - Back faces are culled by the winding on the screen (cross product >= 0 drawn, or < 0 with the record's +2c
-//     set), in float: the 16-bit products that overflow on faces larger than ~181 px are not reproduced.
+//     set), in float; where the original's 16-bit products overflow (faces larger than ~181 px) the original's
+//     choice is kept (EnginePart::cull16): those faces are dropped or drawn as the original does.
 //   - A depth buffer instead of the radix sort by face-centroid depth (Order::Depth), or the original's order
 //     (Order::Painter: faces of all objects sorted by the sum of their vertices' local depth times f, far first,
 //     drawn over each other). The depth compared is d, or with Object::depthScale the original's key: p2's "C"
@@ -30,11 +31,12 @@
 //     renormalised (the original interpolates the per-vertex coordinates, a linear function of it): column 64 +
 //     (R n).x / 512, row 64 + (R n).y / 512 texels of the 128 x 128 map (p6: 64 - .., 64 - ..). Texture words
 //     (mesh map coordinates or the object-space normal, with p3's 15-bit wrap) interpolated perspective-correctly.
-//   - Maps are read filtered instead of nearest: the env map's colours (indices converted through the part's
-//     palette first, or a level map through a palette ramp), and the bump displacement (each texel code decoded
-//     through the bump table, then filtered); the texel shift's low-resolution row sampling is kept (p2 reads 64 of
-//     the bump map's 128 rows, p5 / p6 32: that is the pattern the viewer sees). Where the bump map is minified the
-//     pixel is box-filtered (up to 3 x 3 samples).
+//   - The env map is read filtered instead of nearest (its colours: indices converted through the part's palette
+//     first, or a level map through a palette ramp). The bump map keeps one displacement per texel, as the fillers
+//     read it (each texel code decoded through the bump table; BumpMap::Read::PerTexel), with an edge about one
+//     pixel wide between texels: the patchy relief of the original (dope/re/dump/*-bump-compare.jpg); the texel
+//     shift's low-resolution row sampling is kept (p2 reads 64 of the bump map's 128 rows, p5 / p6 32: that is the
+//     pattern the viewer sees). Where the bump map is minified the pixel is box-filtered (up to 3 x 3 samples).
 //   - Dropped 320x200 / 8-bit artefacts: integer edge stepping, the carries between the packed 16-bit halves, the
 //     stale gradients of degenerate triangles, the 8-bit span counter, the missing column 319 of clipped env-only
 //     spans, the trivial reject of triangles with all corners left / right of the screen, the top-edge borrow.
@@ -72,8 +74,8 @@
 //
 // Nothing keeps state between frames: a frame depends only on the objects, materials and camera passed. Checked with
 // tools/enginetest against the 19 frames of the bit-exact model (screen positions within 2 px of the integer engine,
-// mean 0.3; env coordinates within 0.25 texel; texture words exact; culling differs only on faces under 31 px^2 and
-// on the 16-bit overflows), and with the test scenes against the capture.
+// mean 0.3; env coordinates within 0.25 texel; texture words exact; culling differs only on faces under 31 px^2 and,
+// without cull16, on the 16-bit overflows), and with the test scenes against the capture.
 #pragma once
 #include <array>
 #include <cstdint>
@@ -112,6 +114,12 @@ struct EnginePart {
                                 // a texture: hi = 0x4000..0x7fff); k = 9: hi >> 15 = 0
     bool envNegate = false;     // p6 1a5c `neg edx`: env coordinates 64 - (R n) / 512
     bool pivotAfter = false;    // p5 16b0: the pivot added again after the rotation, unscaled (pivot / 32768 units)
+    // 3377's facing test in 16 bits (notes-engine 5.4): where its products overflow on faces larger than ~181 px the
+    // sign is wrong, big front faces vanish and big back faces are drawn (p2's close-ups from about 136 s show the
+    // "C" and its stand through the near disc). true: those faces are dropped or drawn as the original does (the
+    // test evaluated on the original's integer screen positions per face on the CPU, overflowFaces()); every other
+    // face is culled by its float winding. false: the float winding alone.
+    bool cull16 = true;
     // Addresses (cs offsets) in the part image: the object list (slot 0 = the camera), the env and texture segment
     // tables (4 words each, image segments: segmentTable()), and the static bump table (-1: built per retrace from a
     // strength, p5 3099 / p6 3913: use bumpNibbles()).
@@ -249,15 +257,27 @@ BumpOffsets bumpNibbles();
 // the part's texel addressing (texShift, lowResRows, rowPhase): RG16F, filtered, mipmapped, repeating.
 class BumpMap {
 public:
+    // How the offsets are read between texel centres:
+    //   PerTexel  each texel keeps its own offset, as the fillers read it (nearest): the texture holds every texel
+    //             as kSub x kSub (x 2^s in rows for the low-resolution rows) equal values, so the engine's filtered
+    //             read gives the texel's offset inside it and a transition about one pixel wide at its edges (the
+    //             mipmaps widen it to the pixel's footprint where the texels are small); only the env read is
+    //             filtered. The patchy relief of the original's bumps (p5's glow, p2's discs, p3, p6's fur, p7).
+    //   Filtered  the decoded offsets interpolated between texel centres: smooth relief with thin bright veins
+    //             where neighbouring offsets differ (another look; dope/re/dump/*-bump-compare.jpg).
+    enum class Read { PerTexel, Filtered };
+    static constexpr int kSub = 8;
     Texture tex;
     BumpMap() = default;
     BumpMap(const BumpMap&) = delete;
     BumpMap& operator=(const BumpMap&) = delete;
-    int rows = 128;                            // rows of the texture: 128, or 64 / 32 with lowResRows
+    int rows = 128;                            // rows of the map: 128, or 64 / 32 with lowResRows
     float colScale = 1.0f / 256, rowScale = 1.0f / 256, rowOffset = 0;   // texels per texture-word unit
-    bool create(const DopeImage& img, uint16_t seg, const BumpOffsets& o, const EnginePart& part);
+    bool create(const DopeImage& img, uint16_t seg, const BumpOffsets& o, const EnginePart& part,
+                Read read = Read::PerTexel);
     // codes: at least 127 * stride + 128 bytes.
-    bool create(std::span<const uint8_t> codes, int stride, const BumpOffsets& o, const EnginePart& part);
+    bool create(std::span<const uint8_t> codes, int stride, const BumpOffsets& o, const EnginePart& part,
+                Read read = Read::PerTexel);
     ~BumpMap() { tex.destroy(); }
 };
 
@@ -283,6 +303,16 @@ struct ProjectedVertex {
 // R = Rz(-c) Rx(-a) Ry(b) for the angles (65536 per turn), row-major: v' = R v for a column vector v.
 std::array<double, 9> engineRotation(double a, double b, double c);
 void projectObject(const EnginePart& part, const Pose& camera, const Object& o, std::vector<ProjectedVertex>& out);
+// The original's integer screen position of a projected vertex (1c60: the truncating idiv, then round half up of
+// the shifted quotient; column, row of the 201-row buffer = VGA row + 1), as 3377 reads them.
+struct ScreenInt { int64_t x = 0, y = 0; };
+ScreenInt screenInt(const ProjectedVertex& v);
+// 3377's 16-bit facing test against the exact one on the same integer positions, per face of o in mesh order:
+// FaceCull::Float where they agree (the face is culled by its float winding), Drop where the 16-bit test drops a
+// face the exact test draws, Force where it draws a face that faces away. pv: projectObject's vertices of o.
+// Returns the number of faces that are not Float.
+enum class FaceCull : uint8_t { Float, Drop, Force };
+int overflowFaces(const Object& o, const std::vector<ProjectedVertex>& pv, std::vector<FaceCull>& out);
 
 // =============================================================================================== the renderer
 // The part of the target the engine draws: the VGA rectangle the target covers and where the engine may draw
@@ -331,6 +361,9 @@ private:
     void setObject(const Object& o);
     void setMaterial(const Materials& m, int envSel, int texSel);
     void drawPainter();
+    // The object's faces with the 16-bit test's choices (cull_): Drop left out, Force drawn without culling.
+    void drawCulled16(const Object& o, const Materials& m);
+    void uploadIndices(const std::vector<uint32_t>& idx);
 
     Shader shader_, composite_;
     Texture white_, zero_;
@@ -343,6 +376,8 @@ private:
     View view_;
     Order frameOrder_ = Order::Depth;
     unsigned sortIbo_ = 0;
+    std::vector<ProjectedVertex> pv_;
+    std::vector<FaceCull> cull_;
 };
 
 // The frame of the engine parts (frame copies p3 2b1c, p5 2adc, p6 2d5c, p7 2f8c; p2 360c before its blend): the
