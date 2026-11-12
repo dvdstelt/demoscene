@@ -14,6 +14,11 @@
 #include "minimp3.h"
 
 namespace {
+
+// libopenmpt's mix of the module with the vocals at full volume peaks at +3.9 dBFS, which clipped in the loud parts
+// (about 80 s of the song). The whole mix is attenuated by this much (measured on the rendered song) so that its
+// peak is at -1 dBFS.
+constexpr int32_t kMasterGainMillibel = -491;
 uint16_t rd16(const uint8_t* p) { return uint16_t(p[0] | (p[1] << 8)); }
 uint32_t rd32(const uint8_t* p) { uint32_t v; std::memcpy(&v, p, 4); return v; }
 void wr32(uint8_t* p, uint32_t v) { std::memcpy(p, &v, 4); }
@@ -79,8 +84,10 @@ bool Music::load(const std::string& ptmPath, const std::string& mp2Path, std::st
         std::vector<int16_t> vox = decodeMp2(mp2);
         ptm_ = rebuildPtm(ptm, vox);
         mod_ = std::make_unique<openmpt::module>(ptm_);
-        // 303 sits with the vocal samples at full volume; keep the mix close to MIDAS (no extra gain)
+        // 303 sits with the vocal samples at full volume; keep the mix close to MIDAS, only attenuated so it does
+        // not clip
         mod_->set_render_param(openmpt::module::RENDER_INTERPOLATIONFILTER_LENGTH, 8);
+        mod_->set_render_param(openmpt::module::RENDER_MASTERGAIN_MILLIBEL, kMasterGainMillibel);
         mod_->set_repeat_count(0);
         return true;
     } catch (const std::exception& e) {
@@ -175,6 +182,7 @@ std::vector<float> Music::renderAll(int rate) {
     std::vector<float> all;
     openmpt::module m(ptm_);
     m.set_render_param(openmpt::module::RENDER_INTERPOLATIONFILTER_LENGTH, 8);
+    m.set_render_param(openmpt::module::RENDER_MASTERGAIN_MILLIBEL, kMasterGainMillibel);
     std::vector<float> b(4096 * 2);
     for (;;) {
         size_t n = m.read_interleaved_stereo(rate, 4096, b.data());

@@ -10,7 +10,7 @@ The remake loads the original data files directly. They are not included: get th
 | file | contents | how it is used |
 |------|----------|----------------|
 | `MUSTARD.PAK` | 45 LZW-compressed files: palettised textures, fonts, 3D objects, fade tables | textures upscaled on the GPU, fonts turned into signed distance fields, meshes rendered with smooth normals |
-| `GARLIC.PAK` | 30-channel PolyTracker (PTM) module | played with libopenmpt (8-tap sinc interpolation) |
+| `GARLIC.PAK` | 30-channel PolyTracker (PTM) module | played with libopenmpt (8-tap sinc interpolation), the whole mix attenuated by 4.9 dB so its loudest moments (+3.9 dBFS) do not clip |
 | `KETCHUP.PAK` | MPEG-1 layer II stream with Vic's vocals and drum loops | decoded with minimp3 and put back into the module's sample slots 48–90, as Statix's MIDAS hack did |
 | `ALEX/HARL/VS/PARANOID.LZW` | video clips (custom 4×4 DCT codec, YIQ) | decoded in floating point and converted with the original YIQ matrix, with no 16-level dithering |
 | `303.EXE` | the program (Watcom C/C++, DOS/4GW LE, 414,153 bytes) | loaded with its fixups at start-up and checked by size and hash; the lyric and song tables, the credit layout, the web and icon tables, the jitter table and the marching-cubes case table are read from it by address |
