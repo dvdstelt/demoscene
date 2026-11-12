@@ -49,9 +49,11 @@ if(OPENMPT_TARGET STREQUAL "")
 endif()
 
 # ---------------------------------------------------------------- demo
+find_package(Threads REQUIRED)  # the art folder is decoded on worker threads (src/art.cpp)
 file(GLOB SCENE_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/scenes/*.cpp)
 add_executable(acme303 WIN32
   src/main.cpp
+  src/art.cpp
   src/assets.cpp
   src/audio.cpp
   src/gl.cpp
@@ -63,7 +65,7 @@ add_executable(acme303 WIN32
   src/exe.cpp
   ${SCENE_SOURCES})
 target_include_directories(acme303 PRIVATE src third_party)
-target_link_libraries(acme303 PRIVATE SDL3::SDL3 ${OPENMPT_TARGET})
+target_link_libraries(acme303 PRIVATE SDL3::SDL3 ${OPENMPT_TARGET} Threads::Threads)
 if(MSVC)
   target_compile_options(acme303 PRIVATE /W3 /utf-8)
   target_compile_definitions(acme303 PRIVATE _CRT_SECURE_NO_WARNINGS)

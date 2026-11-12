@@ -656,6 +656,9 @@ struct Renderer {
         hiddenSh.build(kHiddenVS, kHiddenFS, "hidden lines");
         wireSh.build(kFullscreenVS, std::string(kExePaletteGLSL) + kWireFS, "wire composite");
         finalSh.build(kFullscreenVS, std::string(kExePaletteGLSL) + kFinalFS, "typo final");
+        // Read as palette indices and levels, so art/ redraws do not replace them: wire.raw (levels 0..31 into
+        // wire.fad), phong1.raw (3d.fad rows) and bd2.raw (its index through the wirecut.fad table below; a redraw
+        // of bd2 would need that table as a blend towards white, re/notes-pictures.md).
         const Bytes& wire = c.pak.get("wire.raw");
         wireTex = makeTex(256, 256, GL_R8, GL_RED, wire.data() + 768, true, true, true);
         const Bytes& phong = c.pak.get("phong1.raw");

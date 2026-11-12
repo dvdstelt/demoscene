@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <stdexcept>
 
 #include "timeline.h"
@@ -54,7 +55,7 @@ RawInfo rawInfo(const std::string& name, size_t size) {
     if (name == "credits.raw") return {512, 32, false};
     if (name == "303b.raw") return {256, 38, false};
     if (name == "mustard.raw") return {256, 48, false};
-    if (name == "smalfont.raw") return {288, 32, false};
+    if (name == "smalfont.raw") return {768, 12, false};
     switch (size) {
         case 64768: return {320, 200, true};
         case 66304: return {256, 256, true};
@@ -64,6 +65,25 @@ RawInfo rawInfo(const std::string& name, size_t size) {
         case 65536: return {256, 256, false};
     }
     throw std::runtime_error("unknown raw size for " + name);
+}
+
+// Rows [f0, f0 + fh) (fractions of the height) of a redraw: the part of the file a tile key covers. Grey files
+// (no palette) take the redraw's luminance as grey and alpha, as imageGray() does with the file's values.
+Image redrawRows(const Image& r, double f0, double fh, bool grey) {
+    int y0 = std::clamp(int(std::lround(f0 * r.h)), 0, r.h);
+    int y1 = std::clamp(int(std::lround((f0 + fh) * r.h)), y0, r.h);
+    Image im;
+    im.w = r.w;
+    im.h = std::max(1, y1 - y0);
+    im.rgba.assign(r.rgba.begin() + std::ptrdiff_t(y0) * r.w * 4,
+                   r.rgba.begin() + std::ptrdiff_t(y0 + im.h) * r.w * 4);
+    if (grey)
+        for (size_t i = 0; i < im.rgba.size(); i += 4) {
+            uint8_t* p = &im.rgba[i];
+            float l = (0.299f * p[0] + 0.587f * p[1] + 0.114f * p[2]) * p[3] / 255.0f;
+            p[0] = p[1] = p[2] = p[3] = uint8_t(std::clamp(l, 0.0f, 255.0f) + 0.5f);
+        }
+    return im;
 }
 
 // Felzenszwalb squared-distance transform (1D) used for SDF fonts.
@@ -155,10 +175,25 @@ Texture& Ctx::tex(const std::string& key) {
     int tileH = ri.w == 320 ? 200 : 256;
     int y0 = tile >= 0 ? tile * tileH : 0;
     int rows = tile >= 0 ? tileH : ri.h;
-    Image im = ri.pal ? imagePaletted(raw, ri.w, ri.h, y0, rows) : imageGray(raw, ri.w, ri.h, y0, rows);
+    Image im;
+    if (const Image* r = art.picture(name))  // the redraw covers the whole file: cut out the same rows
+        im = redrawRows(*r, double(y0) / ri.h, double(rows) / ri.h, !ri.pal);
+    else
+        im = ri.pal ? imagePaletted(raw, ri.w, ri.h, y0, rows) : imageGray(raw, ri.w, ri.h, y0, rows);
     Texture& t = textures[key];
     t.create(im, true, true);
     return t;
+}
+
+const Texture* Ctx::redraw(const std::string& name) {
+    const std::string key = "#art:" + name;
+    auto it = textures.find(key);
+    if (it != textures.end()) return &it->second;
+    const Image* r = art.picture(name);
+    if (!r) return nullptr;
+    Texture& t = textures[key];
+    t.create(*r, true, true);
+    return &t;
 }
 
 int Ctx::videoFrames(const std::string& name) {
@@ -175,6 +210,15 @@ Texture& Ctx::video(const std::string& name, float frame) {
     int n = videoFrames(name);
     const Video& v = *videos[name];
     int f = std::clamp(int(std::floor(frame)), 0, n - 1);
+    if (const Image* r = art.videoFrame(name, f)) {  // restored frame: the scenes sample it in 0..1, at any size
+        Texture& t = videoArtTex[name];
+        auto at = videoArtLoaded.find(name);
+        if (at == videoArtLoaded.end() || at->second != f) {
+            t.create(*r, false, true);
+            videoArtLoaded[name] = f;
+        }
+        return t;
+    }
     Texture& t = videoTex[name];
     if (!t.id) {
         t.createEmpty(v.w, v.h, GL_RGBA8, false);
@@ -215,6 +259,8 @@ Font& Ctx::font(const std::string& name) {
     auto it = fonts.find(name);
     if (it != fonts.end()) return it->second;
     Font& f = fonts[name];
+    // Built from the files' coverage bytes (signed distance fields at 4x), never from a redraw: the glyph extents are
+    // measured from these bytes and the exe's tables address them in the original's columns.
     const int scale = 4;
     if (name == "lyrics" || name == "outline") {
         bool lyr = name == "lyrics";

@@ -273,6 +273,9 @@ struct CreditPart {
         ready = true;
         photoSh.build(kFullscreenVS, kPhotoFS, "credits photo");
         objSh.build(kSpikeyVS, kSpikeyFS, "credits spikey");
+        // The photos are read as palette indices: 0x15734 box-blurs, darkens, grains and adds the words to the index
+        // (pixel >> 1) and shows it through a 128-colour ramp, so an art/ redraw does not replace them as it is; one
+        // would have to be turned into ramp positions first (re/notes-pictures.md).
         const char* files[2] = {"alex.raw", "vic.raw"};
         for (int s = 0; s < 2; s++) {
             const Bytes& raw = c.pak.get(files[s]);

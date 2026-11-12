@@ -31,6 +31,27 @@ Analysis helpers: `--wav out.wav` renders the soundtrack, and `--shots 10,20.5 -
 writes frames at given music times to PNG. `--video out.mp4 [--from S] [--to S] [--fps 60] [--shotsize WxH] [--vcodec "ffmpeg args"]`
 renders the demo with its sound through `ffmpeg`, frame by frame (see `docs/videos.md` in the repository).
 
+## Redrawn pictures and restored video
+
+The remake can show high-resolution redraws of MUSTARD.PAK's pictures and restored frames of the video clips from
+an `art` folder: next to the program or in its parents, or `remake/art` there (so `303/remake/art` is found from
+the build folder), or `--art DIR`. `--original-art` shows the original pixels and frames. There are no redraws yet;
+without an `art` folder, or with an empty one, the demo looks exactly as with `--original-art`.
+
+- `art/<name>.png` (or `.jpg`): a redraw of `<name>.raw` (`final.png`, `tex3d.png`), RGB or RGBA, any resolution,
+  covering the file's whole pixel grid; a stacked file (`tex3d`, `bd2`, `blobby`, `tunnel`) is one picture with
+  its tiles stacked as in the file. Files without a palette (`final`, `opening1`, `303b`, `credits`) are read as
+  their luminance. It replaces the picture wherever a part reads it as colours (`Ctx::tex`); parts that read
+  palette indices (the alex and vic photos, `bd2`, the fonts, `wire`, `phong1`) keep the original and say so in
+  the code, and `Ctx::redraw(name)` gives them the redraw to convert.
+- `art/video/<CLIP>/NNNN.png` (or `.jpg`): a restored frame of `<CLIP>.LZW` (ALEX, HARL, VS, PARANOID), one file per
+  original frame numbered from `0000`, any resolution with the original's 5:3 shape (160x96). The parts draw it
+  through the same mapping, ripple and fades as the decoded frame; frames without a file keep the decoded one.
+  Frames are decoded on worker threads two ahead of the one shown.
+
+[`../re/notes-pictures.md`](../re/notes-pictures.md) lists every picture and clip, how the parts read them, which
+ones a redraw can replace and what it has to keep (tileable textures, environment-map discs, element positions).
+
 ## Building
 
 Requirements: a C++20 compiler, CMake ≥ 3.20, SDL3, libopenmpt. If SDL3 or libopenmpt is not installed,
@@ -69,6 +90,7 @@ mingw64-cmake -S . -B build-win -G Ninja && cmake --build build-win
 
 - `src/exe.*`: loads `303.EXE` (LE objects and fixups) and reads it by address
 - `src/assets.*`: the LZW variant (Nelson's LZW15V), the PAK directory, the video codec, the three mesh formats
+- `src/art.*`: the art folder (redrawn pictures, restored video frames), decoded with stb_image
 - `src/audio.*`: rebuilds the PTM with the vocal samples, playback and timing through SDL3
 - `src/exefx.*`: building blocks ported from the executable and shared by several parts: the palette system
   (fades, flashes, negative strobes, brightness kicks), Watcom `rand()`, the sphere-ray grid, soft additive

@@ -1,12 +1,15 @@
 // 303 by Acme (X'97) - high resolution remake.
-// Reads the original data files (MUSTARD.PAK, GARLIC.PAK, KETCHUP.PAK, *.LZW).
+// Reads the original data files (MUSTARD.PAK, GARLIC.PAK, KETCHUP.PAK, *.LZW), and the redrawn pictures and restored
+// video frames of an art folder unless --original-art (art.h). Options, the playback loop, shots, video.
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <string>
+#include <system_error>
 #include <vector>
 
 #include "assets.h"
@@ -20,6 +23,8 @@
 namespace {
 struct Options {
     std::string dataDir;
+    std::string artDir;  // --art
+    bool art = true;     // false: --original-art
     bool windowed = false;
     int winW = 1280, winH = 960;
     double start = 0;
@@ -40,6 +45,9 @@ void usage() {
     SDL_Log(
         "acme303 [options]\n"
         "  --data DIR        directory with the original 303 files (default: auto)\n"
+        "  --art DIR         redrawn pictures and restored video frames (default: an 'art' folder next to the\n"
+        "                    program or in its parents, or remake/art there)\n"
+        "  --original-art    show the original's pixels and video frames instead\n"
         "  --window          run in a window instead of fullscreen\n"
         "  --size WxH        window size (default 1280x960)\n"
         "  --start SECONDS   start position\n"
@@ -63,9 +71,9 @@ bool hasData(const std::string& dir) {
     return false;
 }
 
-std::string findData(const std::string& hint) {
+// The folders searched for the originals and the art: the program's folder and its parents, the working directory.
+std::vector<std::string> searchDirs() {
     std::vector<std::string> c;
-    if (!hint.empty()) c.push_back(hint);
     if (const char* base = SDL_GetBasePath()) {
         std::string b = base;
         if (!b.empty() && (b.back() == '/' || b.back() == '\\')) b.pop_back();
@@ -78,10 +86,30 @@ std::string findData(const std::string& hint) {
     c.push_back(".");
     c.push_back("data");
     c.push_back("..");
+    return c;
+}
+
+std::string findData(const std::string& hint) {
+    std::vector<std::string> c = searchDirs();
+    if (!hint.empty()) c.insert(c.begin(), hint);
     for (const auto& d : c) {
         if (hasData(d)) return d;
         if (hasData(d + "/original")) return d + "/original";  // the repository's <demo>/original folder
     }
+    return "";
+}
+
+bool dirExists(const std::string& p) {
+    std::error_code ec;
+    return std::filesystem::is_directory(p, ec);
+}
+
+// The art folder: next to the program (a release) or in the source tree (303/remake/art).
+std::string findArt(const std::string& hint) {
+    if (!hint.empty()) return dirExists(hint) ? hint : "";
+    for (const auto& d : searchDirs())
+        for (const char* sub : {"/art", "/remake/art"})
+            if (dirExists(d + sub)) return d + sub;
     return "";
 }
 
@@ -103,6 +131,8 @@ bool parse(int argc, char** argv, Options& o) {
         std::string a = argv[i];
         auto next = [&]() -> std::string { return i + 1 < argc ? argv[++i] : ""; };
         if (a == "--data") o.dataDir = next();
+        else if (a == "--art") o.artDir = next();
+        else if (a == "--original-art") o.art = false;
         else if (a == "--window") o.windowed = true;
         else if (a == "--size") std::sscanf(next().c_str(), "%dx%d", &o.winW, &o.winH);
         else if (a == "--start") o.start = std::atof(next().c_str());
@@ -267,6 +297,11 @@ int main(int argc, char** argv) {
     };
 
     Demo demo;
+    if (opt.art) {
+        std::string art = findArt(opt.artDir);
+        if (art.empty()) SDL_Log("no art folder found: showing the original's pixels");
+        demo.ctx.art.init(art, true);
+    }
     int dw = opt.shotW, dh = opt.shotH;
     if (!shotMode) SDL_GetWindowSizeInPixels(win, &dw, &dh);
     int rw, rh;

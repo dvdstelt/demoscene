@@ -434,7 +434,8 @@ struct Late {
             }
     }
 
-    // fontout.raw words (pointer table 0x58060), glyphs overlapping by 4 columns, centred on column 128
+    // fontout.raw words (pointer table 0x58060), glyphs overlapping by 4 columns, centred on column 128.
+    // Read as the file's coverage bytes (glyph runs found in them), so an art/ redraw does not replace it.
     void buildWords(Ctx& c) {
         const Bytes& raw = c.pak.get("fontout.raw");
         // glyph k of a..z = the k-th run of non-empty columns at least 4 wide; a column is empty when all
