@@ -166,10 +166,10 @@ uniform sampler2D img, prev;
 uniform int cell[35];
 uniform int iconX[8], iconW[8];
 uniform int idx, n, row0, h, jx;
-uniform float step, gain, finv, reset;
-// explicit level 0: src() is called in per-pixel branches and loops, where the implicit mip level is undefined
-// (it made the icons differ between runs); the image is always magnified, so level 0 is the right one
-float src(float x, float y) { return textureLod(img, vec2(x / 320.0, y / 350.0), 0.0).r * 255.0; }
+uniform float step, gain, finv, reset, imgLod;
+// explicit level: src() is called in per-pixel branches and loops, where the implicit mip level is undefined
+// (it made the icons differ between runs); imgLod is 0 unless a redraw has more texels than the screen has pixels
+float src(float x, float y) { return textureLod(img, vec2(x / 320.0, y / 350.0), imgLod).r * 255.0; }
 void main() {
     vec2 px = vec2(uv.x * 320.0, (1.0 - uv.y) * 200.0);
     float comp = 0.0;
@@ -1012,6 +1012,7 @@ struct Late {
             icons.set("jx", jx);
             icons.set("step", step);
             icons.set("gain", gain);
+            icons.set("imgLod", mipLevel(img.w / float(c.w), img.h / 350.0f / (float(c.h) / 200.0f)));
             icons.set("finv", f);
             icons.set("reset", reset && k == 0 ? 1.0f : 0.0f);
             drawFullscreen();

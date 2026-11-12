@@ -354,6 +354,7 @@ uniform sampler2D env;
 uniform vec3 P, R0, R1, R2;
 uniform vec3 ball[4];
 uniform int count;
+uniform float envScale;   // env texels per original texel: 1 for tex3d.raw, more for a redraw (art/tex3d)
 float field(vec3 v) {   // sum 1 / r^2 in grid units (1 grid unit = 4 world units)
     float s = 0.0;
     for (int k = 0; k < 4; k++) {
@@ -363,7 +364,7 @@ float field(vec3 v) {   // sum 1 / r^2 in grid units (1 grid unit = 4 world unit
     }
     return s;
 }
-vec3 shadeAt(vec3 v) {   // 0x236c4 normal (sum of (c - v) / |c - v|^3, pointing inward), env 128 + 126 n.R
+vec2 shadeAt(vec3 v) {   // 0x236c4 normal (sum of (c - v) / |c - v|^3, pointing inward), env 128 + 126 n.R
     vec3 n = vec3(0.0);
     for (int k = 0; k < 4; k++) {
         if (k >= count) break;
@@ -372,8 +373,7 @@ vec3 shadeAt(vec3 v) {   // 0x236c4 normal (sum of (c - v) / |c - v|^3, pointing
         n += q / max(l * l * l, 1e-5);
     }
     n = normalize(n);
-    vec2 e = 128.0 + 126.0 * vec2(dot(n, R0), dot(n, R1));
-    return textureLod(env, e / 256.0, 0.0).rgb;   // (non-uniform control flow: no derivatives)
+    return 128.0 + 126.0 * vec2(dot(n, R0), dot(n, R1));
 }
 vec4 trace(vec2 px) {
     vec3 d = (px.x - 160.0) / 300.0 * R0 + (px.y - 100.0) / 300.0 * R1 + R2;   // one unit of view depth
@@ -394,7 +394,7 @@ vec4 trace(vec2 px) {
     if (hi <= lo) return vec4(0.0);
     float t = lo, tp = lo;
     float fp = field(P + t * d) - 0.2;
-    if (fp > 0.0) return vec4(shadeAt(P + t * d), 1.0);
+    if (fp > 0.0) return vec4(shadeAt(P + t * d), 1.0, 0.0);
     for (int i = 0; i < 400; i++) {
         vec3 v = P + t * d;
         float rmin = 1e9;
@@ -413,7 +413,7 @@ vec4 trace(vec2 px) {
                 float m = 0.5 * (a + b);
                 if (field(P + m * d) > 0.2) b = m; else a = m;
             }
-            return vec4(shadeAt(P + b * d), 1.0);
+            return vec4(shadeAt(P + b * d), 1.0, 0.0);
         }
     }
     return vec4(0.0);
@@ -428,16 +428,27 @@ float gEst(vec2 px) {   // field maximum along the ray (closest approach to each
     }
     return g;
 }
+vec4 colourOf(vec4 t, float lod) {   // t = trace(): env coordinate, hit
+    return t.z > 0.0 ? vec4(textureLod(env, t.xy / 256.0, lod).rgb, 1.0) : vec4(0.0);
+}
 void main() {
     vec2 px = vec2(uv.x * 320.0, (1.0 - uv.y) * 200.0);
     float g = gEst(px);
     float w = fwidth(g);
+    // The env lookups happen after the ray march (non-uniform control flow), so they take an explicit level: from
+    // how far the env coordinate moves between output pixels, never blurrier than the original at level 0 (for
+    // the original, envScale = 1, always level 0)
+    vec4 t = trace(px);
+    vec2 ex = dFdx(t.xy), ey = dFdy(t.xy);
+    float maxLod = log2(envScale);
+    float lod = clamp(0.5 * log2(max(max(dot(ex, ex), dot(ey, ey)), 1e-12)) + maxLod, 0.0, maxLod);
+    vec2 o = vec2(dFdx(px.x), dFdy(px.y)) * 0.25;   // (derivatives in uniform control flow)
     vec4 c;
     if (abs(g - 0.2) < 3.0 * w + 0.01) {   // near a silhouette: 4 rays
-        vec2 o = vec2(dFdx(px.x), dFdy(px.y)) * 0.25;
-        c = (trace(px + vec2(-o.x, -o.y)) + trace(px + vec2(o.x, -o.y)) + trace(px + vec2(-o.x, o.y)) + trace(px + o)) * 0.25;
+        c = (colourOf(trace(px + vec2(-o.x, -o.y)), lod) + colourOf(trace(px + vec2(o.x, -o.y)), lod) +
+             colourOf(trace(px + vec2(-o.x, o.y)), lod) + colourOf(trace(px + o), lod)) * 0.25;
     } else {
-        c = trace(px);
+        c = colourOf(t, lod);
     }
     frag = vec4(c.rgb, c.a);
 }
@@ -491,12 +502,16 @@ void main() {
 }
 )";
 
-// wire mode: bd2 frame whitened through wirecut.fad by the render (0x1c490), bilinear between bd2 pixels
+// wire mode: bd2 frame whitened through wirecut.fad by the render (0x1c490), bilinear between bd2 pixels.
+// wirecut.fad row L holds, for each colour, the palette colour nearest to that colour blended towards white by
+// (L - 32) / 31 (row 32 the identity); with a redraw of bd2 (art/bd2) that blend is made in true colour on the
+// redraw's colours instead of through the table.
 const char* kWireFS = R"(
 in vec2 uv;
 out vec4 frag;
-uniform sampler2D render, bd2, lut;
+uniform sampler2D render, bd2, lut, art;
 uniform float frame;
+uniform int useArt;
 vec3 lutAt(ivec2 q, float L) {
     float i = texelFetch(bd2, ivec2(q.x, int(frame) * 200 + q.y), 0).r * 255.0 + 0.5;
     return texture(lut, vec2(i / 256.0, (L + 0.5) / 64.0)).rgb;
@@ -504,10 +519,17 @@ vec3 lutAt(ivec2 q, float L) {
 void main() {
     vec2 px = vec2(uv.x * 320.0, (1.0 - uv.y) * 200.0);
     float L = 32.0 + min(2.0 * max(texture(render, uv).r, 0.0), 31.0);
-    vec2 p = px - 0.5, f = fract(p);
-    ivec2 i = ivec2(floor(p));
-    ivec2 i0 = clamp(i, ivec2(0), ivec2(319, 199)), i1 = clamp(i + 1, ivec2(0), ivec2(319, 199));
-    vec3 c = mix(mix(lutAt(i0, L), lutAt(ivec2(i1.x, i0.y), L), f.x), mix(lutAt(ivec2(i0.x, i1.y), L), lutAt(i1, L), f.x), f.y);
+    vec3 c;
+    if (useArt != 0) {
+        vec2 h = 0.5 / vec2(textureSize(art, 0));   // stay half a texel inside the frame's rows and columns
+        vec2 q = vec2(clamp(uv.x, h.x, 1.0 - h.x), clamp((frame + px.y / 200.0) / 3.0, frame / 3.0 + h.y, (frame + 1.0) / 3.0 - h.y));
+        c = mix(texture(art, q).rgb, vec3(1.0), (L - 32.0) / 31.0);
+    } else {
+        vec2 p = px - 0.5, f = fract(p);
+        ivec2 i = ivec2(floor(p));
+        ivec2 i0 = clamp(i, ivec2(0), ivec2(319, 199)), i1 = clamp(i + 1, ivec2(0), ivec2(319, 199));
+        c = mix(mix(lutAt(i0, L), lutAt(ivec2(i1.x, i0.y), L), f.x), mix(lutAt(ivec2(i0.x, i1.y), L), lutAt(i1, L), f.x), f.y);
+    }
     frag = vec4(exePalette(c), 1.0);
 }
 )";
@@ -658,7 +680,7 @@ struct Renderer {
         finalSh.build(kFullscreenVS, std::string(kExePaletteGLSL) + kFinalFS, "typo final");
         // Read as palette indices and levels, so art/ redraws do not replace them: wire.raw (levels 0..31 into
         // wire.fad), phong1.raw (3d.fad rows) and bd2.raw (its index through the wirecut.fad table below; a redraw
-        // of bd2 would need that table as a blend towards white, re/notes-pictures.md).
+        // of bd2, art/bd2, is blended towards white in kWireFS instead).
         const Bytes& wire = c.pak.get("wire.raw");
         wireTex = makeTex(256, 256, GL_R8, GL_RED, wire.data() + 768, true, true, true);
         const Bytes& phong = c.pak.get("phong1.raw");
@@ -792,6 +814,7 @@ struct Renderer {
         const Texture& tex1 = c.tex("tex3d#1");
         const Texture& env = c.tex("tex3d#0");
         const Texture& stripes = c.tex("tex3d#5");
+        const Texture* art = c.redraw("bd2");  // nullptr: the original's indices through wirecut.fad
         const bool faceOn = v.sub <= 2;
         Target& frame = c.scratch[0];
         Target& flowers = c.scratch[1];
@@ -832,6 +855,7 @@ struct Renderer {
                 blobSh.use();
                 env.bind(0);
                 blobSh.set("env", 0);
+                blobSh.set("envScale", std::max(1.0f, float(env.w) / 256.0f));
                 blobSh.set("P", v.P);
                 blobSh.set("R0", v.R0);
                 blobSh.set("R1", v.R1);
@@ -887,6 +911,11 @@ struct Renderer {
         wireSh.set("bd2", 1);
         wireSh.set("lut", 2);
         wireSh.set("frame", float(v.bd2));
+        wireSh.set("useArt", art ? 1 : 0);
+        if (art) {
+            art->bind(3);
+            wireSh.set("art", 3);
+        }
         v.pal.apply(wireSh);
         drawFullscreen();
     }

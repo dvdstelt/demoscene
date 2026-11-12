@@ -120,19 +120,23 @@ if [ "$demo" = 303 ]; then
 fi
 
 # ---------------------------------------------------------------- redrawn pictures
-# STARS, DOPE and Paper look for an art folder next to the program (findArt in src/main.cpp).
+# STARS, DOPE, Paper and 303 look for an art folder next to the program (findArt in src/main.cpp); 303's also has
+# art/video/<CLIP>/ with the restored video frames.
 art_note=""
 case "$demo" in
-stars | dope | paper)
+stars | dope | paper | 303)
     art=$repo/$demo/remake/art
     [ -f "$art/README.md" ] || die "$art/README.md not found"
     mkdir -p "$stage/art"
     n=0
-    for f in "$art"/*.png; do
+    for f in "$art"/*.png "$art"/*.jpg; do
         [ -f "$f" ] || continue
         cp "$f" "$stage/art/"; n=$((n + 1))
     done
     [ "$n" -gt 0 ] || die "no pictures in $art"
+    if [ -d "$art/video" ]; then
+        cp -r "$art/video" "$stage/art/"
+    fi
     crlf "$art/README.md" "$stage/art/README.md"
     art_note='
 The pictures
@@ -141,6 +145,11 @@ The "art" folder holds high-resolution redraws of the original'"'"'s hand-drawn 
 original pictures and faithful to them (art\README.md says how each was made and names its artist). The remake
 shows them by default; start it with --original-art to see the original pixels instead.
 '
+    if [ -d "$art/video" ]; then
+        art_note="$art_note"'The "art\video" folder holds the video clips restored at high resolution with an AI video model; --original-art
+shows the original frames as well.
+'
+    fi
     ;;
 esac
 
