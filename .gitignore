@@ -70,3 +70,4 @@ Thumbs.db
 */re/models/**/*.png
 */re/models/**/*.pkl
 */re/models/**/dumps_*/
+*/re/models/**/*.log
