@@ -21,7 +21,8 @@ the whole demo, maximum difference 0), so the dumps are exactly the remake's col
 
 Ordered by how long they are on screen. "As it is" = the remake reads the picture as colours (or grey intensity)
 through `Ctx::tex()`, so `art/<name>.png` replaces it with no code change; "needs code" = the remake reads palette
-indices and a redraw first needs a conversion (section 2).
+indices and a redraw first needs a conversion (section 2). Redrawn so far (`remake/art/README.md`): 1, 2, 3, 4, 6,
+7, 8, 9, 10, 11, 12, 14, 15; kept: 5 (gradients), 13 (photos of real people).
 
 | # | file | shows | on screen | how it is used | redraw |
 |---|---|---|---|---|---|
@@ -85,7 +86,7 @@ Aap and does not say who made each picture.
 
 | file | what | used by |
 |---|---|---|
-| `3d.fad`, `blobby.fad`, `fish.fad`, `intro.fad`, `pinfx3.fad`, `truecol.fad`, `tunnel.fad`, `wipeout.fad`, `wire.fad`, `wirecut.fad` | 64 x 256 fade tables: row 32 about identity, rows below towards black, rows above towards white, each entry the nearest colour of one palette (truecol.fad: of the YIQ video palette; wire.fad row 32 is i -> 4 (i >> 2) + 4) | the remake uses them as blends in true colour (`fadDarkTint`, shaders), except wirecut.fad (bd2) which it reads as a colour table |
+| `3d.fad`, `blobby.fad`, `fish.fad`, `intro.fad`, `pinfx3.fad`, `truecol.fad`, `tunnel.fad`, `wipeout.fad`, `wire.fad`, `wirecut.fad` | 64 x 256 fade tables: row 32 about identity, rows below towards black, rows above towards white, each entry the nearest colour of one palette (truecol.fad: of the YIQ video palette; wire.fad row 32 is i -> 4 (i >> 2) + 4) | the remake uses them as blends in true colour (`fadDarkTint`, shaders), except wirecut.fad (bd2) which it reads as a colour table for the original's pixels and as a blend towards white for a redraw |
 | `3d.gst`, `intro.gst` | 256 x 256 ghost tables G[new][previous] (blends) | 0x2e8e4, intro (1/4 new + 3/4 previous) |
 | `pinfx3.gst` | ghost table | none (no reference in the exe) |
 | `faceo.dat`, `icosa.dat`, `spikey.dat` | meshes: relief face plate, tentacle-star object, spiky ball (unit direction + radius per vertex) | 0x23540, 0x2b908, 0x13e78 / 0x16198 |
@@ -97,7 +98,8 @@ the third entry is never used.
 ## 2. Pictures read through palette indices
 
 Where a scene reads the file's bytes (`c.pak.get`) instead of `c.tex`, an `art/` redraw is not picked up; the code
-says so at each place. Two of them are worth a redraw with a conversion:
+says so at each place. Two of them are worth a redraw with a conversion (bd2's is written; the photos are kept as
+the original, see `remake/art/README.md`):
 
 - **`alex.raw`, `vic.raw`** (`mid_spiral.cpp` `CreditPart`, routine 0x15734). The photo's index p >> 1 (0..127) is
   box-blurred over 1..61 pixels, multiplied by 0.8 (1 - 0.0168 s), gets a signed grain added, and the credit words
@@ -112,9 +114,13 @@ says so at each place. Two of them are worth a redraw with a conversion:
 - **`bd2.raw`** (`mid_blobs.cpp` `kWireFS`, routine 0x1c490). Every pixel is `wirecut[L][index]` with
   L = 32 + min(2 (render & 0x7f), 31): a blend of the picture's colour towards white by (L - 32) / 31 (wirecut.fad
   row 32 is about the identity, row 63 white). The remake reads the index and a 256x64 colour table built from
-  wirecut.fad. For a redraw the shader would sample the redraw's colour and mix it towards white by (L - 32) / 31
-  (check the identity row: notes-mid2 says about 95 % of row 32 is exact). Tiles 0 and 1 are the most interesting:
-  hand-made typography shown full screen for 5 s.
+  wirecut.fad; with a redraw (`art/bd2`) the shader samples the redraw's colour and mixes it towards white by
+  (L - 32) / 31 instead. Checked against the table: weighted by how often bd2's pixels use each index, 95.8 % of
+  row 32 is the identity, and in every row L the table's colour lies 0.1..4.7 (6-bit units) from bd2's colour
+  blended towards white by (L - 32) / 31, as close as the palette's nearest colour to that blend gets
+  (0.0..4.6); a least-squares fit of the blend fraction per row gives (L - 32) / 31 within 0.02. With bd2's own
+  pixels as the redraw, the blend gives the same frames as the table up to that quantisation (mean difference
+  1.5..5.9 of 255, `--shots` in the typo and wire blobs parts).
 
 The others read through indices or levels are not pictures to redraw: `wire.raw` (levels into wire.fad, a mask),
 `phong1.raw` (rows of 3d.fad), `fontblur.raw`, `fontout.raw` (coverage bytes, glyph runs found in them).
@@ -130,8 +136,10 @@ What redraws read as colours must keep (the remake samples them in 0..1 over the
   exe addresses icons, lines, glyphs and words by column and row, so every element must stay at its pixels;
 - stacked files: one PNG for the whole file, tiles stacked as in the file, each tile drawn on its own (the remake
   cuts tile k out as rows k/n .. (k+1)/n; nothing may bleed across a tile boundary);
-- `final`, `303b` and `credits` are sampled at level 0 (`textureLod`) inside per-pixel loops: a redraw much larger
-  than the output would alias there.
+- `final`, `303b` and `credits` are sampled with an explicit level (`textureLod`) inside per-pixel loops: level 0
+  for the original, and for a redraw the level its texels per screen pixel give (`mipLevel()` in `fx.h`), so a
+  redraw larger than the output does not alias. The metaballs read `tex3d` tile 0 at level 0 too (in a ray
+  marcher, no derivatives); the redraw is minified there only near the balls' silhouettes, which get 4 rays.
 
 ## 3. The video clips
 

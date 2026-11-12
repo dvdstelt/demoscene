@@ -44,8 +44,11 @@ or with an empty one, the demo looks exactly as with `--original-art`.
   covering the file's whole pixel grid; a stacked file (`tex3d`, `bd2`, `blobby`, `tunnel`) is one picture with
   its tiles stacked as in the file. Files without a palette (`final`, `opening1`, `303b`, `credits`) are read as
   their luminance. It replaces the picture wherever a part reads it as colours (`Ctx::tex`); parts that read
-  palette indices (the alex and vic photos, `bd2`, the fonts, `wire`, `phong1`) keep the original and say so in
-  the code, and `Ctx::redraw(name)` gives them the redraw to convert.
+  palette indices (the alex and vic photos, the fonts, `wire`, `phong1`) keep the original and say so in the code,
+  and `Ctx::redraw(name)` gives them the redraw to convert. The typo and wire blobs parts read `bd2` that way:
+  where the original looks the picture's index up in wirecut.fad, they blend the redraw's colour towards white by
+  the same amount in true colour. Pictures read at an explicit mip level inside per-pixel loops (`final`, `303b`,
+  `credits`, the metaballs' env map) use the level a larger redraw needs, and level 0 for the original.
 - `art/video/<CLIP>/NNNN.png` (or `.jpg`): a restored frame of `<CLIP>.LZW` (ALEX, HARL, VS, PARANOID), one file per
   original frame numbered from `0000`, any resolution with the original's 5:3 shape (160x96). The parts draw it
   through the same mapping, ripple and fades as the decoded frame; frames without a file keep the decoded one.
@@ -53,9 +56,22 @@ or with an empty one, the demo looks exactly as with `--original-art`.
   kept ready, so a clip starts without waiting (also PARANOID when the face floor starts it again). After a seek
   into a clip the first frame waits for its decode (about 7 ms at 1280x768).
 
+`art/` holds AI redraws (ChatGPT image generation, from the original pixels) of 13 of the 15 pictures worth a
+redraw, 12 files, 7.1 MB: the hexagon plates and the gold ball (`tex3d`, tiles 1 and 0; the generated tiles 2–5
+are the original scaled up), the intro's threads (`neuron`), "statix vic acme" (`opening1`) and the 303 strip
+(`303b`), the icons part's lettering, icons and MC-303 photo (`final`), the credit words (`credits`), the env maps
+(`phong`, `sphere`, `tunnel` tile 1), the rings' wall (`tunnel` tile 0), the blobby background (`blobby` tile 0;
+the mask, tile 1, is the original), the paranoid texture (`weird`) and the typo pictures (`bd2`). The photos of
+Alex and Vic keep their original pixels (photos of real people), and so do the gradient stripes (`wipeout`,
+`tex3d` tile 5). Textures that wrap join at their edges as the originals do (seamless, except `weird`, whose
+original edges do not match either), and every line, icon, glyph and word the exe addresses by position is at its
+pixels.
+
 `art/video/` holds the four clips restored with SeedVR2, an AI video restoration model, at 1280x768: the frames the
 parts show plus a few (HARL 0–121, VS 0–60, ALEX 0–26, PARANOID 0–30), 241 JPEGs, 32 MB.
-[`art/README.md`](art/README.md) says how they were made, with which settings, and what to look at.
+[`art/README.md`](art/README.md) says how the redraws and the restored clips were made, with which prompts and
+settings, how well each redraw fits the original, and what to look at; `tools/align_art.py` makes the uploads,
+fits the redraws and writes them here.
 
 [`../re/notes-pictures.md`](../re/notes-pictures.md) lists every picture and clip, how the parts read them, which
 ones a redraw can replace and what it has to keep (tileable textures, environment-map discs, element positions).
@@ -108,8 +124,9 @@ mingw64-cmake -S . -B build-win -G Ninja && cmake --build build-win
   tentacle star, plasma); `late` (harl, web, paranoid, face floor, dance, icons, ending)
 - `src/timeline.cpp`: running order; `src/fx.*`, `src/demo.*`, `src/render.*`: engine and shared effects
 - `tools/`: the reverse-engineering helpers (LE/DOS4GW loader with fixups, capstone disassembly helper,
-  LZW decoder, video frame dumper, module row timing), and `video_art.py`, which makes the SeedVR2 uploads and
-  turns the restored clips into `art/video/`
+  LZW decoder, video frame dumper, module row timing), `video_art.py`, which makes the SeedVR2 uploads and
+  turns the restored clips into `art/video/`, and `align_art.py`, which makes the uploads for the picture redraws,
+  fits each redraw onto the original and writes it to `art/`
 - [`../re/`](../re/): the decompiled notes for every part (pseudo-C with all constants), the briefs the agents
   worked from, and the comparison scripts
 

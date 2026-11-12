@@ -116,6 +116,19 @@ tables, the credit layout, the web and icon tables, a jitter table and the march
 written into the code. Now `src/exe.*` loads `303.EXE` with its fixups, checks it by size and hash, and the parts
 read those tables by address. Frames rendered before and after the change are identical.
 
+### Redrawn pictures
+
+`remake/art/` holds AI redraws of the pictures in `MUSTARD.PAK`, made with ChatGPT's image generation from the
+original pixels; the remake shows them by default and the original pixels with `--original-art`.
+[`re/notes-pictures.md`](../re/notes-pictures.md) lists every picture and how the parts read it, which decided
+what a redraw had to keep. Textures that wrap had to wrap: they were uploaded repeated 2x2, and the tile was cut
+out of the middle of the result with its seams joined where the two copies of the same texels agree best.
+Environment maps had to keep their layout. Lettering, icons and glyphs that the exe reads by row and column had to
+stay at their pixels: `remake/tools/align_art.py` fits each of them again on its own and writes it into its
+rectangle. bd2's typography, which the wire mode reads by palette index through a fade table, needed that table
+turned into a blend towards white. The photos of Alex and Vic are not redrawn: they show real people.
+[`remake/art/README.md`](../remake/art/README.md) has the prompts, the attempts and how well each redraw fits.
+
 ## What is not exact
 
 - **Randomness** depends on the frame rate of the PC the demo ran on. Fixed seeds are used, and where the capture
@@ -134,4 +147,4 @@ read those tables by address. Frames rendered before and after the change are id
   `compare.sh` / `grab.sh` (comparison sheets; they need a video capture of the original in `$CAPTURE`),
   `pos.py` + `rows.txt` (music position ↔ time), `tables.py` (fitting a `.gst` blend table).
 - [`remake/tools/`](../remake/tools/): the LE loader, the disassembly helper, the LZW decoder, the video frame
-  dumper and the module row timer.
+  dumper, the module row timer, and `align_art.py` (uploads and fits for the picture redraws).
