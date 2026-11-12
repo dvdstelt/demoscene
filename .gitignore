@@ -38,12 +38,15 @@ dope/re/*.flips
 dope/re/dump/
 dope/re/snaps/
 dope/re/unpacked/
+dope/re/overview.jpg
+stars/re/overview.jpg
 stars/re/*.bin
 stars/re/*.log
 stars/re/*.flips
 stars/re/dump/
 stars/re/snaps/
 stars/re/unpacked/
+*/re/art-raw/
 
 # Media: videos go to YouTube, audio renders stay local
 *.mp4
