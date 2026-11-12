@@ -1,0 +1,4 @@
+out/
+*.jpg
+*.npz
+__pycache__/
