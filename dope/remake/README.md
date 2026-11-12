@@ -119,3 +119,16 @@ Known differences:
   vertical retrace bit alone; on a VGA that is one step per retrace, in the emulator about four. The remake takes
   one retrace per step, so p6 starts 48 frames (0.68 s) and p7 74 frames (1.06 s) later against the music than in
   the capture, and the demo ends 266 frames (3.80 s) later.
+- **p1.** The logo scrolls continuously instead of one pixel every second retrace, and its violet-to-orange
+  cross-fade is continuous instead of 1/256 steps every 8 retraces with both products floored (up to 2/63 darker).
+- **p4's fire** is computed per output pixel instead of in 160 two-pixel columns, as a float recursion (the integer
+  one has a dead zone; the mean colour stays within about 3 % of the capture's), with its 15 levels interpolated
+  instead of dithered and blended between its steps (35 per second). The swirl map is its polar formula (fitted to
+  the stored map at start-up), without the stored map's glitches along the axes next to the centre. After a seek the
+  fire is rebuilt from 150 steps back (up to 1/255 different from playing through, in a few pixels).
+- **p4's landscape** is a continuous ray-cast with the camera gliding at P / 8 texels instead of 55 depth rows whose
+  terrain jumps a texel every 4 retraces: the saw-tooth edges of steep slopes and the blocky nearest-texel colours
+  are gone, and the far end of the terrain is fixed at the mean of its saw-tooth (40.25 texels).
+- **p4's palette weights** are not floored: the one-step darkening of every colour at p4's start and at its end is
+  dropped, so p4 ends on the chequerboard at the brightness of its picture (the original leaves it one 6-bit step
+  darker for p5).
