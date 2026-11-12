@@ -6,6 +6,8 @@
 #   scripts/fetch-originals.sh 303      only 303 by Acme (X'97)
 #   scripts/fetch-originals.sh paper    only Paper by Psychic Link (Wired '96)
 #   scripts/fetch-originals.sh jizz     only JIZZ by The Black Lotus (Wired '97)
+#   scripts/fetch-originals.sh stars    only STARS by NoooN (Assembly '95)
+#   scripts/fetch-originals.sh dope     only DOPE by Complex (The Gathering '95)
 #
 # In the repository the files go into <repo>/<demo>/original/. Anywhere else (next to
 # a released program) they go into an original/ folder next to this script, and without an argument only the
@@ -54,6 +56,25 @@ demo_info() {
             "JIZZ.EXE     8bf022ea25fc6c02504e915441cc40ec0a2226d21eda4ffe1a1a46d2dca99593"
         )
         ;;
+    stars)
+        title="STARS: Wonders of the World by NoooN (Assembly '95, 1995; final release)"
+        zip_name=nooonstf.zip
+        zip_path=demos/groups/nooon/nooonstf.zip
+        program=stars-remake
+        files=(
+            "STARS.EXE    148aa9240f6a29a5678a0812cf295a38039560f05d26dcfae8c829f8cafa97fc"
+        )
+        ;;
+    dope)
+        title="DOPE by Complex (The Gathering '95, 1995)"
+        zip_name=clx_dope.zip
+        zip_path=demos/groups/complex/clx_dope.zip
+        program=dope-remake
+        files=(
+            "DOPE.EXE     0c54549d741858ecddd23ac4a92d32b0d4823a537a45dcf1722613dcd6de97d0"
+            "DOPE.MOD     b2440ad6d713b38d5ca4c21a4a4ab4ab974e2f951175291769191c39ff7d93ce"
+        )
+        ;;
     *) return 1 ;;
     esac
     # scene.org itself, two https mirrors, then the scene.org redirector (picks any mirror)
@@ -65,9 +86,11 @@ demo_info() {
     )
 }
 
+all_demos=(303 paper jizz stars dope)
+
 # ---------------------------------------------------------------- tools
-usage() {
-    sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+usage() {  # the comment at the top of this file
+    awk 'NR == 1 { next } /^#/ { sub(/^# ?/, ""); print; next } { exit }' "${BASH_SOURCE[0]}"
 }
 
 say()  { printf '%s\n' "$*"; }
@@ -101,11 +124,10 @@ check_download_tools() {
 # ---------------------------------------------------------------- where the files go
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd "$script_dir/.." && pwd)
-if [ -d "$repo_root/303/remake" ] || [ -d "$repo_root/paper/remake" ] || [ -d "$repo_root/jizz/remake" ]; then
-    in_repo=1
-else
-    in_repo=0
-fi
+in_repo=0
+for d in "${all_demos[@]}"; do
+    if [ -d "$repo_root/$d/remake" ]; then in_repo=1; fi
+done
 
 dest_dir() {  # demo
     if [ "$in_repo" = 1 ]; then printf '%s/%s/original' "$repo_root" "$1"; else printf '%s/original' "$script_dir"; fi
@@ -195,8 +217,8 @@ fetch_demo() {  # demo
 demos=()
 for arg in "$@"; do
     case "$arg" in
-    303 | paper | jizz) demos+=("$arg") ;;
-    all) demos+=(303 paper jizz) ;;
+    303 | paper | jizz | stars | dope) demos+=("$arg") ;;
+    all) demos+=("${all_demos[@]}") ;;
     -h | --help) usage; exit 0 ;;
     *) fail "unknown argument '$arg'"; usage >&2; exit 2 ;;
     esac
@@ -204,12 +226,12 @@ done
 if [ ${#demos[@]} -eq 0 ]; then
     if [ "$in_repo" = 0 ]; then
         # next to a released program: fetch what that program needs
-        for d in 303 paper jizz; do
+        for d in "${all_demos[@]}"; do
             demo_info "$d"
             if [ -e "$script_dir/$program" ] || [ -e "$script_dir/$program.exe" ]; then demos+=("$d"); fi
         done
     fi
-    if [ ${#demos[@]} -eq 0 ]; then demos=(303 paper jizz); fi
+    if [ ${#demos[@]} -eq 0 ]; then demos=("${all_demos[@]}"); fi
 fi
 
 failed=0

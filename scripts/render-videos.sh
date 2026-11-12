@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Render the YouTube videos of the remakes into videos/ (git-ignored).
 #
-#   scripts/render-videos.sh [paper|paper-compare|303|jizz ...]     (default: all that can be made)
+#   scripts/render-videos.sh [paper|paper-compare|303|jizz|stars|dope ...]     (default: all that can be made)
 #
 # Needs the remakes built in <demo>/remake/build, the originals in <demo>/original/, and ffmpeg with libsvtav1
 # (Fedora's ffmpeg-free has it). paper-compare also needs the emulator capture paper/re/full.frames (see
@@ -55,7 +55,21 @@ jizz() {
   "$bin" --video "$OUT/jizz-remake-2160p60.mp4" --fps "$FPS" --shotsize "$SIZE" --vcodec "$VCODEC"
 }
 
-targets=("$@"); [ ${#targets[@]} -gt 0 ] || targets=(paper paper-compare 303 jizz)
+stars() {
+  local bin=$ROOT/stars/remake/build/stars-remake
+  [ -x "$bin" ] || { echo "build stars/remake first"; return 1; }
+  # --from/--to are in seconds of music time: the whole demo is 0..376.49 (the music is 372.1 s long)
+  "$bin" --video "$OUT/stars-remake-2160p60.mp4" --fps "$FPS" --shotsize "$SIZE" --vcodec "$VCODEC"
+}
+
+dope() {
+  local bin=$ROOT/dope/remake/build/dope-remake
+  [ -x "$bin" ] || { echo "build dope/remake first"; return 1; }
+  # --from/--to are in seconds of music time: the whole demo is 0..461.98
+  "$bin" --video "$OUT/dope-remake-2160p60.mp4" --fps "$FPS" --shotsize "$SIZE" --vcodec "$VCODEC"
+}
+
+targets=("$@"); [ ${#targets[@]} -gt 0 ] || targets=(paper paper-compare 303 jizz stars dope)
 for t in "${targets[@]}"; do
   echo "== $t"
   case $t in
@@ -63,6 +77,8 @@ for t in "${targets[@]}"; do
     paper-compare) paper_compare || true ;;
     303) r303 || true ;;
     jizz) jizz || true ;;
+    stars) stars || true ;;
+    dope) dope || true ;;
     *) echo "unknown target $t"; exit 2 ;;
   esac
 done

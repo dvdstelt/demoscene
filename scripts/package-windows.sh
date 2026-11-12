@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Packages a MinGW build of a remake as a Windows release zip.
 #
-#   scripts/package-windows.sh <303|paper|jizz> [BUILD_DIR] [OUT_DIR]
+#   scripts/package-windows.sh <303|paper|jizz|stars|dope> [BUILD_DIR] [OUT_DIR]
 #
 # BUILD_DIR defaults to <repo>/<demo>/remake/build-win (as in the remakes' READMEs), OUT_DIR to <repo>/out.
 # Writes OUT_DIR/<demo>-remake-windows-x64.zip with one folder of the same name inside: the program, every DLL it
 # needs that is not part of Windows, README.txt, fetch-originals.ps1, the licenses, and an empty original/ folder
-# for the original files. Fails if the program needs a DLL that is neither a Windows system DLL nor found in
-# BUILD_DIR or the MinGW sysroot.
+# for the original files; for STARS and DOPE also the art/ folder with the redrawn pictures (from
+# <repo>/<demo>/remake/art), which the program finds next to itself. Fails if the program needs a DLL that is
+# neither a Windows system DLL nor found in BUILD_DIR or the MinGW sysroot.
 #
 # The packaged program and DLLs are stripped (the static MinGW runtime libraries bring debug info along); the
 # build folder is not changed.
@@ -24,7 +25,9 @@ case "$demo" in
 303)   program=acme303.exe ;;
 paper) program=paper-remake.exe ;;
 jizz)  program=jizz-remake.exe ;;
-*)     die "usage: $0 <303|paper|jizz> [BUILD_DIR] [OUT_DIR]" ;;
+stars) program=stars-remake.exe ;;
+dope)  program=dope-remake.exe ;;
+*)     die "usage: $0 <303|paper|jizz|stars|dope> [BUILD_DIR] [OUT_DIR]" ;;
 esac
 build=${2:-$repo/$demo/remake/build-win}
 out=${3:-$repo/out}
@@ -116,6 +119,31 @@ if [ "$demo" = 303 ]; then
     copy_license libopenmpt 1 "$build/_deps/libopenmpt_src-src/LICENSE" /usr/share/licenses/mingw64-libopenmpt/LICENSE
 fi
 
+# ---------------------------------------------------------------- redrawn pictures
+# STARS and DOPE look for an art folder next to the program (findArt in src/main.cpp).
+art_note=""
+case "$demo" in
+stars | dope)
+    art=$repo/$demo/remake/art
+    [ -f "$art/README.md" ] || die "$art/README.md not found"
+    mkdir -p "$stage/art"
+    n=0
+    for f in "$art"/*.png; do
+        [ -f "$f" ] || continue
+        cp "$f" "$stage/art/"; n=$((n + 1))
+    done
+    [ "$n" -gt 0 ] || die "no pictures in $art"
+    crlf "$art/README.md" "$stage/art/README.md"
+    art_note='
+The pictures
+------------
+The "art" folder holds high-resolution redraws of the original'"'"'s hand-drawn pictures: AI redraws made from the
+original pictures and faithful to them (art\README.md says how each was made and names its artist). The remake
+shows them by default; start it with --original-art to see the original pixels instead.
+'
+    ;;
+esac
+
 # ---------------------------------------------------------------- fetch script and README
 crlf "$repo/scripts/fetch-originals.ps1" "$stage/fetch-originals.ps1"
 
@@ -150,6 +178,40 @@ effects, timing and music, rendered at any resolution in true colour instead of 
   --loop            restart at the end
   --info            show the position and part in the window title
   --exe FILE        the original JIZZ.EXE"
+elif [ "$demo" = stars ]; then
+    title="STARS by NoooN - high resolution remake for Windows (x64)"
+    about='A re-implementation of "STARS: Wonders of the World" by NoooN (music Groo, 3D BARTi, system and effects
+KARL, script and pixels RA, sound code LCA), the PC demo that won the demo competition at Assembly '"'"'95. It plays
+the original'"'"'s effects, timing and music, rendered at any resolution in true colour instead of 320x200 in 256
+colours.'
+    zipfile=nooonstf.zip
+    needed="STARS.EXE (1,224,140 bytes, from the final release)"
+    options="  --window          run in a window instead of fullscreen
+  --size 1280x960   window size
+  --start SECONDS   start position
+  --ss 2            render at twice the resolution and downsample (antialiasing)
+  --loop            restart at the end
+  --info            show the time, music position and part in the window title
+  --original-art    show the original pixels instead of the redrawn pictures
+  --exe FILE        the original STARS.EXE
+  --art DIR         the folder with the redrawn pictures"
+elif [ "$demo" = dope ]; then
+    title="DOPE by Complex - high resolution remake for Windows (x64)"
+    about='A re-implementation of "DOPE" by Complex (code jmagic, graphics and music jugi), the PC demo that won
+the demo competition at The Gathering '"'"'95. It plays the original'"'"'s effects, timing and music, rendered at
+any resolution in true colour instead of 320x200 in 256 colours.'
+    zipfile=clx_dope.zip
+    needed="DOPE.EXE (584,133 bytes) and DOPE.MOD (957,334 bytes)"
+    options="  --window          run in a window instead of fullscreen
+  --size 1280x960   window size
+  --start SECONDS   start position
+  --ss 2            render at twice the resolution and downsample (antialiasing)
+  --loop            restart at the end
+  --info            show the time, music position and part in the window title
+  --original-art    show the original pixels instead of the redrawn pictures
+  --exe FILE        the original DOPE.EXE
+  --mod FILE        the original DOPE.MOD (default: next to DOPE.EXE)
+  --art DIR         the folder with the redrawn pictures"
 else
     title="Paper by Psychic Link - high resolution remake for Windows (x64)"
     about='A re-implementation of "Paper", the 64k intro by Psychic Link (code and graphics Statix, music Vic of
@@ -186,7 +248,7 @@ To download them from scene.org and check them, open PowerShell in this folder a
     powershell -ExecutionPolicy Bypass -File fetch-originals.ps1
 
 Then start $program.
-
+$art_note
 Keys
 ----
 Esc quit, Space pause, Left/Right seek 5 s, Up/Down seek 30 s, F or F11 toggle fullscreen.

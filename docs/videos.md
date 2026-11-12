@@ -11,6 +11,8 @@ kept in the repository.
 | `paper-original-vs-remake.mp4` | the original (emulator capture, pixels kept sharp) next to the remake, 2880×1080 |
 | `303-remake-2160p60.mp4` | 303 remake, 2880×2160, 60 fps |
 | `jizz-remake-2160p60.mp4` | JIZZ remake, 2880×2160, 60 fps |
+| `stars-remake-2160p60.mp4` | STARS remake, 2880×2160, 60 fps |
+| `dope-remake-2160p60.mp4` | DOPE remake, 2880×2160, 60 fps |
 
 2880×2160 is 4:3 at 2160 lines, so YouTube offers it in 4K. The remakes render offline, frame by frame, so the result does not depend on how fast the
 machine is.
@@ -46,11 +48,19 @@ So does the JIZZ remake, in seconds of music time (the intro is 147.75 s long):
 jizz/remake/build/jizz-remake --video out.mp4 --fps 60 --shotsize 2880x2160 --vcodec "-c:v libsvtav1 -crf 18 -preset 5"
 ```
 
+And the STARS and DOPE remakes, in seconds of music time (STARS is 376.49 s long, its music 372.1 s; DOPE is
+461.98 s long). They show the redrawn pictures; add `--original-art` for the original pixels.
+
+```
+stars/remake/build/stars-remake --video out.mp4 --fps 60 --shotsize 2880x2160 --vcodec "-c:v libsvtav1 -crf 18 -preset 5"
+dope/remake/build/dope-remake --video out.mp4 --fps 60 --shotsize 2880x2160 --vcodec "-c:v libsvtav1 -crf 18 -preset 5"
+```
+
 ## Uploading
 
 Suggested title: *Paper by Psychic Link (Wired '96 64k intro), 4K remake*. In the description, put the credits of
 the original, a link to this repository and the original's pouet.net page, and a note that it is a non-commercial
-fan remake. Turn off monetisation for the video. The music is Vic's (Probe's for JIZZ), and nobody should earn
-from it.
+fan remake. Turn off monetisation for the video. The music is Vic's (Probe's for JIZZ, Groo's for STARS, jugi's
+for DOPE), and nobody should earn from it.
 
 After uploading, put the links in the root README and the demo's README.

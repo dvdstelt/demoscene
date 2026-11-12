@@ -8,10 +8,12 @@ checking every file's SHA-256.
   fetch-originals.ps1 303      only 303 by Acme (X'97)
   fetch-originals.ps1 paper    only Paper by Psychic Link (Wired '96)
   fetch-originals.ps1 jizz     only JIZZ by The Black Lotus (Wired '97)
+  fetch-originals.ps1 stars    only STARS by NoooN (Assembly '95)
+  fetch-originals.ps1 dope     only DOPE by Complex (The Gathering '95)
 
 In the repository the files go into <repo>\<demo>\original\. Anywhere else (next to a released program such
-as acme303.exe, paper-remake.exe or jizz-remake.exe) they go into an original\ folder next to this script,
-and without an argument only the demo whose program is there is fetched.
+as acme303.exe, paper-remake.exe, jizz-remake.exe, stars-remake.exe or dope-remake.exe) they go into an original\
+folder next to this script, and without an argument only the demo whose program is there is fetched.
 
 A file that is already there and verifies is never touched. A file that is there but differs is renamed to
 <name>.old before the release version takes its place. Needs Windows PowerShell 5.1 or PowerShell 7.
@@ -25,7 +27,7 @@ powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 paper
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('303', 'paper', 'jizz', 'all')]
+    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'all')]
     [string]$Demo
 )
 
@@ -73,6 +75,25 @@ $Releases = [ordered]@{
             'JIZZ.EXE' = '8bf022ea25fc6c02504e915441cc40ec0a2226d21eda4ffe1a1a46d2dca99593'
         }
     }
+    'stars' = @{
+        Title   = "STARS: Wonders of the World by NoooN (Assembly '95, 1995; final release)"
+        ZipName = 'nooonstf.zip'
+        ZipPath = 'demos/groups/nooon/nooonstf.zip'
+        Program = 'stars-remake'
+        Files   = [ordered]@{
+            'STARS.EXE' = '148aa9240f6a29a5678a0812cf295a38039560f05d26dcfae8c829f8cafa97fc'
+        }
+    }
+    'dope' = @{
+        Title   = "DOPE by Complex (The Gathering '95, 1995)"
+        ZipName = 'clx_dope.zip'
+        ZipPath = 'demos/groups/complex/clx_dope.zip'
+        Program = 'dope-remake'
+        Files   = [ordered]@{
+            'DOPE.EXE' = '0c54549d741858ecddd23ac4a92d32b0d4823a537a45dcf1722613dcd6de97d0'
+            'DOPE.MOD' = 'b2440ad6d713b38d5ca4c21a4a4ab4ab974e2f951175291769191c39ff7d93ce'
+        }
+    }
 }
 
 function Get-Urls([string]$ZipPath) {
@@ -98,7 +119,7 @@ $ScriptDir = $PSScriptRoot
 $RepoRoot = Split-Path -Parent $ScriptDir
 $InRepo = $false
 if ($RepoRoot) {
-    foreach ($d in '303', 'paper', 'jizz') {
+    foreach ($d in $Releases.Keys) {
         if (Test-Path -LiteralPath (Join-Path (Join-Path $RepoRoot $d) 'remake') -PathType Container) { $InRepo = $true }
     }
 }
@@ -196,7 +217,7 @@ function Get-Original([string]$Name) {
 # ---------------------------------------------------------------- which demos
 $names = @()
 if ($Demo -eq 'all') {
-    $names = @('303', 'paper', 'jizz')
+    $names = @($Releases.Keys)
 } elseif ($Demo) {
     $names = @($Demo)
 } else {
@@ -207,7 +228,7 @@ if ($Demo -eq 'all') {
             if ((Test-Path -LiteralPath "$p.exe") -or (Test-Path -LiteralPath $p)) { $names += $k }
         }
     }
-    if ($names.Count -eq 0) { $names = @('303', 'paper', 'jizz') }
+    if ($names.Count -eq 0) { $names = @($Releases.Keys) }
 }
 
 $failed = $false

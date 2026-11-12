@@ -48,6 +48,16 @@ jobs:
           cmake -S jizz/remake -B jizz/remake/build-ci-linux -G Ninja
           cmake --build jizz/remake/build-ci-linux
 
+      - name: Build STARS remake
+        run: |
+          cmake -S stars/remake -B stars/remake/build-ci-linux -G Ninja
+          cmake --build stars/remake/build-ci-linux
+
+      - name: Build DOPE remake
+        run: |
+          cmake -S dope/remake -B dope/remake/build-ci-linux -G Ninja
+          cmake --build dope/remake/build-ci-linux
+
   windows:
     name: Windows x64 (MinGW)
     runs-on: ubuntu-latest
@@ -80,12 +90,24 @@ jobs:
           mingw64-cmake -S jizz/remake -B jizz/remake/build-ci-win -G Ninja
           cmake --build jizz/remake/build-ci-win
 
+      - name: Build STARS remake
+        run: |
+          mingw64-cmake -S stars/remake -B stars/remake/build-ci-win -G Ninja
+          cmake --build stars/remake/build-ci-win
+
+      - name: Build DOPE remake
+        run: |
+          mingw64-cmake -S dope/remake -B dope/remake/build-ci-win -G Ninja
+          cmake --build dope/remake/build-ci-win
+
       - name: Package
         run: |
           if [ "$GITHUB_REF_TYPE" = tag ]; then export VERSION="$GITHUB_REF_NAME"; else export VERSION="development build ${GITHUB_SHA::7}"; fi
           bash scripts/package-windows.sh 303 303/remake/build-ci-win out
           bash scripts/package-windows.sh paper paper/remake/build-ci-win out
           bash scripts/package-windows.sh jizz jizz/remake/build-ci-win out
+          bash scripts/package-windows.sh stars stars/remake/build-ci-win out
+          bash scripts/package-windows.sh dope dope/remake/build-ci-win out
 
       - uses: actions/upload-artifact@v4
         with:
