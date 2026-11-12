@@ -74,8 +74,7 @@ next to them or in an `original` folder next to them, and the `art` folder next 
 built from source). Only the MinGW build has been tried.
 
 Development options: `-DDOPE_PARTS="p3;p5"` builds only some of the parts in `src/scenes`;
-`-DDOPE_SILENT_MUSIC=ON` builds a silent stand-in for the soundtrack (`src/stub`, also used while `src/music.*` do
-not exist); `-DDOPE_EXTRA_SOURCES=FILE` adds a source file from anywhere (experiments).
+`-DDOPE_EXTRA_SOURCES=FILE` adds a source file from anywhere (experiments).
 
 ## How it is put together
 
@@ -119,6 +118,17 @@ Known differences:
   vertical retrace bit alone; on a VGA that is one step per retrace, in the emulator about four. The remake takes
   one retrace per step, so p6 starts 48 frames (0.68 s) and p7 74 frames (1.06 s) later against the music than in
   the capture, and the demo ends 266 frames (3.80 s) later.
+- **The 3D engine** (p2, p3, p5, p6, p7; `src/dope/engine*`) transforms and projects the objects in float and
+  rasterises them with MSAA, instead of whole-pixel vertices and integer spans, and interpolates the env and texture
+  coordinates perspective-correctly instead of linearly on the screen. The maps are read filtered (the env maps'
+  colours through the palette, the bump codes decoded to their displacement first) with the original's texel
+  addressing, including the bump rows that p2, p5 and p6 skip. Where a map is smaller than a pixel (thin rings, far
+  or bumpy objects) the remake averages it over the pixel; the original shows aliasing noise there (p7's speckled
+  tentacle, p6's striped rings, p3's grainy bumps). A depth buffer replaces the painter's sort by face-centroid depth;
+  between p2's discs and "C" it compares the original's sort key, so the "C" stays between the discs as in the
+  original. Dropped as 16-bit artefacts: the back-face test that overflows on faces larger than about 181 pixels (in
+  p2's and p5's close-ups the original drops big front faces and shows what is behind them), the trivial reject of
+  triangles with every corner left or right of the screen, the never-drawn column 319 of clipped env-only spans.
 - **p1.** The logo scrolls continuously instead of one pixel every second retrace, and its violet-to-orange
   cross-fade is continuous instead of 1/256 steps every 8 retraces with both products floored (up to 2/63 darker).
 - **p4's fire** is computed per output pixel instead of in 160 two-pixel columns, as a float recursion (the integer
