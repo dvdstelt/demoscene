@@ -164,6 +164,7 @@ uniform sampler2D photo, pal, credits, grain;
 uniform float bs, gain;        // box width in original pixels, darkening of the box sum table
 uniform vec4 goff;             // grain strip offsets (0x1c789: 4 strips of 16000 bytes)
 uniform int nw;
+uniform float credLod;         // mip level of the words: 0 unless a redraw has more texels than the screen pixels
 uniform vec4 word[2];          // x, y, source x, width (credits.raw)
 uniform vec4 jit[18];          // per word: 4 shadow passes, 5 additive passes (xy)
 float photoAt(float x, float y) {   // the photo sits in a linear buffer: rows wrap into each other
@@ -176,7 +177,7 @@ float wordAt(int j, vec2 q) {
     vec4 w = word[j];
     if (q.x < 0.0 || q.y < 0.0 || q.x >= w.w || q.y >= 32.0) return 0.0;
     float sx = clamp(w.z + q.x, w.z + 0.5, w.z + w.w - 0.5);
-    return textureLod(credits, vec2(sx / 512.0, q.y / 32.0), 0.0).r * 255.0 / 8.0;
+    return textureLod(credits, vec2(sx / 512.0, q.y / 32.0), credLod).r * 255.0 / 8.0;
 }
 void main() {
     vec2 px = vec2(uv.x * 320.0, (1.0 - uv.y) * 200.0);
@@ -273,6 +274,9 @@ struct CreditPart {
         ready = true;
         photoSh.build(kFullscreenVS, kPhotoFS, "credits photo");
         objSh.build(kSpikeyVS, kSpikeyFS, "credits spikey");
+        // The photos are read as palette indices: 0x15734 box-blurs, darkens, grains and adds the words to the index
+        // (pixel >> 1) and shows it through a 128-colour ramp, so an art/ redraw does not replace them as it is; one
+        // would have to be turned into ramp positions first (re/notes-pictures.md).
         const char* files[2] = {"alex.raw", "vic.raw"};
         for (int s = 0; s < 2; s++) {
             const Bytes& raw = c.pak.get(files[s]);
@@ -398,6 +402,7 @@ struct CreditPart {
             nw++;
         }
         photoSh.set("nw", nw);
+        photoSh.set("credLod", mipLevel(cred.w / 512.0f / (float(c.w) / 320.0f), cred.h / 32.0f / (float(c.h) / 200.0f)));
         gl::Uniform4fv(photoSh.loc("word"), 2, wd);
         gl::Uniform4fv(photoSh.loc("jit"), 18, jt);
         drawFullscreen();

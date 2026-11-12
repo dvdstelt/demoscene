@@ -1,5 +1,5 @@
 // Paper by Psychic Link (code Statix, music Vic / Acme; Wired '96 64k intro) - high resolution remake.
-// Reads everything from the original PAPER.EXE.
+// Reads everything from the original PAPER.EXE, and the redrawn pictures of paper/remake/art unless --original-art.
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
@@ -20,7 +20,8 @@
 
 namespace {
 struct Options {
-    std::string exePath, imagePath;
+    std::string exePath, imagePath, artPath;
+    bool art = true;
     bool windowed = false;
     int winW = 1280, winH = 960;
     double startTick = 0;
@@ -41,7 +42,9 @@ void usage() {
     SDL_Log(
         "paper-remake [options]\n"
         "  --exe FILE          the original PAPER.EXE (default: next to the program, its parents or the current dir, or in an 'original' folder there)\n"
-        "  --window            run in a window instead of fullscreen\n"
+        "  --art DIR           the redrawn pictures (default: an 'art' folder next to the program or in its parents, or remake/art there)\n"
+        "  --original-art      show the original's pixels instead of the redraws\n"
+        "  --window          run in a window instead of fullscreen\n"
         "  --size WxH          window size (default 1280x960)\n"
         "  --start SECONDS     start position (or --tick T: start at tick T of the 70 Hz clock)\n"
         "  --ss FACTOR         supersampling factor (default 1)\n"
@@ -62,7 +65,13 @@ bool fileExists(const std::string& p) {
     return false;
 }
 
-std::string findExe(const std::string& hint) {
+bool dirExists(const std::string& p) {
+    SDL_PathInfo info;
+    return SDL_GetPathInfo(p.c_str(), &info) && info.type == SDL_PATHTYPE_DIRECTORY;
+}
+
+// The program's folder and its parents, then the current folder and its parents.
+std::vector<std::string> searchDirs() {
     std::vector<std::string> dirs;
     if (const char* base = SDL_GetBasePath()) {
         std::string b = base;
@@ -70,6 +79,11 @@ std::string findExe(const std::string& hint) {
         for (const char* up : {"", "/..", "/../..", "/../../.."}) dirs.push_back(b + up);
     }
     for (const char* d : {".", "..", "../.."}) dirs.push_back(d);
+    return dirs;
+}
+
+std::string findExe(const std::string& hint) {
+    std::vector<std::string> dirs = searchDirs();
     if (!hint.empty()) {
         if (fileExists(hint)) return hint;
         dirs.insert(dirs.begin(), hint);  // a directory
@@ -78,6 +92,15 @@ std::string findExe(const std::string& hint) {
         for (const char* sub : {"", "/original"})  // the repository's paper/original folder
             for (const char* n : {"/PAPER.EXE", "/paper.exe", "/Paper.exe"})
                 if (fileExists(d + sub + n)) return d + sub + n;
+    return "";
+}
+
+// The redraws: an 'art' folder next to the program (a release) or in the source tree (paper/remake/art).
+std::string findArt(const std::string& hint) {
+    if (!hint.empty()) return dirExists(hint) ? hint : "";
+    for (const auto& d : searchDirs())
+        for (const char* sub : {"/art", "/remake/art"})
+            if (dirExists(d + sub)) return d + sub;
     return "";
 }
 
@@ -114,6 +137,8 @@ bool parse(int argc, char** argv, Options& o) {
         auto next = [&]() -> std::string { return i + 1 < argc ? argv[++i] : ""; };
         if (a == "--exe") o.exePath = next();
         else if (a == "--image") o.imagePath = next();  // development: an already unpacked image
+        else if (a == "--art") o.artPath = next();
+        else if (a == "--original-art") o.art = false;
         else if (a == "--window") o.windowed = true;
         else if (a == "--size") std::sscanf(next().c_str(), "%dx%d", &o.winW, &o.winH);
         else if (a == "--start") o.startTick = std::atof(next().c_str()) * Music::kTickHz;
@@ -275,6 +300,9 @@ int main(int argc, char** argv) {
     else { SDL_GetWindowSizeInPixels(win, &dw, &dh); renderSize(dw, dh, rw, rh); }
 
     Demo demo;
+    demo.ctx.artDir = opt.art ? findArt(opt.artPath) : "";
+    if (opt.art && demo.ctx.artDir.empty()) SDL_Log("no art folder found: showing the original's pixels");
+    else if (opt.art) SDL_Log("art: %s", demo.ctx.artDir.c_str());
     if (!demo.init(exe, music, rw, rh, &err)) {
         SDL_Log("init: %s", err.c_str());
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Paper", err.c_str(), win);

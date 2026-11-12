@@ -1,0 +1,2011 @@
+{
+ "config": {},
+ "extra": {
+  "VHS_KeepIntermediate": true,
+  "VHS_MetadataImage": true,
+  "VHS_latentpreview": false,
+  "VHS_latentpreviewrate": 0,
+  "ds": {
+   "offset": [
+    40,
+    60
+   ],
+   "scale": 0.3
+  },
+  "frontendVersion": "1.61.0"
+ },
+ "groups": [],
+ "id": "5eed0303-0303-4303-8303-000000000303",
+ "last_link_id": 24,
+ "last_node_id": 407,
+ "links": [
+  [
+   1,
+   101,
+   0,
+   102,
+   0,
+   "VIDEO"
+  ],
+  [
+   2,
+   102,
+   0,
+   105,
+   0,
+   "IMAGE"
+  ],
+  [
+   3,
+   103,
+   0,
+   105,
+   1,
+   "SEEDVR2_DIT"
+  ],
+  [
+   4,
+   104,
+   0,
+   105,
+   2,
+   "SEEDVR2_VAE"
+  ],
+  [
+   5,
+   105,
+   0,
+   106,
+   0,
+   "IMAGE"
+  ],
+  [
+   6,
+   105,
+   0,
+   107,
+   0,
+   "IMAGE"
+  ],
+  [
+   7,
+   201,
+   0,
+   202,
+   0,
+   "VIDEO"
+  ],
+  [
+   8,
+   202,
+   0,
+   205,
+   0,
+   "IMAGE"
+  ],
+  [
+   9,
+   203,
+   0,
+   205,
+   1,
+   "SEEDVR2_DIT"
+  ],
+  [
+   10,
+   204,
+   0,
+   205,
+   2,
+   "SEEDVR2_VAE"
+  ],
+  [
+   11,
+   205,
+   0,
+   206,
+   0,
+   "IMAGE"
+  ],
+  [
+   12,
+   205,
+   0,
+   207,
+   0,
+   "IMAGE"
+  ],
+  [
+   13,
+   301,
+   0,
+   302,
+   0,
+   "VIDEO"
+  ],
+  [
+   14,
+   302,
+   0,
+   305,
+   0,
+   "IMAGE"
+  ],
+  [
+   15,
+   303,
+   0,
+   305,
+   1,
+   "SEEDVR2_DIT"
+  ],
+  [
+   16,
+   304,
+   0,
+   305,
+   2,
+   "SEEDVR2_VAE"
+  ],
+  [
+   17,
+   305,
+   0,
+   306,
+   0,
+   "IMAGE"
+  ],
+  [
+   18,
+   305,
+   0,
+   307,
+   0,
+   "IMAGE"
+  ],
+  [
+   19,
+   401,
+   0,
+   402,
+   0,
+   "VIDEO"
+  ],
+  [
+   20,
+   402,
+   0,
+   405,
+   0,
+   "IMAGE"
+  ],
+  [
+   21,
+   403,
+   0,
+   405,
+   1,
+   "SEEDVR2_DIT"
+  ],
+  [
+   22,
+   404,
+   0,
+   405,
+   2,
+   "SEEDVR2_VAE"
+  ],
+  [
+   23,
+   405,
+   0,
+   406,
+   0,
+   "IMAGE"
+  ],
+  [
+   24,
+   405,
+   0,
+   407,
+   0,
+   "IMAGE"
+  ]
+ ],
+ "nodes": [
+  {
+   "flags": {},
+   "id": 101,
+   "inputs": [],
+   "mode": 0,
+   "order": 0,
+   "outputs": [
+    {
+     "links": [
+      1
+     ],
+     "name": "VIDEO",
+     "type": "VIDEO"
+    }
+   ],
+   "pos": [
+    50,
+    100
+   ],
+   "properties": {
+    "Node name for S&R": "LoadVideo"
+   },
+   "size": [
+    282.798828125,
+    82
+   ],
+   "type": "LoadVideo",
+   "widgets_values": [
+    "303_HARL_0-121.mp4",
+    "image"
+   ],
+   "widgets_values_named": {
+    "file": "303_HARL_0-121.mp4",
+    "upload": "image"
+   },
+   "title": "HARL: Load Video"
+  },
+  {
+   "flags": {},
+   "id": 102,
+   "inputs": [
+    {
+     "link": 1,
+     "name": "video",
+     "type": "VIDEO"
+    }
+   ],
+   "mode": 0,
+   "order": 3,
+   "outputs": [
+    {
+     "links": [
+      2
+     ],
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "links": null,
+     "name": "audio",
+     "type": "AUDIO"
+    },
+    {
+     "links": null,
+     "name": "fps",
+     "type": "FLOAT"
+    },
+    {
+     "links": null,
+     "name": "bit_depth",
+     "type": "COMBO"
+    },
+    {
+     "links": null,
+     "name": "color_space",
+     "type": "COMBO"
+    }
+   ],
+   "pos": [
+    400,
+    100
+   ],
+   "properties": {
+    "Node name for S&R": "GetVideoComponents"
+   },
+   "size": [
+    193.530859375,
+    106
+   ],
+   "type": "GetVideoComponents",
+   "title": "HARL: Get Video Components"
+  },
+  {
+   "flags": {},
+   "id": 103,
+   "inputs": [
+    {
+     "link": null,
+     "name": "torch_compile_args",
+     "shape": 7,
+     "type": "TORCH_COMPILE_ARGS"
+    }
+   ],
+   "mode": 0,
+   "order": 1,
+   "outputs": [
+    {
+     "links": [
+      3
+     ],
+     "name": "SEEDVR2_DIT",
+     "type": "SEEDVR2_DIT"
+    }
+   ],
+   "pos": [
+    50,
+    450
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2LoadDiTModel"
+   },
+   "size": [
+    317.5630859375,
+    202
+   ],
+   "type": "SeedVR2LoadDiTModel",
+   "widgets_values": [
+    "seedvr2_ema_7b_sharp_fp16.safetensors",
+    "cuda:0",
+    0,
+    false,
+    "none",
+    false,
+    "sdpa"
+   ],
+   "widgets_values_named": {
+    "attention_mode": "sdpa",
+    "blocks_to_swap": 0,
+    "cache_model": false,
+    "device": "cuda:0",
+    "model": "seedvr2_ema_7b_sharp_fp16.safetensors",
+    "offload_device": "none",
+    "swap_io_components": false
+   },
+   "title": "HARL: SeedVR2 DiT"
+  },
+  {
+   "flags": {},
+   "id": 104,
+   "inputs": [
+    {
+     "link": null,
+     "name": "torch_compile_args",
+     "shape": 7,
+     "type": "TORCH_COMPILE_ARGS"
+    }
+   ],
+   "mode": 0,
+   "order": 2,
+   "outputs": [
+    {
+     "links": [
+      4
+     ],
+     "name": "SEEDVR2_VAE",
+     "type": "SEEDVR2_VAE"
+    }
+   ],
+   "pos": [
+    50,
+    750
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2LoadVAEModel"
+   },
+   "size": [
+    321.808203125,
+    298
+   ],
+   "type": "SeedVR2LoadVAEModel",
+   "widgets_values": [
+    "ema_vae_fp16.safetensors",
+    "cuda:0",
+    false,
+    1024,
+    128,
+    true,
+    1024,
+    128,
+    "false",
+    "none",
+    false
+   ],
+   "widgets_values_named": {
+    "cache_model": false,
+    "decode_tile_overlap": 128,
+    "decode_tile_size": 1024,
+    "decode_tiled": true,
+    "device": "cuda:0",
+    "encode_tile_overlap": 128,
+    "encode_tile_size": 1024,
+    "encode_tiled": false,
+    "model": "ema_vae_fp16.safetensors",
+    "offload_device": "none",
+    "tile_debug": "false"
+   },
+   "title": "HARL: SeedVR2 VAE"
+  },
+  {
+   "flags": {},
+   "id": 105,
+   "inputs": [
+    {
+     "link": 2,
+     "name": "image",
+     "type": "IMAGE"
+    },
+    {
+     "link": 3,
+     "name": "dit",
+     "type": "SEEDVR2_DIT"
+    },
+    {
+     "link": 4,
+     "name": "vae",
+     "type": "SEEDVR2_VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 4,
+   "outputs": [
+    {
+     "links": [
+      5,
+      6
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    700,
+    100
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2VideoUpscaler"
+   },
+   "size": [
+    329.956640625,
+    386
+   ],
+   "type": "SeedVR2VideoUpscaler",
+   "widgets_values": [
+    42,
+    "fixed",
+    768,
+    0,
+    61,
+    true,
+    "lab",
+    0,
+    0,
+    0,
+    0,
+    "cpu",
+    false
+   ],
+   "widgets_values_named": {
+    "batch_size": 61,
+    "color_correction": "lab",
+    "control_after_generate": "fixed",
+    "enable_debug": false,
+    "input_noise_scale": 0,
+    "latent_noise_scale": 0,
+    "max_resolution": 0,
+    "offload_device": "cpu",
+    "prepend_frames": 0,
+    "resolution": 768,
+    "seed": 42,
+    "temporal_overlap": 0,
+    "uniform_batch_size": true
+   },
+   "title": "HARL: SeedVR2 Video Upscaler"
+  },
+  {
+   "flags": {},
+   "id": 106,
+   "inputs": [
+    {
+     "link": 5,
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "audio",
+     "shape": 7,
+     "type": "AUDIO"
+    },
+    {
+     "link": null,
+     "name": "meta_batch",
+     "shape": 7,
+     "type": "VHS_BatchManager"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 5,
+   "outputs": [
+    {
+     "links": null,
+     "name": "Filenames",
+     "type": "VHS_FILENAMES"
+    }
+   ],
+   "pos": [
+    1100,
+    50
+   ],
+   "properties": {
+    "Node name for S&R": "VHS_VideoCombine"
+   },
+   "size": [
+    224.76641845703125,
+    334
+   ],
+   "type": "VHS_VideoCombine",
+   "widgets_values": {
+    "crf": 8,
+    "filename_prefix": "303_HARL_svr7bsharp_768",
+    "format": "video/h264-mp4",
+    "frame_rate": 11.681,
+    "loop_count": 0,
+    "pingpong": false,
+    "pix_fmt": "yuv420p",
+    "save_metadata": true,
+    "save_output": true,
+    "trim_to_audio": false,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "widgets_values_named": {
+    "crf": 8,
+    "filename_prefix": "303_HARL_svr7bsharp_768",
+    "format": "video/h264-mp4",
+    "frame_rate": 11.681,
+    "loop_count": 0,
+    "pingpong": false,
+    "pix_fmt": "yuv420p",
+    "save_metadata": true,
+    "save_output": true,
+    "trim_to_audio": false,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "title": "HARL: Video Combine H.264"
+  },
+  {
+   "flags": {},
+   "id": 107,
+   "inputs": [
+    {
+     "link": 6,
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "audio",
+     "shape": 7,
+     "type": "AUDIO"
+    },
+    {
+     "link": null,
+     "name": "meta_batch",
+     "shape": 7,
+     "type": "VHS_BatchManager"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 6,
+   "outputs": [
+    {
+     "links": null,
+     "name": "Filenames",
+     "type": "VHS_FILENAMES"
+    }
+   ],
+   "pos": [
+    1100,
+    600
+   ],
+   "properties": {
+    "Node name for S&R": "VHS_VideoCombine"
+   },
+   "size": [
+    224.76641845703125,
+    262
+   ],
+   "type": "VHS_VideoCombine",
+   "widgets_values": {
+    "filename_prefix": "303_HARL_svr7bsharp_768_lossless",
+    "format": "image/webp",
+    "frame_rate": 11.681,
+    "loop_count": 0,
+    "lossless": true,
+    "pingpong": false,
+    "save_output": true,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "widgets_values_named": {
+    "filename_prefix": "303_HARL_svr7bsharp_768_lossless",
+    "format": "image/webp",
+    "frame_rate": 11.681,
+    "loop_count": 0,
+    "lossless": true,
+    "pingpong": false,
+    "save_output": true,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "title": "HARL: Video Combine lossless WebP"
+  },
+  {
+   "flags": {},
+   "id": 201,
+   "inputs": [],
+   "mode": 0,
+   "order": 0,
+   "outputs": [
+    {
+     "links": [
+      7
+     ],
+     "name": "VIDEO",
+     "type": "VIDEO"
+    }
+   ],
+   "pos": [
+    50,
+    1250
+   ],
+   "properties": {
+    "Node name for S&R": "LoadVideo"
+   },
+   "size": [
+    282.798828125,
+    82
+   ],
+   "type": "LoadVideo",
+   "widgets_values": [
+    "303_VS_0-60.mp4",
+    "image"
+   ],
+   "widgets_values_named": {
+    "file": "303_VS_0-60.mp4",
+    "upload": "image"
+   },
+   "title": "VS: Load Video"
+  },
+  {
+   "flags": {},
+   "id": 202,
+   "inputs": [
+    {
+     "link": 7,
+     "name": "video",
+     "type": "VIDEO"
+    }
+   ],
+   "mode": 0,
+   "order": 3,
+   "outputs": [
+    {
+     "links": [
+      8
+     ],
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "links": null,
+     "name": "audio",
+     "type": "AUDIO"
+    },
+    {
+     "links": null,
+     "name": "fps",
+     "type": "FLOAT"
+    },
+    {
+     "links": null,
+     "name": "bit_depth",
+     "type": "COMBO"
+    },
+    {
+     "links": null,
+     "name": "color_space",
+     "type": "COMBO"
+    }
+   ],
+   "pos": [
+    400,
+    1250
+   ],
+   "properties": {
+    "Node name for S&R": "GetVideoComponents"
+   },
+   "size": [
+    193.530859375,
+    106
+   ],
+   "type": "GetVideoComponents",
+   "title": "VS: Get Video Components"
+  },
+  {
+   "flags": {},
+   "id": 203,
+   "inputs": [
+    {
+     "link": null,
+     "name": "torch_compile_args",
+     "shape": 7,
+     "type": "TORCH_COMPILE_ARGS"
+    }
+   ],
+   "mode": 0,
+   "order": 1,
+   "outputs": [
+    {
+     "links": [
+      9
+     ],
+     "name": "SEEDVR2_DIT",
+     "type": "SEEDVR2_DIT"
+    }
+   ],
+   "pos": [
+    50,
+    1600
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2LoadDiTModel"
+   },
+   "size": [
+    317.5630859375,
+    202
+   ],
+   "type": "SeedVR2LoadDiTModel",
+   "widgets_values": [
+    "seedvr2_ema_7b_sharp_fp16.safetensors",
+    "cuda:0",
+    0,
+    false,
+    "none",
+    false,
+    "sdpa"
+   ],
+   "widgets_values_named": {
+    "attention_mode": "sdpa",
+    "blocks_to_swap": 0,
+    "cache_model": false,
+    "device": "cuda:0",
+    "model": "seedvr2_ema_7b_sharp_fp16.safetensors",
+    "offload_device": "none",
+    "swap_io_components": false
+   },
+   "title": "VS: SeedVR2 DiT"
+  },
+  {
+   "flags": {},
+   "id": 204,
+   "inputs": [
+    {
+     "link": null,
+     "name": "torch_compile_args",
+     "shape": 7,
+     "type": "TORCH_COMPILE_ARGS"
+    }
+   ],
+   "mode": 0,
+   "order": 2,
+   "outputs": [
+    {
+     "links": [
+      10
+     ],
+     "name": "SEEDVR2_VAE",
+     "type": "SEEDVR2_VAE"
+    }
+   ],
+   "pos": [
+    50,
+    1900
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2LoadVAEModel"
+   },
+   "size": [
+    321.808203125,
+    298
+   ],
+   "type": "SeedVR2LoadVAEModel",
+   "widgets_values": [
+    "ema_vae_fp16.safetensors",
+    "cuda:0",
+    false,
+    1024,
+    128,
+    true,
+    1024,
+    128,
+    "false",
+    "none",
+    false
+   ],
+   "widgets_values_named": {
+    "cache_model": false,
+    "decode_tile_overlap": 128,
+    "decode_tile_size": 1024,
+    "decode_tiled": true,
+    "device": "cuda:0",
+    "encode_tile_overlap": 128,
+    "encode_tile_size": 1024,
+    "encode_tiled": false,
+    "model": "ema_vae_fp16.safetensors",
+    "offload_device": "none",
+    "tile_debug": "false"
+   },
+   "title": "VS: SeedVR2 VAE"
+  },
+  {
+   "flags": {},
+   "id": 205,
+   "inputs": [
+    {
+     "link": 8,
+     "name": "image",
+     "type": "IMAGE"
+    },
+    {
+     "link": 9,
+     "name": "dit",
+     "type": "SEEDVR2_DIT"
+    },
+    {
+     "link": 10,
+     "name": "vae",
+     "type": "SEEDVR2_VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 4,
+   "outputs": [
+    {
+     "links": [
+      11,
+      12
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    700,
+    1250
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2VideoUpscaler"
+   },
+   "size": [
+    329.956640625,
+    386
+   ],
+   "type": "SeedVR2VideoUpscaler",
+   "widgets_values": [
+    42,
+    "fixed",
+    768,
+    0,
+    61,
+    true,
+    "lab",
+    0,
+    0,
+    0,
+    0,
+    "cpu",
+    false
+   ],
+   "widgets_values_named": {
+    "batch_size": 61,
+    "color_correction": "lab",
+    "control_after_generate": "fixed",
+    "enable_debug": false,
+    "input_noise_scale": 0,
+    "latent_noise_scale": 0,
+    "max_resolution": 0,
+    "offload_device": "cpu",
+    "prepend_frames": 0,
+    "resolution": 768,
+    "seed": 42,
+    "temporal_overlap": 0,
+    "uniform_batch_size": true
+   },
+   "title": "VS: SeedVR2 Video Upscaler"
+  },
+  {
+   "flags": {},
+   "id": 206,
+   "inputs": [
+    {
+     "link": 11,
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "audio",
+     "shape": 7,
+     "type": "AUDIO"
+    },
+    {
+     "link": null,
+     "name": "meta_batch",
+     "shape": 7,
+     "type": "VHS_BatchManager"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 5,
+   "outputs": [
+    {
+     "links": null,
+     "name": "Filenames",
+     "type": "VHS_FILENAMES"
+    }
+   ],
+   "pos": [
+    1100,
+    1200
+   ],
+   "properties": {
+    "Node name for S&R": "VHS_VideoCombine"
+   },
+   "size": [
+    224.76641845703125,
+    334
+   ],
+   "type": "VHS_VideoCombine",
+   "widgets_values": {
+    "crf": 8,
+    "filename_prefix": "303_VS_svr7bsharp_768",
+    "format": "video/h264-mp4",
+    "frame_rate": 8.76075,
+    "loop_count": 0,
+    "pingpong": false,
+    "pix_fmt": "yuv420p",
+    "save_metadata": true,
+    "save_output": true,
+    "trim_to_audio": false,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "widgets_values_named": {
+    "crf": 8,
+    "filename_prefix": "303_VS_svr7bsharp_768",
+    "format": "video/h264-mp4",
+    "frame_rate": 8.76075,
+    "loop_count": 0,
+    "pingpong": false,
+    "pix_fmt": "yuv420p",
+    "save_metadata": true,
+    "save_output": true,
+    "trim_to_audio": false,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "title": "VS: Video Combine H.264"
+  },
+  {
+   "flags": {},
+   "id": 207,
+   "inputs": [
+    {
+     "link": 12,
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "audio",
+     "shape": 7,
+     "type": "AUDIO"
+    },
+    {
+     "link": null,
+     "name": "meta_batch",
+     "shape": 7,
+     "type": "VHS_BatchManager"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 6,
+   "outputs": [
+    {
+     "links": null,
+     "name": "Filenames",
+     "type": "VHS_FILENAMES"
+    }
+   ],
+   "pos": [
+    1100,
+    1750
+   ],
+   "properties": {
+    "Node name for S&R": "VHS_VideoCombine"
+   },
+   "size": [
+    224.76641845703125,
+    262
+   ],
+   "type": "VHS_VideoCombine",
+   "widgets_values": {
+    "filename_prefix": "303_VS_svr7bsharp_768_lossless",
+    "format": "image/webp",
+    "frame_rate": 8.76075,
+    "loop_count": 0,
+    "lossless": true,
+    "pingpong": false,
+    "save_output": true,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "widgets_values_named": {
+    "filename_prefix": "303_VS_svr7bsharp_768_lossless",
+    "format": "image/webp",
+    "frame_rate": 8.76075,
+    "loop_count": 0,
+    "lossless": true,
+    "pingpong": false,
+    "save_output": true,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "title": "VS: Video Combine lossless WebP"
+  },
+  {
+   "flags": {},
+   "id": 301,
+   "inputs": [],
+   "mode": 0,
+   "order": 0,
+   "outputs": [
+    {
+     "links": [
+      13
+     ],
+     "name": "VIDEO",
+     "type": "VIDEO"
+    }
+   ],
+   "pos": [
+    50,
+    2400
+   ],
+   "properties": {
+    "Node name for S&R": "LoadVideo"
+   },
+   "size": [
+    282.798828125,
+    82
+   ],
+   "type": "LoadVideo",
+   "widgets_values": [
+    "303_ALEX_0-42.mp4",
+    "image"
+   ],
+   "widgets_values_named": {
+    "file": "303_ALEX_0-42.mp4",
+    "upload": "image"
+   },
+   "title": "ALEX: Load Video"
+  },
+  {
+   "flags": {},
+   "id": 302,
+   "inputs": [
+    {
+     "link": 13,
+     "name": "video",
+     "type": "VIDEO"
+    }
+   ],
+   "mode": 0,
+   "order": 3,
+   "outputs": [
+    {
+     "links": [
+      14
+     ],
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "links": null,
+     "name": "audio",
+     "type": "AUDIO"
+    },
+    {
+     "links": null,
+     "name": "fps",
+     "type": "FLOAT"
+    },
+    {
+     "links": null,
+     "name": "bit_depth",
+     "type": "COMBO"
+    },
+    {
+     "links": null,
+     "name": "color_space",
+     "type": "COMBO"
+    }
+   ],
+   "pos": [
+    400,
+    2400
+   ],
+   "properties": {
+    "Node name for S&R": "GetVideoComponents"
+   },
+   "size": [
+    193.530859375,
+    106
+   ],
+   "type": "GetVideoComponents",
+   "title": "ALEX: Get Video Components"
+  },
+  {
+   "flags": {},
+   "id": 303,
+   "inputs": [
+    {
+     "link": null,
+     "name": "torch_compile_args",
+     "shape": 7,
+     "type": "TORCH_COMPILE_ARGS"
+    }
+   ],
+   "mode": 0,
+   "order": 1,
+   "outputs": [
+    {
+     "links": [
+      15
+     ],
+     "name": "SEEDVR2_DIT",
+     "type": "SEEDVR2_DIT"
+    }
+   ],
+   "pos": [
+    50,
+    2750
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2LoadDiTModel"
+   },
+   "size": [
+    317.5630859375,
+    202
+   ],
+   "type": "SeedVR2LoadDiTModel",
+   "widgets_values": [
+    "seedvr2_ema_7b_sharp_fp16.safetensors",
+    "cuda:0",
+    0,
+    false,
+    "none",
+    false,
+    "sdpa"
+   ],
+   "widgets_values_named": {
+    "attention_mode": "sdpa",
+    "blocks_to_swap": 0,
+    "cache_model": false,
+    "device": "cuda:0",
+    "model": "seedvr2_ema_7b_sharp_fp16.safetensors",
+    "offload_device": "none",
+    "swap_io_components": false
+   },
+   "title": "ALEX: SeedVR2 DiT"
+  },
+  {
+   "flags": {},
+   "id": 304,
+   "inputs": [
+    {
+     "link": null,
+     "name": "torch_compile_args",
+     "shape": 7,
+     "type": "TORCH_COMPILE_ARGS"
+    }
+   ],
+   "mode": 0,
+   "order": 2,
+   "outputs": [
+    {
+     "links": [
+      16
+     ],
+     "name": "SEEDVR2_VAE",
+     "type": "SEEDVR2_VAE"
+    }
+   ],
+   "pos": [
+    50,
+    3050
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2LoadVAEModel"
+   },
+   "size": [
+    321.808203125,
+    298
+   ],
+   "type": "SeedVR2LoadVAEModel",
+   "widgets_values": [
+    "ema_vae_fp16.safetensors",
+    "cuda:0",
+    false,
+    1024,
+    128,
+    true,
+    1024,
+    128,
+    "false",
+    "none",
+    false
+   ],
+   "widgets_values_named": {
+    "cache_model": false,
+    "decode_tile_overlap": 128,
+    "decode_tile_size": 1024,
+    "decode_tiled": true,
+    "device": "cuda:0",
+    "encode_tile_overlap": 128,
+    "encode_tile_size": 1024,
+    "encode_tiled": false,
+    "model": "ema_vae_fp16.safetensors",
+    "offload_device": "none",
+    "tile_debug": "false"
+   },
+   "title": "ALEX: SeedVR2 VAE"
+  },
+  {
+   "flags": {},
+   "id": 305,
+   "inputs": [
+    {
+     "link": 14,
+     "name": "image",
+     "type": "IMAGE"
+    },
+    {
+     "link": 15,
+     "name": "dit",
+     "type": "SEEDVR2_DIT"
+    },
+    {
+     "link": 16,
+     "name": "vae",
+     "type": "SEEDVR2_VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 4,
+   "outputs": [
+    {
+     "links": [
+      17,
+      18
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    700,
+    2400
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2VideoUpscaler"
+   },
+   "size": [
+    329.956640625,
+    386
+   ],
+   "type": "SeedVR2VideoUpscaler",
+   "widgets_values": [
+    42,
+    "fixed",
+    768,
+    0,
+    61,
+    true,
+    "lab",
+    0,
+    0,
+    0,
+    0,
+    "cpu",
+    false
+   ],
+   "widgets_values_named": {
+    "batch_size": 61,
+    "color_correction": "lab",
+    "control_after_generate": "fixed",
+    "enable_debug": false,
+    "input_noise_scale": 0,
+    "latent_noise_scale": 0,
+    "max_resolution": 0,
+    "offload_device": "cpu",
+    "prepend_frames": 0,
+    "resolution": 768,
+    "seed": 42,
+    "temporal_overlap": 0,
+    "uniform_batch_size": true
+   },
+   "title": "ALEX: SeedVR2 Video Upscaler"
+  },
+  {
+   "flags": {},
+   "id": 306,
+   "inputs": [
+    {
+     "link": 17,
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "audio",
+     "shape": 7,
+     "type": "AUDIO"
+    },
+    {
+     "link": null,
+     "name": "meta_batch",
+     "shape": 7,
+     "type": "VHS_BatchManager"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 5,
+   "outputs": [
+    {
+     "links": null,
+     "name": "Filenames",
+     "type": "VHS_FILENAMES"
+    }
+   ],
+   "pos": [
+    1100,
+    2350
+   ],
+   "properties": {
+    "Node name for S&R": "VHS_VideoCombine"
+   },
+   "size": [
+    224.76641845703125,
+    334
+   ],
+   "type": "VHS_VideoCombine",
+   "widgets_values": {
+    "crf": 8,
+    "filename_prefix": "303_ALEX_svr7bsharp_768",
+    "format": "video/h264-mp4",
+    "frame_rate": 8.76075,
+    "loop_count": 0,
+    "pingpong": false,
+    "pix_fmt": "yuv420p",
+    "save_metadata": true,
+    "save_output": true,
+    "trim_to_audio": false,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "widgets_values_named": {
+    "crf": 8,
+    "filename_prefix": "303_ALEX_svr7bsharp_768",
+    "format": "video/h264-mp4",
+    "frame_rate": 8.76075,
+    "loop_count": 0,
+    "pingpong": false,
+    "pix_fmt": "yuv420p",
+    "save_metadata": true,
+    "save_output": true,
+    "trim_to_audio": false,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "title": "ALEX: Video Combine H.264"
+  },
+  {
+   "flags": {},
+   "id": 307,
+   "inputs": [
+    {
+     "link": 18,
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "audio",
+     "shape": 7,
+     "type": "AUDIO"
+    },
+    {
+     "link": null,
+     "name": "meta_batch",
+     "shape": 7,
+     "type": "VHS_BatchManager"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 6,
+   "outputs": [
+    {
+     "links": null,
+     "name": "Filenames",
+     "type": "VHS_FILENAMES"
+    }
+   ],
+   "pos": [
+    1100,
+    2900
+   ],
+   "properties": {
+    "Node name for S&R": "VHS_VideoCombine"
+   },
+   "size": [
+    224.76641845703125,
+    262
+   ],
+   "type": "VHS_VideoCombine",
+   "widgets_values": {
+    "filename_prefix": "303_ALEX_svr7bsharp_768_lossless",
+    "format": "image/webp",
+    "frame_rate": 8.76075,
+    "loop_count": 0,
+    "lossless": true,
+    "pingpong": false,
+    "save_output": true,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "widgets_values_named": {
+    "filename_prefix": "303_ALEX_svr7bsharp_768_lossless",
+    "format": "image/webp",
+    "frame_rate": 8.76075,
+    "loop_count": 0,
+    "lossless": true,
+    "pingpong": false,
+    "save_output": true,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "title": "ALEX: Video Combine lossless WebP"
+  },
+  {
+   "flags": {},
+   "id": 401,
+   "inputs": [],
+   "mode": 0,
+   "order": 0,
+   "outputs": [
+    {
+     "links": [
+      19
+     ],
+     "name": "VIDEO",
+     "type": "VIDEO"
+    }
+   ],
+   "pos": [
+    50,
+    3550
+   ],
+   "properties": {
+    "Node name for S&R": "LoadVideo"
+   },
+   "size": [
+    282.798828125,
+    82
+   ],
+   "type": "LoadVideo",
+   "widgets_values": [
+    "303_PARANOID_0-44.mp4",
+    "image"
+   ],
+   "widgets_values_named": {
+    "file": "303_PARANOID_0-44.mp4",
+    "upload": "image"
+   },
+   "title": "PARANOID: Load Video"
+  },
+  {
+   "flags": {},
+   "id": 402,
+   "inputs": [
+    {
+     "link": 19,
+     "name": "video",
+     "type": "VIDEO"
+    }
+   ],
+   "mode": 0,
+   "order": 3,
+   "outputs": [
+    {
+     "links": [
+      20
+     ],
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "links": null,
+     "name": "audio",
+     "type": "AUDIO"
+    },
+    {
+     "links": null,
+     "name": "fps",
+     "type": "FLOAT"
+    },
+    {
+     "links": null,
+     "name": "bit_depth",
+     "type": "COMBO"
+    },
+    {
+     "links": null,
+     "name": "color_space",
+     "type": "COMBO"
+    }
+   ],
+   "pos": [
+    400,
+    3550
+   ],
+   "properties": {
+    "Node name for S&R": "GetVideoComponents"
+   },
+   "size": [
+    193.530859375,
+    106
+   ],
+   "type": "GetVideoComponents",
+   "title": "PARANOID: Get Video Components"
+  },
+  {
+   "flags": {},
+   "id": 403,
+   "inputs": [
+    {
+     "link": null,
+     "name": "torch_compile_args",
+     "shape": 7,
+     "type": "TORCH_COMPILE_ARGS"
+    }
+   ],
+   "mode": 0,
+   "order": 1,
+   "outputs": [
+    {
+     "links": [
+      21
+     ],
+     "name": "SEEDVR2_DIT",
+     "type": "SEEDVR2_DIT"
+    }
+   ],
+   "pos": [
+    50,
+    3900
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2LoadDiTModel"
+   },
+   "size": [
+    317.5630859375,
+    202
+   ],
+   "type": "SeedVR2LoadDiTModel",
+   "widgets_values": [
+    "seedvr2_ema_7b_sharp_fp16.safetensors",
+    "cuda:0",
+    0,
+    false,
+    "none",
+    false,
+    "sdpa"
+   ],
+   "widgets_values_named": {
+    "attention_mode": "sdpa",
+    "blocks_to_swap": 0,
+    "cache_model": false,
+    "device": "cuda:0",
+    "model": "seedvr2_ema_7b_sharp_fp16.safetensors",
+    "offload_device": "none",
+    "swap_io_components": false
+   },
+   "title": "PARANOID: SeedVR2 DiT"
+  },
+  {
+   "flags": {},
+   "id": 404,
+   "inputs": [
+    {
+     "link": null,
+     "name": "torch_compile_args",
+     "shape": 7,
+     "type": "TORCH_COMPILE_ARGS"
+    }
+   ],
+   "mode": 0,
+   "order": 2,
+   "outputs": [
+    {
+     "links": [
+      22
+     ],
+     "name": "SEEDVR2_VAE",
+     "type": "SEEDVR2_VAE"
+    }
+   ],
+   "pos": [
+    50,
+    4200
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2LoadVAEModel"
+   },
+   "size": [
+    321.808203125,
+    298
+   ],
+   "type": "SeedVR2LoadVAEModel",
+   "widgets_values": [
+    "ema_vae_fp16.safetensors",
+    "cuda:0",
+    false,
+    1024,
+    128,
+    true,
+    1024,
+    128,
+    "false",
+    "none",
+    false
+   ],
+   "widgets_values_named": {
+    "cache_model": false,
+    "decode_tile_overlap": 128,
+    "decode_tile_size": 1024,
+    "decode_tiled": true,
+    "device": "cuda:0",
+    "encode_tile_overlap": 128,
+    "encode_tile_size": 1024,
+    "encode_tiled": false,
+    "model": "ema_vae_fp16.safetensors",
+    "offload_device": "none",
+    "tile_debug": "false"
+   },
+   "title": "PARANOID: SeedVR2 VAE"
+  },
+  {
+   "flags": {},
+   "id": 405,
+   "inputs": [
+    {
+     "link": 20,
+     "name": "image",
+     "type": "IMAGE"
+    },
+    {
+     "link": 21,
+     "name": "dit",
+     "type": "SEEDVR2_DIT"
+    },
+    {
+     "link": 22,
+     "name": "vae",
+     "type": "SEEDVR2_VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 4,
+   "outputs": [
+    {
+     "links": [
+      23,
+      24
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    700,
+    3550
+   ],
+   "properties": {
+    "Node name for S&R": "SeedVR2VideoUpscaler"
+   },
+   "size": [
+    329.956640625,
+    386
+   ],
+   "type": "SeedVR2VideoUpscaler",
+   "widgets_values": [
+    42,
+    "fixed",
+    768,
+    0,
+    61,
+    true,
+    "lab",
+    0,
+    0,
+    0,
+    0,
+    "cpu",
+    false
+   ],
+   "widgets_values_named": {
+    "batch_size": 61,
+    "color_correction": "lab",
+    "control_after_generate": "fixed",
+    "enable_debug": false,
+    "input_noise_scale": 0,
+    "latent_noise_scale": 0,
+    "max_resolution": 0,
+    "offload_device": "cpu",
+    "prepend_frames": 0,
+    "resolution": 768,
+    "seed": 42,
+    "temporal_overlap": 0,
+    "uniform_batch_size": true
+   },
+   "title": "PARANOID: SeedVR2 Video Upscaler"
+  },
+  {
+   "flags": {},
+   "id": 406,
+   "inputs": [
+    {
+     "link": 23,
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "audio",
+     "shape": 7,
+     "type": "AUDIO"
+    },
+    {
+     "link": null,
+     "name": "meta_batch",
+     "shape": 7,
+     "type": "VHS_BatchManager"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 5,
+   "outputs": [
+    {
+     "links": null,
+     "name": "Filenames",
+     "type": "VHS_FILENAMES"
+    }
+   ],
+   "pos": [
+    1100,
+    3500
+   ],
+   "properties": {
+    "Node name for S&R": "VHS_VideoCombine"
+   },
+   "size": [
+    224.76641845703125,
+    334
+   ],
+   "type": "VHS_VideoCombine",
+   "widgets_values": {
+    "crf": 8,
+    "filename_prefix": "303_PARANOID_svr7bsharp_768",
+    "format": "video/h264-mp4",
+    "frame_rate": 4.76758,
+    "loop_count": 0,
+    "pingpong": false,
+    "pix_fmt": "yuv420p",
+    "save_metadata": true,
+    "save_output": true,
+    "trim_to_audio": false,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "widgets_values_named": {
+    "crf": 8,
+    "filename_prefix": "303_PARANOID_svr7bsharp_768",
+    "format": "video/h264-mp4",
+    "frame_rate": 4.76758,
+    "loop_count": 0,
+    "pingpong": false,
+    "pix_fmt": "yuv420p",
+    "save_metadata": true,
+    "save_output": true,
+    "trim_to_audio": false,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "title": "PARANOID: Video Combine H.264"
+  },
+  {
+   "flags": {},
+   "id": 407,
+   "inputs": [
+    {
+     "link": 24,
+     "name": "images",
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "audio",
+     "shape": 7,
+     "type": "AUDIO"
+    },
+    {
+     "link": null,
+     "name": "meta_batch",
+     "shape": 7,
+     "type": "VHS_BatchManager"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 6,
+   "outputs": [
+    {
+     "links": null,
+     "name": "Filenames",
+     "type": "VHS_FILENAMES"
+    }
+   ],
+   "pos": [
+    1100,
+    4050
+   ],
+   "properties": {
+    "Node name for S&R": "VHS_VideoCombine"
+   },
+   "size": [
+    224.76641845703125,
+    262
+   ],
+   "type": "VHS_VideoCombine",
+   "widgets_values": {
+    "filename_prefix": "303_PARANOID_svr7bsharp_768_lossless",
+    "format": "image/webp",
+    "frame_rate": 4.76758,
+    "loop_count": 0,
+    "lossless": true,
+    "pingpong": false,
+    "save_output": true,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "widgets_values_named": {
+    "filename_prefix": "303_PARANOID_svr7bsharp_768_lossless",
+    "format": "image/webp",
+    "frame_rate": 4.76758,
+    "loop_count": 0,
+    "lossless": true,
+    "pingpong": false,
+    "save_output": true,
+    "videopreview": {
+     "hidden": false,
+     "params": {},
+     "paused": false
+    }
+   },
+   "title": "PARANOID: Video Combine lossless WebP"
+  }
+ ],
+ "revision": 0,
+ "version": 0.4
+}

@@ -20,7 +20,12 @@
 //   - text: the core font's anti-aliased outlines drawn into a UNORM intensity buffer covering the original's 320x80
 //     text buffer (saturating adds as the byte adds), the 0xf47 blurs as Gaussians of the same variance. The buffer is
 //     cached per output size.
-//   - sketch: Catmull-Rom on the 4-bit darkness values, clamped to the range of the nearest 2x2 texels (no ringing).
+//   - sketch: by default the high-resolution redraw art/sketch.png (paper/art.h; paper/remake/art/README.md), a grey
+//     shade map grey = 255 v / 63 over the sketch's 224x83 frame, sampled trilinearly and shaded exactly as the
+//     original's page values; with --original-art (or without the file) Catmull-Rom on the 4-bit darkness values,
+//     clamped to the range of the nearest 2x2 texels (no ringing). 0x572f writes every ink pixel over the sketch,
+//     but the ink pass lets the page show through the ink's light greys (partial coverage, below), so with the
+//     redraw the page pass hides the sketch where the fill has reached an ink pixel of any colour (fill channel G).
 //   - ink outline: the fill is simulated exactly (the original's list algorithm) to get every ink pixel's arrival tick
 //     R(p). Each frame a small pass writes s_p = ramp(tau - R(p) + 1) x w_p per ink texel (fill fraction 0 before, 1
 //     from its own tick on, times the outline weight w_p, see InkTexels); the ink pass Catmull-Rom interpolates the s_p
@@ -41,6 +46,7 @@
 
 #include "demo.h"
 #include "exe.h"
+#include "paper/art.h"
 #include "paper/blur.h"
 #include "paper/font.h"
 #include "paper/palette.h"
@@ -234,6 +240,9 @@ out vec4 o;
 uniform sampler2D textBuf;   // T of the 320x80 text buffer (0..1 = byte/255), stored bottom-up
 uniform sampler2D grain;     // core paper grain (shade row e)
 uniform sampler2D sketch;    // darkness n, padded by PAD
+uniform sampler2D sketchArt; // the redraw: page value v / 63 over the sketch's 224x83 frame, row 0 at the top
+uniform bool redraw;         // true: sketchArt, false: sketch
+uniform sampler2D fill;      // this frame's fill fractions (G: every ink pixel), padded by PAD
 uniform vec2 textTexel;      // text-buffer pixels per texel
 
 // 0x5623 text mapping: buffer rows 0..39 -> page rows 10..49, rows 40..79 -> 158..197, x + 4
@@ -263,7 +272,19 @@ void main() {
     // 50..132, where there is no text; min() only meets their faint tails at row 50)
     float v = 63.0 - 63.75 * textValue(vga);
     vec2 q = vga - LOGO;
-    if (q.x > -2.0 && q.x < 226.0 && q.y > -2.0 && q.y < 85.0) v = min(v, 63.0 - 4.0 * sketchDark(q));
+    if (redraw) {
+        // The ink covers the sketch wherever the ink image has ink, its light grey rims and highlights included
+        // (0x572f writes every ink pixel over the page). The ink pass treats the light greys as partial coverage
+        // and lets the page show through them, which shows the redraw's crisp strokes there: hide the strokes where
+        // the ink has arrived.
+        // (derivatives and the mipmapped read outside the frame test: they need uniform control flow)
+        float m = catmullRom(fill, q + PAD).g - 0.5;
+        float inked = clamp(m / max(length(vec2(dFdx(m), dFdy(m))), 1e-6) + 0.5, 0.0, 1.0);
+        float art = 63.0 * texture(sketchArt, q / vec2(224.0, 83.0)).r;
+        if (q.x >= 0.0 && q.x < 224.0 && q.y >= 0.0 && q.y < 83.0) v = min(v, mix(art, 63.0, inked));
+    } else if (q.x > -2.0 && q.x < 226.0 && q.y > -2.0 && q.y < 85.0) {
+        v = min(v, 63.0 - 4.0 * sketchDark(q));
+    }
     // 0x1949: LUT[grain][v] = max(0, v + 2e - 64) through the grey ramp
     float e = paperGrain(grain, vga);
     o = vec4(vec3(greyRamp(max(0.0, v + 2.0 * e - 64.0))), 1.0);
@@ -281,25 +302,27 @@ void main() {
 }
 )";
 
-// Per frame, per ink texel: fill fraction x outline weight. The fraction rises from 0 to 1 during the tick before
-// the pixel's arrival tick, along ramp[] (see frontRamp).
+// Per frame, per ink texel: R = fill fraction x outline weight (the ink's outline), G = fill fraction of every ink
+// pixel, the light greys included (where the ink covers the sketch). The fraction rises from 0 to 1 during the tick
+// before the pixel's arrival tick, along ramp[] (see frontRamp).
 const char* kFillFS = R"(
 out vec4 o;
-uniform sampler2D shape;     // RG: arrival tick - TICK_BASE, outline weight (padded by PAD)
+uniform sampler2D shape;     // RG: arrival tick - TICK_BASE, outline weight (padded by PAD; > 0 on every ink pixel)
 uniform float tau;           // tick - TICK_BASE
 uniform float ramp[33];
 void main() {
     vec2 a = texelFetch(shape, ivec2(gl_FragCoord.xy), 0).rg;
     float x = clamp(tau - a.x + 1.0, 0.0, 1.0) * 32.0;
     int i = min(int(x), 31);
-    o = vec4(mix(ramp[i], ramp[i + 1], x - float(i)) * a.y);
+    float s = mix(ramp[i], ramp[i + 1], x - float(i));
+    o = vec4(s * a.y, a.y > 0.0 ? s : 0.0, 0.0, 0.0);
 }
 )";
 
 const char* kInkFS = R"(
 in vec2 vga;
 out vec4 o;
-uniform sampler2D fill;      // fill fraction x outline weight (this frame)
+uniform sampler2D fill;      // R: fill fraction x outline weight (this frame)
 uniform sampler2D tone;      // body and grey colours x weight, weight
 uniform sampler2D red;       // red colours, indicator
 
@@ -333,8 +356,9 @@ void main() {
 
 struct LogoScene : Scene {
     Shader page, fillShader, inkShader;
-    Texture sketchTex, shapeTex, toneTex, redTex;
-    Target fill;  // fill fraction x outline weight per ink texel, rebuilt for every frame's tick
+    Texture sketchTex, sketchArt, shapeTex, toneTex, redTex;
+    bool redraw = false;  // sketchArt holds the redraw (art/sketch.png)
+    Target fill;  // per ink texel: fill fraction x outline weight, fill fraction; rebuilt for every frame's tick
     std::array<float, 33> ramp{};
     std::string text;
     // the blurred text buffer, per output size
@@ -356,6 +380,10 @@ struct LogoScene : Scene {
 
         std::vector<uint8_t> sk = unpackNibbles(exe, kSketchImage, kSketchH);
         upload(sketchTex, 1, std::vector<float>(sk.begin(), sk.end()), kSketchH, true);
+        GreyImage art;
+        redraw = loadArtGrey(c, "sketch", &art);
+        if (redraw)  // grey = 255 v / 63 over the 224x83 frame; mipmapped for small frames, clamped at the edges
+            sketchArt.createRaw(art.w, art.h, GL_R8, GL_RED, GL_UNSIGNED_BYTE, art.px.data(), true, false, true);
 
         std::vector<uint8_t> ink = unpackNibbles(exe, kInkImage, kInkH);
         InkTexels it = inkTexels(DefaultPalette(exe), ink, simulateFill(c, ink));
@@ -367,7 +395,7 @@ struct LogoScene : Scene {
         page.build(kFullscreenVS, std::string(kTexturesGLSL) + kLogoGLSL + kPageFS, "logo page");
         fillShader.build(kFullscreenVS, kFillFS, "logo fill");
         inkShader.build(kInkVS, std::string(kLogoGLSL) + kInkFS, "logo ink");
-        fill.create(kImgW + 2 * kPad, kInkH + 2 * kPad, false, GL_R16F);
+        fill.create(kImgW + 2 * kPad, kInkH + 2 * kPad, false, GL_RG16F);
     }
 
     // 0x5623's text buffer T: shadow at (20,4) blurred 4 times and halved, the sharp copy at (16,1) added (saturating),
@@ -404,9 +432,14 @@ struct LogoScene : Scene {
         gl::BindTexture(GL_TEXTURE_2D, tb.tex);
         c.shared<CoreTextures>().grain.bind(1);
         sketchTex.bind(2);
+        (redraw ? sketchArt : sketchTex).bind(3);
+        fill.bindTex(4);
         page.set("textBuf", 0);
         page.set("grain", 1);
         page.set("sketch", 2);
+        page.set("sketchArt", 3);
+        page.set("fill", 4);
+        page.set("redraw", redraw ? 1 : 0);
         page.set("textTexel", 320.0f / tb.w, 80.0f / tb.h);
         drawFullscreen();
     }

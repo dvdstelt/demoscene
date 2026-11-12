@@ -1,8 +1,9 @@
 # Redrawing pictures
 
-How the high-resolution redraws of STARS's and DOPE's hand-drawn pictures were made, as a recipe for the next one.
-ChatGPT's image generation made almost all of them. One picture it refused; that one was made with an open
+How the high-resolution redraws of STARS's, DOPE's and Paper's hand-drawn pictures were made, as a recipe for the
+next one. ChatGPT's image generation made almost all of them. One picture it refused; that one was made with an open
 image-edit model on Comfy Cloud. Both routes are described here, with the alternatives that were considered.
+Video clips (303's) are restored with a video model instead, also on Comfy Cloud: [section 7](#7-videos).
 
 The rules are in [AGENTS.md](../AGENTS.md) ("Redrawn pictures"): a redraw is faithful to the original (the same
 composition, pose, proportions, framing, colours and text; only resolution and detail change), it lives in
@@ -16,8 +17,11 @@ pixels are shown. Generated textures and maps stay computed from the original, a
 reads through palette indices (colour cycling, index arithmetic). Some pictures can still be redrawn if the
 redraw keeps what the effect needs; the decompiling notes say how each picture is used:
 
-- a shade map coloured through palette ramps (DOPE's logo): redraw it as a grey shade map;
+- a shade map coloured through palette ramps (DOPE's logo) or shaded with a paper grain (Paper's sketch): redraw it
+  as a grey shade map, with the background exactly the value around it;
 - a coverage mask (DOPE's credits): redraw it as white on black;
+- a map of palette indices that an effect writes pixel by pixel (Paper's ink image, which a flood fill colours): do
+  not redraw it, upscale it in the remake from its values;
 - an env map that is only read inside a disc (DOPE's p5): keep the layout exactly;
 - a picture whose parts are coloured separately (STARS's flower eyes in four palette bands): keep each part where
   it is;
@@ -53,9 +57,16 @@ what it shows:
 - the format: "a landscape 4:3 image, as large as you can make it".
 
 A second or third attempt says exactly what to correct (a moved word, a dropped signature, a wrong letter). ChatGPT
-returns about 1450×1088 for 4:3. Keep the raw downloads in `<demo>/re/art-raw/` (ignored by Git). The exact prompts
-and attempts per picture are in [stars/remake/art/README.md](../stars/remake/art/README.md) and
-[dope/remake/art/README.md](../dope/remake/art/README.md).
+returns about 1450×1088 for 4:3 and 1774×887 for 2:1. Keep the raw downloads in `<demo>/re/art-raw/` (ignored by
+Git). The exact prompts and attempts per picture are in [stars/remake/art/README.md](../stars/remake/art/README.md),
+[dope/remake/art/README.md](../dope/remake/art/README.md) and
+[paper/remake/art/README.md](../paper/remake/art/README.md).
+
+If Chrome does not start a download (it happened for Paper's sketch: neither ChatGPT's download button nor an
+`<a download>` did anything), take the image from the page: draw it at 1:1 (`image-rendering: pixelated`) in a
+fixed overlay and capture it in tiles with the browser extension's zoom action (`save_to_disk`, scale 1, a region
+starting at the page origin so that one image pixel is one output pixel), then stitch the tiles. Overlapping tiles
+must agree exactly; compare the stitched image's channel sums with those of the image decoded in the page.
 
 ChatGPT checks its finished images and may refuse one ("the image we created may violate our content policies"):
 it refused one of STARS's three cartoon women (picture 13), a nude, and accepted another nude (picture 12). Do not
@@ -124,12 +135,13 @@ colour and moved a hand, one filled the background shape. The full account is in
 
 ## 5. Fit and check
 
-`tools/align_art.py NN RAW.png` (STARS: picture number; DOPE: picture name) fits the redraw onto the original
-(scale in x and y, offset), writes it to `art/` covering exactly the original's frame at the redraw's own
-resolution, and prints the fit: the scale and offset, and the residual (RMS colour difference in the original's
+`tools/align_art.py NN RAW.png` (STARS: picture number; DOPE: picture name; Paper: `sketch`) fits the redraw onto
+the original (scale in x and y, offset), writes it to `art/` covering exactly the original's frame at the redraw's
+own resolution, and prints the fit: the scale and offset, and the residual (RMS colour difference in the original's
 pixel grid, plain and blurred, the share of pixels where one is background and the other is not, and the
 correlation of their detail; 1.00 is every shape in place). DOPE's version has `--match`, which gives the redraw the
-original's colours where the generator made them darker or shifted their hue.
+original's colours where the generator made them darker or shifted their hue; Paper's does the same for its grey
+sketch by default.
 
 ```
 toolbox run -c acme303 python3 stars/remake/tools/align_art.py 13 stars/re/art-raw/stars13_r2A_s1303.png
@@ -146,3 +158,57 @@ Add the picture to the art folder's README table: what it shows, the original ar
 model, date), the prompt in short, the attempts, the fit. Update the remake's README and the making-of if they say
 the picture keeps its original pixels. Commit the picture in `art/` (allowed by AGENTS.md); the raw downloads and
 uploads stay out of Git.
+
+## 7. Videos
+
+303 plays four video clips (`HARL.LZW`, `VS.LZW`, `ALEX.LZW`, `PARANOID.LZW`): 160×96 frames in Acme's own 4×4 DCT
+codec. An image generator would redraw every frame differently, so a clip redrawn frame by frame would flicker. A
+video restoration model restores a run of frames together. The 303 remake shows its clips restored with
+**SeedVR2** on Comfy Cloud; the account of the run and what to look at is in
+[303/remake/art/README.md](../303/remake/art/README.md).
+
+### What was tried
+
+A test on HARL's frames 0–59 put SeedVR2 7B next to Upscayl's Real-ESRGAN models (standard, digital-art and
+high-fidelity 4×). Upscayl turned the codec's blocks and the motion blur into painted smears. SeedVR2 drew a
+coherent scene: a dancer with a face, hands and folds in his shirt, a sharp floor pattern. SeedVR2 was chosen.
+
+SeedVR2 (ByteDance) is a one-step diffusion model for video restoration; ComfyUI runs it with the
+`ComfyUI-SeedVR2_VideoUpscaler` nodes (v2.5.24 on Comfy Cloud). It invents fine detail the original does not have:
+faces, eyes and hands at 160×96 come out as the model imagines them, so the README of the art folder says so.
+
+### Recipe
+
+1. **Dump the frames.** Decode every frame as the remake does: `303/remake/tools/dumpvideo.cpp` writes
+   `303/re/dump/video/<CLIP>/NNNN.png` (see `303/re/notes-pictures.md`, section 3).
+2. **Find the frames that are shown.** The parts show only the start of each clip. Log the frame index
+   `Ctx::video()` is asked for while rendering every part that uses a clip in small steps (`--shots` every 0.02 s
+   with a temporary log line), and add a margin of a few frames. In 303: HARL 0–116, VS 0–56, ALEX 0–22, PARANOID
+   0–24 (and 0–13 again in the face floor).
+3. **Make the uploads.** `python3 303/remake/tools/video_art.py inputs 303/re/dump/video OUT` writes one lossless VP9
+   MP4 (yuv444p, the clip's frame rate) per clip. Lossless, because a lossy upload adds its own blocks to the
+   codec's. SeedVR2 restores a clip in batches (61 frames here), so the uploads are whole batches: HARL 0–121 (two),
+   VS 0–60, ALEX and PARANOID whole (one each, padded).
+4. **One graph, one run.** Comfy Cloud counts runs, not nodes or clips, so all clips go into one graph:
+   [comfyui/seedvr2-video-restore.json](comfyui/seedvr2-video-restore.json), four independent chains of
+   `Load Video` → `Get Video Components` → `SeedVR2 Video Upscaler` (with its own `SeedVR2 (Down)Load DiT Model` and
+   `VAE Model` nodes) → `Video Combine`. Settings: DiT `seedvr2_ema_7b_sharp_fp16`, attention `sdpa`, no block
+   swap; VAE `ema_vae_fp16`, decode tiled (1024, overlap 128); resolution 768 (the short side: 160×96 becomes
+   1280×768), batch size 61 (SeedVR2 wants 4n + 1 frames), uniform batch size on, colour correction `lab`, temporal
+   overlap 0, seed 42; output a lossless animated WebP. Upload each MP4 into its `Load Video` node and run once.
+   A grey clip (PARANOID) goes in as it is; its result is grey to within a fraction of a level. The four 303 clips
+   (271 frames) took 4 minutes on Comfy Cloud's free tier.
+5. **Download** the four WebPs (24–133 MB each) into a new folder. Chrome lets a page start one download without
+   asking and blocks the next ones (the "automatic downloads" permission), so download each output from a freshly
+   loaded Comfy Cloud page, one at a time; the outputs stay in the account's history.
+6. **Into the remake.** `python3 303/remake/tools/video_art.py frames <CLIP> RESULT.webp 303/remake/art` writes the
+   frames the demo shows plus a margin (HARL 0–121, VS 0–60, ALEX 0–26, PARANOID 0–30) as
+   `art/video/<CLIP>/NNNN.jpg`: JPEG quality 90 with full-resolution colour (4:4:4), PARANOID as a grey JPEG of the
+   luminance (ITU-R 601 weights, the ones the paranoid shaders use). 303's 241 frames take 32 MB.
+7. **Check.** Each restored frame should match its own original frame (scaled down, better than the frames before
+   and after it), with the original's colours. In the remake: `--shots` in every part that shows a clip, with and
+   without `--original-art` (look at faces, hands and text, and at the batch boundary of a longer clip); the same
+   frames after seeking forwards and backwards; `--bench T0,T1 --shotsize 2560x1920` over each part, which lists the
+   slowest frames, to see that no frame waits for its decode when a clip starts.
+8. **Record it** in the art folder's README: the footage's makers, the model and settings, the run, the frames
+   included, the sizes, and what the model invented.

@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "art.h"
 #include "assets.h"
 #include "exe.h"
 #include "render.h"
@@ -45,12 +46,21 @@ struct Ctx {
     float dt = 0;           // frame delta
     Pak pak;
     Exe303 exe;             // 303.EXE: static tables and strings, read by address (exe.h)
+    ArtStore art;           // redrawn pictures and restored video frames (art.h), off with --original-art
     Target* out = nullptr;  // current scene target
     Target scratch[3];      // same size as out, free for scenes
     Target half[2];         // half resolution scratch
 
-    Texture& tex(const std::string& key);           // see demo.cpp for keys
-    Texture& video(const std::string& name, float frame);  // ALEX/HARL/PARANOID/VS, bicubic-friendly
+    // A PAK picture as colours (see demo.cpp for keys): the redraw art/<name>.png when art is on and there is one,
+    // else the file's pixels through its palette (grey files: value as grey and alpha). Only for pictures a scene
+    // reads as colours or intensities; scenes that read a picture's palette indices use pak.get() and redraw().
+    Texture& tex(const std::string& key);
+    // The redraw of PAK picture <name> (without ".raw") as it is (RGBA, straight alpha, whole file), or nullptr.
+    // For scenes that read the original's indices and convert a redraw themselves (re/notes-pictures.md).
+    const Texture* redraw(const std::string& name);
+    // Frame of a clip (ALEX/HARL/PARANOID/VS), bicubic-friendly: the restored frame art/video/<CLIP>/NNNN when art
+    // is on and there is one (any resolution, same 5:3 frame), else the decoded 160x96 frame.
+    Texture& video(const std::string& name, float frame);
     int videoFrames(const std::string& name);
     GpuMesh& mesh(const std::string& name);
     const Mesh& meshData(const std::string& name);
@@ -76,8 +86,8 @@ struct Ctx {
     Shader imageShader, flashShader;
     std::map<std::string, Texture> textures;
     std::map<std::string, std::unique_ptr<Video>> videos;
-    std::map<std::string, Texture> videoTex;
-    std::map<std::string, int> videoLoaded;
+    std::map<std::string, Texture> videoTex, videoArtTex;
+    std::map<std::string, int> videoLoaded, videoArtLoaded;
     std::map<std::string, Mesh> meshesData;
     std::map<std::string, GpuMesh> meshes;
     std::map<std::string, Font> fonts;

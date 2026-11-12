@@ -141,7 +141,7 @@ in vec2 uv;
 out vec4 frag;
 uniform sampler2D acc, glyphs;
 uniform vec4 glyph[11];   // x0, width, centre - 128
-uniform float level, flashM, spread, blurW;
+uniform float level, flashM, spread, blurW, glyphLod;
 uniform int invert, strip;
 float glyphAt(float x, float row) {
     for (int i = 10; i >= 0; i--) {   // later glyphs overwrite earlier ones, with a black column each side
@@ -149,9 +149,9 @@ float glyphAt(float x, float row) {
         float left = 256.0 + glyph[i].z * spread - floor(wd * 0.5) - 96.0;   // not rounded to whole pixels
         if (x >= left - 1.0 && x < left + wd + 1.0) {
             if (x < left || x >= left + wd) return 0.0;
-            // explicit level 0: inside this per-pixel loop the implicit mip level is undefined (it made frames
-            // differ between runs); the strip is always magnified, so level 0 is what the GPU should pick anyway
-            return textureLod(glyphs, vec2((glyph[i].x + x - left) / 256.0, row / 38.0), 0.0).r;
+            // explicit level: inside this per-pixel loop the implicit mip level is undefined (it made frames
+            // differ between runs); glyphLod is 0 unless a redraw has more texels than the screen has pixels
+            return textureLod(glyphs, vec2((glyph[i].x + x - left) / 256.0, row / 38.0), glyphLod).r;
         }
     }
     return 0.0;
@@ -297,6 +297,7 @@ struct Intro : Scene {
         present.set("strip", s.stripW > 0 ? 1 : 0);
         present.set("spread", spread);
         present.set("blurW", blurW);
+        present.set("glyphLod", mipLevel(glyphs.w / 256.0f / (float(c.w) / 320.0f), glyphs.h / 38.0f / (float(c.h) / 200.0f)));
         drawFullscreen();
         cur ^= 1;
     }

@@ -122,6 +122,7 @@ typedef ptrdiff_t GLintptr;
     X(void, PixelStorei, (GLenum, GLint))                                                                      \
     X(void, ReadPixels, (GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, void*))                               \
     X(GLenum, GetError, (void))                                                                                \
+    X(void, Finish, (void))                                                                                    \
     X(void, GenTextures, (GLsizei, GLuint*))                                                                   \
     X(void, DeleteTextures, (GLsizei, const GLuint*))                                                          \
     X(void, BindTexture, (GLenum, GLuint))                                                                     \

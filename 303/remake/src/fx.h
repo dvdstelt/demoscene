@@ -1,6 +1,7 @@
 // Shared effect building blocks used by several scenes.
 #pragma once
 #include <algorithm>
+#include <cmath>
 
 #include "demo.h"
 
@@ -109,3 +110,6 @@ Texture asTexture(const Target& t);
 void copyTarget(Ctx& c, const Target& src, float alpha = 1.0f);
 float beatPulse(float t, float period = kBeat, float sharp = 8.0f);  // 1 at each beat, decaying
 float easeInOut(float x);
+// Mip level for an explicit-LOD read (textureLod in per-pixel loops) of a texture with tx, ty texels per screen pixel:
+// 0 while it is magnified (the original pictures), more for a redraw larger than the output.
+inline float mipLevel(float tx, float ty) { return std::max(0.0f, std::log2(std::max(std::max(tx, ty), 1.0f))); }

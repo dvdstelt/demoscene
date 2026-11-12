@@ -205,7 +205,8 @@ void main() {
 )";
 
 // Glyph runs of fontblur.raw as the exe finds them (0x29599): a column belongs to a glyph when any of
-// rows 29..59 is above 8; runs narrower than 4 are skipped; the 26 runs are 'a'..'z'.
+// rows 29..59 is above 8; runs narrower than 4 are skipped; the 26 runs are 'a'..'z'. The words are built from the
+// file's coverage bytes, so an art/ redraw does not replace fontblur.raw.
 struct GlyphRun { int x0, w; };
 const std::vector<GlyphRun>& glyphRuns(Ctx& c) {
     static std::vector<GlyphRun> runs;
