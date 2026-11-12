@@ -81,9 +81,14 @@ made like this:
 The redraws live in `<demo>/remake/art/` with a README that names the original artist and gives, per picture, the
 prompt, the attempts and the measured fit ([STARS](../stars/remake/art/README.md),
 [DOPE](../dope/remake/art/README.md)). Generated textures, maps and anything an effect reads through palette indices
-stay computed from the original. A picture the generator refused or changed keeps the original pixels (one of
-STARS's three women). The remakes show the redraws by default and the original pixels with `--original-art`;
-palette fades are colour multiplies, so they apply to both.
+stay computed from the original. ChatGPT refused one picture, the third of STARS's three women; it was redrawn
+with the open image-edit model Qwen-Image-Edit on Comfy Cloud instead, with the other two redraws as style
+references. The remakes show the redraws by default and the original pixels with `--original-art`; palette fades
+are colour multiplies, so they apply to both.
+
+[redrawing-pictures.md](redrawing-pictures.md) is the recipe for the next picture: what gets a redraw, the upload,
+the ChatGPT prompt, what to do when ChatGPT refuses or falls short (the Comfy Cloud workflow is saved in
+[comfyui/](comfyui/)), and fitting and checking the result.
 
 ## What made it work
 

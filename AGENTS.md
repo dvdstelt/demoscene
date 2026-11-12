@@ -47,8 +47,10 @@ STARS and DOPE show high-resolution redraws of their hand-drawn pictures by defa
 faithful to them: the same composition, pose, proportions, framing, colours and text; only resolution and detail
 change. They live in `<demo>/remake/art/` with a README that names the original artist, how each picture was made
 and how it was aligned. Only pictures that are drawn as they are get a redraw; generated textures, maps and anything
-an effect reads through palette indices stay computed from the original. A picture the image generator refuses or
-changes keeps the original pixels.
+an effect reads through palette indices stay computed from the original. When ChatGPT refuses a picture or does not
+redraw it faithfully, try the Comfy Cloud route instead; a picture no tool redraws faithfully keeps the original
+pixels. Never reword a prompt to get past a refusal. [docs/redrawing-pictures.md](docs/redrawing-pictures.md) is the
+recipe.
 
 ## Fidelity rules
 

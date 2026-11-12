@@ -82,7 +82,9 @@ each on one part of a demo:
    timer tick or displayed frame, which was used to check every routine.
 4. **Port and compare.** Each part was rewritten for the GPU and compared frame by frame with the original.
 5. **Redraw.** For STARS and DOPE, the hand-drawn pictures were redrawn at high resolution with ChatGPT's image
-   generation from the original pixels, then fitted onto the originals and measured against them.
+   generation from the original pixels (one that ChatGPT refused with Qwen-Image-Edit on Comfy Cloud), then fitted
+   onto the originals and measured against them. [docs/redrawing-pictures.md](docs/redrawing-pictures.md) is the
+   recipe.
 
 [docs/how-it-was-made.md](docs/how-it-was-made.md) has the whole story. Each demo also has a making-of:
 [303](303/docs/making-of.md), [Paper](paper/docs/making-of.md), [JIZZ](jizz/docs/making-of.md),
@@ -101,7 +103,7 @@ each on one part of a demo:
   remake-v1/          303 only: the first version, rebuilt from a video
   re/                 reverse-engineering notes and scripts
   docs/               making-of and images
-docs/                 how it was made, tools, rendering the videos
+docs/                 how it was made, tools, redrawing pictures, rendering the videos
 scripts/              fetch the originals, package releases, render videos
 AGENTS.md             instructions for AI coding agents working on this repository
 ```
