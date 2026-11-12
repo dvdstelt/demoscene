@@ -49,6 +49,13 @@ stars/re/unpacked/
 */re/art-raw/
 paper/re/dump/
 303/re/dump/
+clone/re/*.bin
+clone/re/*.log
+clone/re/*.flips
+clone/re/dump/
+clone/re/snaps/
+clone/re/unpacked/
+clone/re/overview.jpg
 
 # Media: videos go to YouTube, audio renders stay local
 *.mp4
