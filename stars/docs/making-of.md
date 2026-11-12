@@ -94,9 +94,10 @@ from the original pixels, scaled up so the generator sees the real pixels, with 
 composition, colours and text at a higher resolution. Some needed a second or third attempt (text that moved, a
 missing signature, a wrong word). `remake/tools/align_art.py` fits each redraw onto the original (scale and offset)
 and measures how well it matches; [`remake/art/README.md`](../remake/art/README.md) has the prompt, the attempts
-and the residual of every picture. Picture 13, the third pose of the woman, was refused by the generator and keeps
-its original pixels. The redraws are about 1450x1090 for a screen; `--original-art` shows the original pixels
-instead.
+and the residual of every picture. Picture 13, the third pose of the woman, was refused by ChatGPT; it was
+redrawn with the open image-edit model Qwen-Image-Edit-2511 in ComfyUI on Comfy Cloud, given the original and the
+redraws of 11 and 12 as style references (two runs, five tries). The redraws are about 1450x1090 for a screen;
+`--original-art` shows the original pixels instead.
 
 ## Decisions
 
@@ -136,8 +137,8 @@ The decisions taken while making the remake, so they can be revisited:
 - **Feedback and seeking.** The feedback parts keep checkpoints every 48 or 64 steps and replay from the last one
   after a seek, so a frame is the same however it is reached.
 - **The redraws and picture 13.** The redraws are shown by default, the original pixels with `--original-art`;
-  fades are colour multiplies so they apply to both. Picture 13 keeps its original pixels in the intro, the warp
-  and the dissolve. The dissolve stamps the redraws of 11 and 12, masked like the original's files 36 and 37.
+  fades are colour multiplies so they apply to both. The intro and the warp show the redraws of 11, 12 and 13. The
+  dissolve stamps the redraws of 11 and 12, masked like the original's files 36 and 37, and 13's original pixels.
 - **The bee's background** (file 27) is a still of the cloud effect: with the redraws on, the cloud effect renders
   it at the offsets that reproduce it.
 - **The bee's garbage frame.** The frame after the cloud shows uninitialised memory as a palette in the original;

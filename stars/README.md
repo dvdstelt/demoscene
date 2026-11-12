@@ -70,6 +70,6 @@ speed, the particles, the dissolving woman and the face); the remake steps them 
 and blends between steps. The original shows each frame one or two retraces after it read the timer, so the
 remake's motion runs 30–70 ms ahead of the capture.
 
-The pictures are AI redraws of RA's pixel art at about 1450x1090, fitted onto the originals; one of the three
-women (picture 13) has no redraw and keeps the original pixels. [`remake/README.md`](remake/README.md) lists the
-remaining known differences.
+The pictures are AI redraws of RA's pixel art at about 1450x1090, fitted onto the originals; the dissolving
+woman still stamps the original pixels of the third pose (picture 13), whose redraw the intro and the warp show.
+[`remake/README.md`](remake/README.md) lists the remaining known differences.

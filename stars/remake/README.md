@@ -131,9 +131,10 @@ which runs the demo as a 486DX2/66-class machine does.
 - **Pictures.** The hand-drawn pictures are shown as faithful high-resolution redraws by default (`art/README.md`
   says how each was made and how closely it fits the original); `--original-art` shows the original pixels as sharp
   squares with anti-aliased edges. Palette fades are colour multiplies, so they apply to both. Picture 13 (the
-  third pose of the woman) has no redraw and shows its original pixels in both modes, in the intro, the warp and the
-  dissolve. The bee's background (file 27) is a still of the cloud effect: with the redraws on it is rendered by the
-  cloud effect at the offsets that reproduce it.
+  third pose of the woman) is redrawn too (made on Comfy Cloud, as ChatGPT refused it) and shown in the intro and
+  the warp; the dissolve still stamps its original pixels (only the redraws of 11 and 12 are masked for it). The
+  bee's background (file 27) is a still of the cloud effect: with the redraws on it is rendered by the cloud effect
+  at the offsets that reproduce it.
 - **Sharper.** Effects are evaluated per output pixel (the intro's flower, the cloud tunnel, the warp's patch, the
   voxel tunnel's rays); textures and maps are read filtered and their colours looked up in true colour; 6-bit
   palette products and 8-bit levels are continuous; the feedback effects run at 3 or 4 times the original
@@ -254,7 +255,7 @@ Numbers from the final check (Linux, i7-13700H, music time in seconds):
   the words file 58's lettering as a smooth mask, the 32-colour ramp continuous. Which drawn frame sees which PIT
   tick follows the capture's frame timing (`CaptureClock`), so the words are on the same frames as in the capture.
 - **Dissolve.** Float RGB at 3 times the resolution, stamped with the redraws of 11 and 12 masked like the original
-  (decided per pixel of the redraw near the outline of files 36 / 37) and file 13's pixels. The G / R-B
+  (decided per pixel of the redraw near the outline of files 36 / 37) and file 13's original pixels. The G / R-B
   checkerboard is shown as true colour at 0.73 of the planes, the light the eye mixed from it (half the light:
   0.5^(1/2.2) in display values), so the remake is about 1.46 times as bright as the capture averaged per pixel.
   The 35 Hz steps of the capture are kept (the original's speed depends on the machine).

@@ -10,7 +10,9 @@ them.
 
 ## How they were made
 
-Every redraw here is an AI redraw made with ChatGPT image generation from the original pixels, November 2026.
+Every redraw here is an AI redraw made from the original pixels, November 2026: all but 13 with ChatGPT image
+generation, 13 (which ChatGPT refused) with Qwen-Image-Edit-2511 on Comfy Cloud, see
+[Picture 13](#picture-13-comfy-cloud).
 
 - The original (`stars/re/dump/pictures/fileNN.png`, the file's pixels with the palette the demo shows them with)
   was scaled up with nearest-neighbour so the image generator sees the real pixels: 5 x 6 per pixel for screen
@@ -33,11 +35,50 @@ Every redraw here is an AI redraw made with ChatGPT image generation from the or
   background colour where the redraw does not reach. `tools/align_art.py --sheet OUT.jpg NN ...` makes the
   comparison sheet (`stars/re/dump/art-compare.jpg`: original left, redraw right).
 
+### Picture 13 (Comfy Cloud)
+
+ChatGPT refused 13, the woman's third pose ("the image we created may violate our content policies"). It was
+redrawn with the open image-edit model Qwen-Image-Edit-2511 in ComfyUI on Comfy Cloud (cloud.comfy.org, the free
+tier), with the redraws of 11 and 12 as style references so that the three look like one set.
+
+- Inputs: the original as for ChatGPT (`--upload 13`, 1600x1200), resized with Lanczos to 1408x1056 (exact 4:3,
+  multiples of 16) and blurred with a 1.2-pixel Gaussian so the pixel steps are softer; the redraws `file11.png` and
+  `file12.png` resized to 1024x768.
+- Models: `qwen_image_edit_2511_fp8mixed`, text encoder `qwen_2.5_vl_7b_fp8_scaled`, `qwen_image_vae`; no LoRA.
+- Graph: `TextEncodeQwenImageEditPlus` gets the prompt and the three pictures (Picture 1 = 13, Pictures 2 and 3 =
+  11 and 12) but no VAE, and three `ReferenceLatent` nodes add each picture's VAE latent at its own size, so the
+  reference latent of 13 has exactly the output's size and grid; `FluxKontextMultiReferenceLatentMethod`
+  `index_timestep_zero` on both conditionings; `ModelSamplingAuraFlow` shift 3.1, `CFGNorm` 1; `KSampler` euler,
+  simple, 30 steps, CFG 4, denoise 1 from an empty 1408x1056 latent. The negative prompt gets the same pictures.
+- Prompt (run 2): "Redraw Picture 1 as a high-resolution illustration in exactly the same painting style as
+  Picture 2 and Picture 3: a polished airbrushed cartoon caricature pin-up with glossy shaded skin and bright
+  highlights, thin dark ink lines on the hair and the contours, finely detailed wavy hair with many thin strands,
+  crisp clean edges, and a flat magenta starburst with sharp clean edges on a pure black background. Picture 1 is
+  low-resolution pixel art of the same woman as in Picture 2 and Picture 3. Keep everything in Picture 1 exactly as
+  it is: the composition and framing, her pose, her nude body and its proportions, her huge tilted head with the
+  heavy-lidded green eye and purple eyeshadow, the golden-brown hair falling over the right side of her face, her
+  arm raised up into her hair with the hand hidden in the hair, her other hand resting on her hip, her legs, her
+  dark high-heeled shoes, the shape, position and size of the magenta starburst, the small hand-written "RA"
+  signature between her feet, and all colours. There is no light-coloured border or glow around the figure: her
+  edges meet the black background and the starburst directly. Every part stays at the same position and size in
+  the frame. Only the resolution and the detail change: remove the pixelation. Do not add, remove or move anything,
+  do not crop or zoom. Do not take the dress, the stockings or the poses from Picture 2 or Picture 3." Negative:
+  "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress,
+  stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red
+  hair".
+- Runs: two runs, five pictures. Run 1 (seed 1301; the prompt said "auburn hair" and did not mention the border or
+  the hidden hand): with the style references a faithful figure with a light-brown border around it; with the
+  original alone (the same prompt without Pictures 2 and 3) a glossier figure with auburn hair, the raised hand on
+  top of the head and 2 % zoomed. Run 2 (the prompt above): with references, seed 1302 took the back view and
+  stockings of 12 (rejected); seed 1303 is the one kept; the original alone, seed 1302, gave blonde hair and a filled
+  starburst (rejected). The raw outputs are `stars/re/art-raw/stars13_r{1,2}{A,B}_sNNNN.png` (A with references, B
+  without); each PNG carries ComfyUI's workflow and prompt in its metadata.
+
 ## Format
 
 | files | size | what the remake gets |
 |---|---|---|
-| 8–12, 14, 52–57, 19, 25, 47 | about 1450x1088 RGB | the whole 320x200 screen at 4:3 |
+| 8–14, 52–57, 19, 25, 47 | about 1450x1088 RGB (13: 1420x1065) | the whole 320x200 screen at 4:3 |
 | 7 | 1263x1263 RGB | the 256x256 texture (square texels), same layout: four eyes, one per 64-row band |
 | 5 | 903x1084 RGBA | the four 144x36 words stacked like the file (Magic, Atomic, Nutritive, Powerful), each 903x271 |
 | 6 | 638x1772 RGBA | the four 128x74 names stacked like the file (BARTi, RA, GROO, KARL), each 638x443 |
@@ -62,6 +103,7 @@ relative to "the redraw fills the frame" (x by y), offset in original pixels.
 | 10 | "STARS wonders of the World" title | RA (NoooN) | as above | text letter for letter; 2nd: the layout in per cent of the frame (the 1st was squashed vertically and too high) | 2 | 0.9998 x 1.0018 | -0.1, -0.2 | 7.6 / 4.8 / 0.9 % / 1.00 | 342 kB |
 | 11 | the woman in the sequined dress on a magenta starburst | RA (NoooN) | as above | faithful redraw, same face, pose and clothes, glamorous caricature pin-up | 1 | 0.9989 x 1.0029 | -0.2, -0.3 | 13.8 / 10.2 / 1.8 % / 0.96 | 1013 kB |
 | 12 | the woman, second pose (cartoon nude) on the starburst | RA (NoooN) | as above | as 11; 2nd: keep the small "RA" signature (the 1st left it out) | 2 | 0.9979 x 0.9959 | +0.4, +0.6 | 14.0 / 10.1 / 2.2 % / 0.97 | 902 kB |
+| 13 | the woman, third pose (cartoon nude, front view) on the starburst | RA (NoooN) | AI redraw made with Qwen-Image-Edit-2511 on Comfy Cloud from the original pixels, with the redraws of 11 and 12 as style references, November 2026 | faithful redraw of Picture 1 in the style of Pictures 2 and 3, nothing taken from them; 2nd run: golden-brown hair (not auburn), the raised hand hidden in the hair, no light border around the figure (see [Picture 13](#picture-13-comfy-cloud)) | 2 (run 2, seed 1303) | 0.9919 x 0.9950 | +0.9, +0.7 | 7.4 / 3.9 / 1.0 % / 1.00 | 630 kB |
 | 14 | green poodle on a grey star, "BRING YOUR BEAUTY" in its fur | RA (NoooN) | as above | faithful redraw, faint words in the fur; 2nd: the middle word is YOUR (the 1st drew dots) | 2 | 0.9984 x 0.9983 | +0.5, +0.4 | 10.9 / 8.5 / 0.5 % / 0.97 | 1021 kB |
 | 52 | "ART RA", "3d Objects : Barti Xteo Imagine Autodesk" | RA (NoooN) | as above | text letter for letter, same fonts and greys | 1 | 1.0013 x 0.9988 | -0.3, +0.2 | 6.5 / 3.1 / 0.5 % / 1.00 | 288 kB |
 | 53 | "3D EFFECTS & MOTION BARTI" | RA (NoooN) | as above | as 52 | 1 | 1.0016 x 0.9987 | -0.4, +0.1 | 8.4 / 4.1 / 1.0 % / 1.00 | 294 kB |
@@ -84,17 +126,19 @@ fraction of a pixel of difference in an edge counts fully.
 
 | file | why |
 |---|---|
-| 13 | the woman, third pose (cartoon nude): ChatGPT refused ("the image we created may violate our content policies"). Not retried |
 | 27 | the cloud-tunnel background of the bee part: the remake renders it from the cloud effect |
-| 36–41 | the women in 18-bit RGB for the dissolving part: the port decides whether to reuse the redraws of 11 and 12 |
+| 36–41 | the women in 18-bit RGB for the dissolving part: the port stamps the redraws of 11 and 12 masked like 36 and 37, and 13's original pixels (38 / 41) |
 | 58 | the "NOOON BRING YOUR BEAUTY FAMILY" mask of the particle parts: not shown as a picture |
 | 2, 3, 16, 21, 23, 29, 30, 35, 43, 44, 49 | maps, level textures and env maps the effects read by index or level, not pictures (notes-core.md, "Pictures") |
 
 ## Notes for the port
 
-- 11, 12 (and 13) are also the warp part's textures: columns 32..287 of the screen, all 200 rows stretched to 256.
-  The redraws keep the figures where the originals have them (offsets under 0.6 original pixels), so the same
-  region of a redraw works as the texture. 13 stays original pixels in both places.
+- 11, 12 and 13 are also the warp part's textures: columns 32..287 of the screen, all 200 rows stretched to 256.
+  The redraws keep the figures where the originals have them (fitted offsets under 0.6 original pixels for 11 and
+  12, 0.9 and 0.7 for 13, which the fit removes), so the same region of a redraw works as the texture. Measured on
+  the written files, the best shift of columns 32..287 against the original is 0 within 0.25 original pixels for all
+  three (also for each half, left, right, top and bottom); the brightness-detail correlation there is 0.93 for 11
+  and 12 and 0.99 for 13.
 - 7: band j is v / 64 (texels 64 j .. 64 j + 63); each eye spans rows 64 j .. 64 j + 62 in the original. The
   redraw's smooth edges reach up to 0.4 texel above 64 j, i.e. into the band above (at 1263 pixels that is 2 rows);
   sample the band from the eye's centre row rather than from v there if it shows.
@@ -113,3 +157,8 @@ fraction of a pixel of difference in an edge counts fully.
   0.92–0.96), but the fine detail is the generator's.
 - 57: the knot of threads is a new tangle in the original's place and colours.
 - 32: the letters have a soft darker shading inside their edges where the original has single darker pixels.
+- 13 (not in `art-compare.jpg`; `stars/re/dump/art13-compare.jpg` shows the original, the redraw and the redraws of
+  11 and 12): the edit model keeps the original's shapes closely (detail correlation 1.00, against 0.96 and 0.97 for 11 and 12). It
+  is smoother and a little less saturated than ChatGPT's 11 and 12, with fewer dark ink lines, and it keeps the
+  original's darker magenta of the starburst (110, 18, 70), which ChatGPT made brighter in 11 and 12 (about 135, 6,
+  73). The shoes got thin ankle straps; the hair loses the original's pink dither sparkle.
