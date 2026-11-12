@@ -47,6 +47,8 @@ stars/re/dump/
 stars/re/snaps/
 stars/re/unpacked/
 */re/art-raw/
+paper/re/dump/
+303/re/dump/
 
 # Media: videos go to YouTube, audio renders stay local
 *.mp4
