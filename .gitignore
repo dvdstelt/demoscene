@@ -32,6 +32,18 @@ jizz/re/*.log
 jizz/re/dump/
 jizz/re/snaps/
 jizz/re/overview.jpg
+dope/re/*.bin
+dope/re/*.log
+dope/re/*.flips
+dope/re/dump/
+dope/re/snaps/
+dope/re/unpacked/
+stars/re/*.bin
+stars/re/*.log
+stars/re/*.flips
+stars/re/dump/
+stars/re/snaps/
+stars/re/unpacked/
 
 # Media: videos go to YouTube, audio renders stay local
 *.mp4
