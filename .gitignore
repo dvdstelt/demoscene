@@ -66,3 +66,7 @@ __pycache__/
 *.swp
 .DS_Store
 Thumbs.db
+*/re/models/**/*.npz
+*/re/models/**/*.png
+*/re/models/**/*.pkl
+*/re/models/**/dumps_*/
