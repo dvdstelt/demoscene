@@ -586,6 +586,13 @@ Random numbers: none.
   buffer gives the geometrically right picture; where the original's order produced visible errors (none were
   noticed in the dumps) they would differ. The near rules decide what disappears when it comes close to the camera:
   keep them (they are composition, not resolution).
+  Found by the port (`remake/tools/enginetest`): the bee needs its file order. Its objects are not single skins:
+  WLDD object 8 (the abdomen, 116 vertices, 228 faces, closed) has front-facing faces lying just inside and partly
+  in front of the outer surface, with dark env colours; with a depth buffer they show through as dark zigzag
+  stripes over the abdomen (capture frame 6747), drawn in file order ([0x582ac] = 1) the outer surface covers them
+  as in the capture. 24 vertices of the bee have zero normals (objects 20, 34, 35, 44, 57, 65, 66: mostly the
+  wings): their env coordinate is the map centre (128, 128), the brightest texel, which a remake that renormalises
+  the normal per pixel loses (the remake interpolates the normals' lengths separately).
 - The blended normals are not renormalised; the morph uses 64 steps per key.
 - Black rows 0, 198, 199 (7.2): a 320x200 artefact of the copy routine.
 - The filler details listed at the end of 7.2 (borrows, stale gradients, carries) are invisible at this scale and

@@ -128,3 +128,13 @@ Known differences:
   covers about 10 original pixels, the original's flat streaks become smooth gradients and sharp steps in the colour
   map (the darker band at columns 240–0) become soft. The forward motion is continuous (the original moves in whole
   texels). Kept: steps 0 and 1 read the same column, step 0 without the twist.
+- **3D engine** (`src/stars/engine.h`; bee, spike ball, wall, star, torso). Vertices are projected in float with
+  exact sin / cos (the original's 1023-amplitude table makes objects 0.1–0.3 % smaller) and rasterised with MSAA
+  instead of integer corners; texture coordinates and normals are interpolated perspective-correctly, and the env
+  coordinate is evaluated per pixel from the interpolated normal instead of interpolating per-vertex coordinates
+  (rounder highlights on coarse meshes). The light maps are the light curve at the continuous radius with continuous
+  levels instead of 16 / 32 isqrt rings, the bump offsets are filtered, and the texture's colours are filtered in
+  true colour, so the original's texel noise on the spike ball and the wall is smoother. Faces that come nearer than
+  2F to the eye are clipped at that plane instead of disappearing whole (visible as the star flies into the camera).
+  Where the parts use a depth buffer the order of faces is the geometric one instead of the painter's sort; the bee
+  keeps the original's file order, because its objects overlap themselves.
