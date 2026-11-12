@@ -249,7 +249,7 @@ part agents ask for additions instead of editing it.
   `Texture`, `Target`, `Mat4`, `Vec3`; `kCommonGLSL` is prepended to every fragment shader: hash12, rot2,
   texBicubic, texSharp, luma); `src/exe.*` + `src/rnc.cpp` DOPE.EXE and DOPE.MOD; `src/pictures.*` palettes, the
   picture catalog and the art switch; `src/player.*` playback and the clock; `src/music.*`, `src/modplay.*`,
-  `src/gf1.*` the soundtrack (music agent); `src/stub/` the silent stand-in for it.
+  `src/gf1.*` the soundtrack.
 - `src/dope/` the core library shared by several parts: `core.h`; the 3D engine in `src/dope/engine*`.
 - `src/scenes/p1.cpp` .. `p7.cpp`, one file per part, registering the scenes `"p1"` .. `"p7"` (the names in
   `src/timeline.cpp`); a part may use several files (`p2_blur.cpp`, ...) and a header in `src/scenes/` for code
@@ -279,8 +279,7 @@ placeholder (name, music position, seconds and retraces since the part start, th
 `dope/original/DOPE.EXE`, `DOPE.MOD` and `dope/remake/art` by itself. `--original-art` compares against the original
 pixels (closest to the capture). `--video out.mp4 --from T0 --to T1` renders a range at 60 fps through the host
 ffmpeg (with the music); `--bench T0,T1 --shotsize 2560x1920` reports the GPU time per frame; `--window --start T
---info` plays from T with the time, position, part and retraces in the title. `-DDOPE_SILENT_MUSIC=ON` builds
-without the soundtrack (faster start-up). Other people build in this tree at the same time: if the build breaks in a
+--info` plays from T with the time, position, part and retraces in the title. Other people build in this tree at the same time: if the build breaks in a
 file that is not yours, wait a minute and retry; never edit someone else's file to fix it — report it in your final
 message instead. Delete your build directory when you are done.
 

@@ -61,17 +61,7 @@ else()
   endforeach()
 endif()
 
-# The soundtrack. Until src/music.h and src/music.cpp exist (or with -DDOPE_SILENT_MUSIC=ON), a silent stand-in with
-# the same interface is built instead of the music sources (src/stub: tick times and positions, no sound).
-option(DOPE_SILENT_MUSIC "Build the silent soundtrack stand-in instead of the music port" OFF)
 set(DOPE_INCLUDE_DIRS src third_party)
-if(DOPE_SILENT_MUSIC OR NOT EXISTS ${SRC}/music.h OR NOT EXISTS ${SRC}/music.cpp)
-  message(STATUS "soundtrack: the silent stand-in (src/stub)")
-  set(MUSIC_SOURCES ${SRC}/stub/music_stub.cpp)
-  if(NOT EXISTS ${SRC}/music.h)
-    list(APPEND DOPE_INCLUDE_DIRS src/stub/include)
-  endif()
-endif()
 
 if(MSVC)
   set(DOPE_WARNINGS /W3 /utf-8)
