@@ -52,7 +52,10 @@ paper_compare() {
 r303() {
   local bin=$ROOT/303/remake/build/acme303
   [ -x "$bin" ] || { echo "build 303/remake first"; return 1; }
-  if ! "$bin" --help 2>&1 | grep -q -- --video; then echo "303/remake has no --video option yet"; return 1; fi
+  # (the help text is read in full first: grep -q stops reading at the first match, which pipefail counts as a
+  # failure of the program writing to it)
+  local help; help=$("$bin" --help 2>&1 || true)
+  if ! grep -q -- --video <<<"$help"; then echo "303/remake has no --video option yet"; return 1; fi
   "$bin" $(variant "${1:-}") --video "$OUT/303-remake$(suffix "${1:-}")-2160p60.mp4" --fps "$FPS" --shotsize "$SIZE" \
          --vcodec "$VCODEC"
 }
