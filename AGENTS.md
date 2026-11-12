@@ -27,16 +27,28 @@ further unless asked; fixes there should stay minimal.
 
 1. **Never commit the originals** or anything generated from them: executables, PAK/LZW files, unpacked images,
    memory dumps, emulator captures (`*.frames`, `*.ticks`, `*.gus`, `*.dram`), audio renders, videos, frame dumps.
-   `.gitignore` covers the usual names; check `git status` before committing. The exception is a few small
-   screenshots in `<demo>/docs/images/` for the documentation.
+   `.gitignore` covers the usual names; check `git status` before committing. The exceptions are a few small
+   screenshots in `<demo>/docs/images/` for the documentation, and the redrawn pictures in `<demo>/remake/art/`
+   (below).
 2. **Never copy data from the originals into the source.** Tables, palettes, images, meshes, strings, lyrics,
    coordinates and music are read from the original files at run time, by address or by file name (see
    `paper/remake/src/exe.h`). Allowed in source: code constants (multipliers, loop counts, addresses and offsets,
    format constants), values measured from a capture, and our own parameters.
 3. **Non-commercial.** The code is under the PolyForm Noncommercial license and the originals belong to their
    authors (NOTICE.md). Do not add anything that sells, advertises or monetises.
-4. **No new dependencies** beyond SDL3 (and libopenmpt for 303). Code must build with g++, MinGW and MSVC.
+4. **No new dependencies** beyond SDL3 (and libopenmpt for 303) and the single-file stb headers in `third_party/`.
+   Code must build with g++, MinGW and MSVC.
 5. Never push, create releases or change GitHub settings unless the maintainer asks.
+
+### Redrawn pictures
+
+STARS and DOPE show high-resolution redraws of their hand-drawn pictures by default, and the original pixels with
+`--original-art`. The redraws are AI redraws made from the original pictures, at the maintainer's request, and stay
+faithful to them: the same composition, pose, proportions, framing, colours and text; only resolution and detail
+change. They live in `<demo>/remake/art/` with a README that names the original artist, how each picture was made
+and how it was aligned. Only pictures that are drawn as they are get a redraw; generated textures, maps and anything
+an effect reads through palette indices stay computed from the original. A picture the image generator refuses or
+changes keeps the original pixels.
 
 ## Fidelity rules
 

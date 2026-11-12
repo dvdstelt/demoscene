@@ -14,11 +14,22 @@ not include them, and the license in [LICENSE.md](LICENSE.md) does not cover the
   metaballs Nix, VESA code Ballein, "jizz" logo Sjaak of Trepaan. It uses the DOS32 extender by Adam Seychell and
   MXMPlay by Niklas Beisert. Its documentation allows copying it for non-commercial use only, in its complete and
   original form; this repository does not include or change it.
+- **DOPE** by Complex (The Gathering '95, 1995): code jmagic, graphics and music jugi, music replay routine Phantom
+  of Sonic PC (GUS part adapted by jmagic), routine boxes sketched by jugi and pixelled by Reward, Media Labs logo
+  Reward; 3D objects by jugi and M. Hakulinen. It uses PMODE by Tran.
+- **STARS: Wonders of the World** by NoooN (1995): music GROO, 3D motion and vertices BARTi, system and special
+  effects KARL, script and pixels RA, sound code LCA. It uses PMODE by Tran.
 
 The remakes read the original files at run time. You need your own copy of each original release:
 `scripts/fetch-originals.sh` (or `fetch-originals.ps1` on Windows) downloads it from scene.org. The source code
 here is a re-implementation written from an analysis of the originals. Data such as images, music, meshes, tables
 and text is never copied into it.
+
+The STARS and DOPE remakes also include redrawn versions of the originals' hand-drawn pictures
+(`stars/remake/art/`, `dope/remake/art/`): high-resolution AI redraws made from the original pictures, faithful to
+them, and shown instead of the original pixels unless `--original-art` is given. They are derived from the original
+artists' work, which stays theirs, and fall under the same non-commercial terms as everything else here. Each
+folder's README names the artist of every picture.
 
 This project is not affiliated with or endorsed by the original authors. It is a non-commercial tribute: nobody
 may sell it, charge for it, or make money from it in any other way. If you are one of the original authors and
@@ -28,7 +39,7 @@ want something changed or removed, please open an issue.
 
 | file | license |
 |------|---------|
-| `*/third_party/stb_image_write.h` (Sean Barrett) | public domain or MIT |
+| `*/third_party/stb_image_write.h`, `*/third_party/stb_image.h` (Sean Barrett) | public domain or MIT |
 | `303/*/third_party/minimp3.h` (lieff) | CC0 1.0 |
 
 Downloaded during the build when not installed: SDL3 (zlib license) and libopenmpt (BSD-3-Clause).
