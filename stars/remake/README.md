@@ -112,3 +112,19 @@ Known differences:
   with the music.
 - **Part ends** that the original tests once per drawn frame come up to one drawn frame later there; the remake ends
   on the tick or row.
+- **What a part shows at t.** The original draws a frame from the state at the moment it starts drawing and shows it
+  one or two retraces later (the warp and the tunnel draw at 35 fps, straight into video memory, so the capture also
+  shows half old, half new frames); the remake shows the state at t. Against the capture the warp and the tunnel are
+  30–45 ms ahead.
+- **Intro.** The flower texture, the petal outline and the radial offset are evaluated per pixel instead of along
+  4096 integer rays; the band brightness and the card fade are continuous instead of 8-bit products of 6-bit
+  colours. The band phases run on from card to card by the number of drawn frames, which depends on where in a frame
+  each card starts: the remake counts with the average, so a card can be one drawn frame (1/41 of a pulse) off.
+- **Warp.** Blocks 2–4 start on the tick at which the block before ends; the capture starts each up to one drawn
+  frame later (about 1 tick each). The patch is evaluated in floats (the original's packed 8.8 sums are off by up to
+  3.6 texels) and the pictures are read with a filter. Picture 13 has no redraw and shows its original pixels in both
+  modes. Dropped: the tearing and the race between the PIT and the curve routine (62 of 915 frames mix two phases).
+- **Tunnel.** The maps are read bilinearly at the continuous hit depth, so near the camera, where one map column
+  covers about 10 original pixels, the original's flat streaks become smooth gradients and sharp steps in the colour
+  map (the darker band at columns 240–0) become soft. The forward motion is continuous (the original moves in whole
+  texels). Kept: steps 0 and 1 read the same column, step 0 without the twist.
