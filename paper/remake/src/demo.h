@@ -89,6 +89,9 @@ struct Ctx {
     const PaperExe* exe = nullptr;   // the original's code32 data
     Music* music = nullptr;          // counter(t) / rowCountdown(t) of the original player
     Target* out = nullptr;           // the target the current part draws into (bound when render() is called)
+    // The redrawn pictures (paper/art.h): the art folder, empty with --original-art or when none was found.
+    std::string artDir;
+    bool art() const { return !artDir.empty(); }
 
     // Borrow a scratch target: same size as the frame times `scale`, RGBA16F unless fmt says otherwise.
     TargetPool::Lease temp(bool depth = false, float scale = 1.0f, GLenum fmt = GL_RGBA16F);

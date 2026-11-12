@@ -118,3 +118,18 @@ been run on Windows.
 The original's flock moves once per drawn frame, so its speed depended on the PC. The first remake stepped it too
 fast. Dennis remembered the planes turning less and flying in one direction for longer, and chose 34 fps from
 three test renders.
+
+## The redrawn sketch
+
+After STARS and DOPE got redraws of their hand-drawn pictures, Paper got one too. Of the intro's static bitmaps
+only one is a picture shown as it is: Statix's pencil sketch of the word "Paper" on the logo page (224x83, 16
+darkness levels). The ink image the flood fill colours is a map of palette indices, so it keeps its computed
+upscale; the font, the cloud texture and the strokes were already rebuilt or generated. The sketch was uploaded as
+grey on a white 2:1 canvas and redrawn with ChatGPT's image generation; the second attempt was kept, because it
+wrote the signature as a faint lowercase "stx" like the original's and kept the soft grey strokes on the "a", "e"
+and "r". Chrome did not start downloads in that session, so the image was captured from the page at 1:1 in three
+tiles. `remake/tools/align_art.py` fits it onto the original (offset under 0.6 original pixels, detail correlation
+0.99) and maps its tones onto the original's; [`remake/art/README.md`](../remake/art/README.md) has the prompt and
+the fit. The redraw's crisp strokes showed through the ink's light grey rims and highlights, which the remake draws
+as partial coverage, so with the redraw the logo part hides the sketch under every ink pixel the fill has reached,
+as the original does. `--original-art` shows the original sketch, drawn as before.

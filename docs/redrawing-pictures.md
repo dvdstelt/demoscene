@@ -1,7 +1,7 @@
 # Redrawing pictures
 
-How the high-resolution redraws of STARS's and DOPE's hand-drawn pictures were made, as a recipe for the next one.
-ChatGPT's image generation made almost all of them. One picture it refused; that one was made with an open
+How the high-resolution redraws of STARS's, DOPE's and Paper's hand-drawn pictures were made, as a recipe for the
+next one. ChatGPT's image generation made almost all of them. One picture it refused; that one was made with an open
 image-edit model on Comfy Cloud. Both routes are described here, with the alternatives that were considered.
 
 The rules are in [AGENTS.md](../AGENTS.md) ("Redrawn pictures"): a redraw is faithful to the original (the same
@@ -16,8 +16,11 @@ pixels are shown. Generated textures and maps stay computed from the original, a
 reads through palette indices (colour cycling, index arithmetic). Some pictures can still be redrawn if the
 redraw keeps what the effect needs; the decompiling notes say how each picture is used:
 
-- a shade map coloured through palette ramps (DOPE's logo): redraw it as a grey shade map;
+- a shade map coloured through palette ramps (DOPE's logo) or shaded with a paper grain (Paper's sketch): redraw it
+  as a grey shade map, with the background exactly the value around it;
 - a coverage mask (DOPE's credits): redraw it as white on black;
+- a map of palette indices that an effect writes pixel by pixel (Paper's ink image, which a flood fill colours): do
+  not redraw it, upscale it in the remake from its values;
 - an env map that is only read inside a disc (DOPE's p5): keep the layout exactly;
 - a picture whose parts are coloured separately (STARS's flower eyes in four palette bands): keep each part where
   it is;
@@ -53,9 +56,16 @@ what it shows:
 - the format: "a landscape 4:3 image, as large as you can make it".
 
 A second or third attempt says exactly what to correct (a moved word, a dropped signature, a wrong letter). ChatGPT
-returns about 1450×1088 for 4:3. Keep the raw downloads in `<demo>/re/art-raw/` (ignored by Git). The exact prompts
-and attempts per picture are in [stars/remake/art/README.md](../stars/remake/art/README.md) and
-[dope/remake/art/README.md](../dope/remake/art/README.md).
+returns about 1450×1088 for 4:3 and 1774×887 for 2:1. Keep the raw downloads in `<demo>/re/art-raw/` (ignored by
+Git). The exact prompts and attempts per picture are in [stars/remake/art/README.md](../stars/remake/art/README.md),
+[dope/remake/art/README.md](../dope/remake/art/README.md) and
+[paper/remake/art/README.md](../paper/remake/art/README.md).
+
+If Chrome does not start a download (it happened for Paper's sketch: neither ChatGPT's download button nor an
+`<a download>` did anything), take the image from the page: draw it at 1:1 (`image-rendering: pixelated`) in a
+fixed overlay and capture it in tiles with the browser extension's zoom action (`save_to_disk`, scale 1, a region
+starting at the page origin so that one image pixel is one output pixel), then stitch the tiles. Overlapping tiles
+must agree exactly; compare the stitched image's channel sums with those of the image decoded in the page.
 
 ChatGPT checks its finished images and may refuse one ("the image we created may violate our content policies"):
 it refused one of STARS's three cartoon women (picture 13), a nude, and accepted another nude (picture 12). Do not
@@ -124,12 +134,13 @@ colour and moved a hand, one filled the background shape. The full account is in
 
 ## 5. Fit and check
 
-`tools/align_art.py NN RAW.png` (STARS: picture number; DOPE: picture name) fits the redraw onto the original
-(scale in x and y, offset), writes it to `art/` covering exactly the original's frame at the redraw's own
-resolution, and prints the fit: the scale and offset, and the residual (RMS colour difference in the original's
+`tools/align_art.py NN RAW.png` (STARS: picture number; DOPE: picture name; Paper: `sketch`) fits the redraw onto
+the original (scale in x and y, offset), writes it to `art/` covering exactly the original's frame at the redraw's
+own resolution, and prints the fit: the scale and offset, and the residual (RMS colour difference in the original's
 pixel grid, plain and blurred, the share of pixels where one is background and the other is not, and the
 correlation of their detail; 1.00 is every shape in place). DOPE's version has `--match`, which gives the redraw the
-original's colours where the generator made them darker or shifted their hue.
+original's colours where the generator made them darker or shifted their hue; Paper's does the same for its grey
+sketch by default.
 
 ```
 toolbox run -c acme303 python3 stars/remake/tools/align_art.py 13 stars/re/art-raw/stars13_r2A_s1303.png
