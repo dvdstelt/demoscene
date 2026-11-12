@@ -21,7 +21,7 @@ The demo ends by itself: music stopped at frame 26359, text mode and exit code 0
 | 5947–7015 | 84.85–100.11 | 0e:20–16:03 | 0x11e7f (0x13e) | 0x12136 | | 28.2 | 25 / 36 / 52 | static | a golden 3D bee (object file 28, `WLDD`) flying close to the camera over the cloud background (camera keys every 0x8c ticks, 0x121b4); "23806 faces" in the corner at times |
 | 7016–7169 | 100.11–102.30 | 16:03–17:00 | 0x11f48 (0x143) free, 0x65ef (0x148) precalc | — | 18, 15, 16, 19, 17 | | | | black |
 | 7170–9475 | 102.30–135.20 | 17:01–27:00 | 0x6534 (0x158) | 0x6905 | | 32.5 | 17 / 34 / 67 | static | a 3D ball of long spikes (object file 18, `B!`), purple / green / white shading, turning in front of a rotating dark purple spiral |
-| 9476–9477 | 135.20–135.23 | 27:00 | 0x65ad (0x15d) free, 0x9d17 (0x162) set-up | — | 11, 12, 13 | | | | |
+| 9476–9477 | 135.20–135.23 | 27:00 | 0x65ad (0x15d) free, 0x9d17 (0x162) set-up | — | 11, 12, 13 | | | | black (0x9d17 sets the palette to black) |
 | 9478–11312 | 135.23–161.42 | 27:01–33:23 | 0x975b (0x172) | 0x9932 | | 34.9 | 23 / 35 / 70 | static | the three women pictures warped (waves, stretching, mirrored copies) over the star shape; phases at 0x2800, 0x2b00, 0x2e00, 0x3100 |
 | 11313–11497 | 161.42–164.05 | 33:23–35:00 | 0x9dcf (0x177) free, 0x1064 (0x17c) precalc | — | 2, 3, 4 | | | | black |
 | 11498–13803 | 164.05–196.96 | 35:01–45:00 | 0x11e8 (0x18c) | 0xf85 | | 35.0 | 23 / 35 / 70 | static | a tunnel of green / blue earth-like texture (256x256 maps 2, 3, palette 4) rushing towards the viewer, black hole in the centre, the view turning |

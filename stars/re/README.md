@@ -2,6 +2,7 @@
 
 Everything learned from `STARS.EXE` (NoooN, 1995), and the tools that learned it. Addresses are offsets in the
 unpacked program image (`unpacked/stars_img.bin`), which are also the 32-bit program's near pointers.
+[`../docs/making-of.md`](../docs/making-of.md) tells the story.
 
 ## Notes
 

@@ -68,7 +68,7 @@ the capture); the remake ends on the tick. `stars-remake --cues` prints the runn
 | `intro` | 0x5a92 | 0.000 | 70.388 | 279–5212 | parts2d-a |
 | `cloud` | 0x126ae | 73.364 | 80.786 (held to 80.863) | 5421–5941 (5947) | parts3d-a |
 | `bee` | 0x11e7f | 80.863 | 96.106 | 5947–7015 | parts3d-a |
-| `spikeball` | 0x6534 | 98.324 | 131.213 (held to 131.256) | 7170–9475 (9478) | parts3d-a |
+| `spikeball` | 0x6534 | 98.324 | 131.213 | 7170–9475 | parts3d-a |
 | `warp` | 0x975b | 131.256 | 157.419 | 9478–11312 | parts2d-a |
 | `tunnel` | 0x11e8 | 160.071 | 192.960 | 11498–13803 | parts2d-a |
 | `wall` | 0xa0ca | 193.053 | 223.839 | 13810–15967 | parts3d-b |
