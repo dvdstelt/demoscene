@@ -41,6 +41,7 @@ struct Options {
     int shotW = 960, shotH = 720;
     std::string videoOut;
     double vFrom = 0, vTo = -1, vFps = 60;
+    bool fpsSet = false;   // --fps given: --bench steps by 1 / fps (as playback at that rate)
     std::string vCodec = "-c:v libopenh264 -b:v 16M";
     bool vAudio = true;
     double bFrom = -1, bTo = -1;
@@ -58,6 +59,7 @@ void usage() {
         "  --ss FACTOR         supersampling factor (default 1)\n"
         "  --loop              restart at the end\n"
         "  --info              show the time, music position and part in the window title\n"
+        "  --novsync           do not wait for the display's vertical refresh\n"
         "  --cues              print the running order (music times, clock origins, the capture's ticks) and exit\n"
         "  --wav FILE          write the soundtrack to a WAV file and exit\n"
         "  --shots T1,T2,..    render the frames at these music times (s) to PNG and exit\n"
@@ -67,7 +69,9 @@ void usage() {
         "  --shotsize WxH      frame size for --shots and --video (default 960x720)\n"
         "  --video FILE --from T0 --to T1 [--fps F] [--noaudio] [--vcodec \"ffmpeg args\"]\n"
         "                      render music times T0..T1 (s) to a video through ffmpeg (default 60 fps)\n"
-        "  --bench T0,T1       render music times T0..T1 (s, step 0.0061) at --shotsize offscreen and report the time per frame\n"
+        "  --bench T0,T1 [--fps F]\n"
+        "                      render music times T0..T1 (s, step 0.0061, or 1 / F as playback at F fps) at --shotsize\n"
+        "                      offscreen and report the time per frame\n"
         "keys: esc quit, space pause, left/right seek 5 s, down/up seek 30 s, f fullscreen");
 }
 
@@ -169,7 +173,7 @@ bool parse(int argc, char** argv, Options& o) {
         else if (a == "--video") o.videoOut = next();
         else if (a == "--from") o.vFrom = std::atof(next().c_str());
         else if (a == "--to") o.vTo = std::atof(next().c_str());
-        else if (a == "--fps") o.vFps = std::atof(next().c_str());
+        else if (a == "--fps") { o.vFps = std::atof(next().c_str()); o.fpsSet = o.vFps > 0; }
         else if (a == "--vcodec") o.vCodec = next();
         else if (a == "--noaudio") o.vAudio = false;
         else if (a == "--bench") { auto v = parseList(next()); if (v.size() == 2) { o.bFrom = v[0]; o.bTo = v[1]; } }
@@ -413,7 +417,11 @@ int main(int argc, char** argv) {
         rc = renderVideo(demo, music, opt);
     } else if (opt.bFrom >= 0) {
         std::vector<double> ms;
-        for (double t = opt.bFrom; t < opt.bTo; t += 0.37 / 60.39) {
+        using GetStringFn = const unsigned char* (*)(unsigned);
+        if (auto getString = reinterpret_cast<GetStringFn>(SDL_GL_GetProcAddress("glGetString")))
+            SDL_Log("bench on %s", reinterpret_cast<const char*>(getString(0x1F01)));   // GL_RENDERER
+        const double step = opt.fpsSet ? 1.0 / opt.vFps : 0.37 / 60.39;
+        for (double t = opt.bFrom; t < opt.bTo; t += step) {
             uint64_t b0 = SDL_GetTicksNS();
             demo.render(t);
             gl::Finish();
