@@ -93,3 +93,15 @@ frame rate at the capture's frame steps. Details in [`../re/PORT.md`](../re/PORT
   at the capture's timer values (the frame before each event 902 frame, 0.07..2.6 t70 units before the row; at the
   rows the block would turn up to 5° differently), and part 7's motion stops where the capture's does (t70 9956.198,
   the frame before 28:00). Their tile colours are not truncated to bytes (half a step brighter on average).
+- Particle parts (1, 6, 3): their look depends on the frame rate (spawns, trails, part 3's magnify-and-darken), so
+  they are stepped at the capture's frame times (`src/scenes/particle_frames.h`, made from `full.flips` by
+  `tools/particle_frames.py`) and their events take effect on the capture's frame (up to one frame after the row).
+  The particles, counts and random numbers are then the capture's: the original's 8-bit pipeline driven by this
+  state gives all 3,174 captured frames pixel for pixel. Between those frames the dots move with the part's clock and
+  the trails (part 1) and the cloud (part 3) blend into the next frame; part 1's flash starts on its frame. After a
+  jump the trails are rebuilt from the last 107 frames, which can differ from playing through by one 8-bit level.
+- Dune's radial blur (parts 1, 6) runs on the original's 320 × 200 grid, in float with its in-place order kept
+  (0.2..4 levels from the original's pass on average, where order-free versions are off by up to 40), and its
+  streaks are added to full-resolution stamps. The stamps are smooth sprites, clipped at the edges instead of
+  dropped; the truncations of the feedback, the blur and part 3 become their mean losses; part 3's nearest-pixel
+  magnification is filtered and its 4-tap blur a Gaussian, so its cloud is smoother than the original's.
