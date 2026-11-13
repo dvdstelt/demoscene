@@ -89,3 +89,7 @@ frame rate at the capture's frame steps. Details in [`../re/PORT.md`](../re/PORT
   on average on the dumped frames. Where a map is minified (part 8's fly-in, small cubes) it is filtered to its mean
   instead of aliasing into speckle. A triangle that crosses the edge of the window is shaded affinely on the screen as
   a whole; the original re-interpolates the shade where its clipper cuts it.
+- The 3D parts keep the capture's frame-rate effects where they change the picture: part 9's turning axis switches
+  at the capture's timer values (the frame before each event 902 frame, 0.07..2.6 t70 units before the row; at the
+  rows the block would turn up to 5° differently), and part 7's motion stops where the capture's does (t70 9956.198,
+  the frame before 28:00). Their tile colours are not truncated to bytes (half a step brighter on average).
