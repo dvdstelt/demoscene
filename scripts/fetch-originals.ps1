@@ -10,10 +10,12 @@ checking every file's SHA-256.
   fetch-originals.ps1 jizz     only JIZZ by The Black Lotus (Wired '97)
   fetch-originals.ps1 stars    only STARS by NoooN (Assembly '95)
   fetch-originals.ps1 dope     only DOPE by Complex (The Gathering '95)
+  fetch-originals.ps1 clone    only clone meets clone by Acme and Fudge (Takeover '98)
 
 In the repository the files go into <repo>\<demo>\original\. Anywhere else (next to a released program such
-as acme303.exe, paper-remake.exe, jizz-remake.exe, stars-remake.exe or dope-remake.exe) they go into an original\
-folder next to this script, and without an argument only the demo whose program is there is fetched.
+as acme303.exe, paper-remake.exe, jizz-remake.exe, stars-remake.exe, dope-remake.exe or clone-remake.exe) they go
+into an original\ folder next to this script, and without an argument only the demo whose program is there is
+fetched.
 
 A file that is already there and verifies is never touched. A file that is there but differs is renamed to
 <name>.old before the release version takes its place. Needs Windows PowerShell 5.1 or PowerShell 7.
@@ -27,7 +29,7 @@ powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 paper
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'all')]
+    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'clone', 'all')]
     [string]$Demo
 )
 
@@ -92,6 +94,15 @@ $Releases = [ordered]@{
         Files   = [ordered]@{
             'DOPE.EXE' = '0c54549d741858ecddd23ac4a92d32b0d4823a537a45dcf1722613dcd6de97d0'
             'DOPE.MOD' = 'b2440ad6d713b38d5ca4c21a4a4ab4ab974e2f951175291769191c39ff7d93ce'
+        }
+    }
+    'clone' = @{
+        Title   = "clone meets clone by Acme and Fudge (Takeover '98, 1998)"
+        ZipName = 'acme_cln.zip'
+        ZipPath = 'demos/groups/fudge/acme_cln.zip'
+        Program = 'clone-remake'
+        Files   = [ordered]@{
+            'CLONE.EXE' = '11ed22222af2cc34dbca2f8c7683354a530d2a062363d7eb298bcaf399942275'
         }
     }
 }

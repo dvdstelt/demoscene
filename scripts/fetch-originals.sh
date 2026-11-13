@@ -8,6 +8,7 @@
 #   scripts/fetch-originals.sh jizz     only JIZZ by The Black Lotus (Wired '97)
 #   scripts/fetch-originals.sh stars    only STARS by NoooN (Assembly '95)
 #   scripts/fetch-originals.sh dope     only DOPE by Complex (The Gathering '95)
+#   scripts/fetch-originals.sh clone    only clone meets clone by Acme and Fudge (Takeover '98)
 #
 # In the repository the files go into <repo>/<demo>/original/. Anywhere else (next to
 # a released program) they go into an original/ folder next to this script, and without an argument only the
@@ -75,6 +76,15 @@ demo_info() {
             "DOPE.MOD     b2440ad6d713b38d5ca4c21a4a4ab4ab974e2f951175291769191c39ff7d93ce"
         )
         ;;
+    clone)
+        title="clone meets clone by Acme and Fudge (Takeover '98, 1998)"
+        zip_name=acme_cln.zip
+        zip_path=demos/groups/fudge/acme_cln.zip
+        program=clone-remake
+        files=(
+            "CLONE.EXE    11ed22222af2cc34dbca2f8c7683354a530d2a062363d7eb298bcaf399942275"
+        )
+        ;;
     *) return 1 ;;
     esac
     # scene.org itself, two https mirrors, then the scene.org redirector (picks any mirror)
@@ -86,7 +96,7 @@ demo_info() {
     )
 }
 
-all_demos=(303 paper jizz stars dope)
+all_demos=(303 paper jizz stars dope clone)
 
 # ---------------------------------------------------------------- tools
 usage() {  # the comment at the top of this file
@@ -217,7 +227,7 @@ fetch_demo() {  # demo
 demos=()
 for arg in "$@"; do
     case "$arg" in
-    303 | paper | jizz | stars | dope) demos+=("$arg") ;;
+    303 | paper | jizz | stars | dope | clone) demos+=("$arg") ;;
     all) demos+=("${all_demos[@]}") ;;
     -h | --help) usage; exit 0 ;;
     *) fail "unknown argument '$arg'"; usage >&2; exit 2 ;;

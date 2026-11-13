@@ -86,6 +86,22 @@ python3 re303.py func 0x2d81c         # list a routine
 
 [`dope/re/README.md`](../dope/re/README.md) lists the commands in order.
 
+## clone meets clone (PMODE/W, a packed Watcom C program, VESA 2.0 true colour)
+
+| tool | what it does |
+|---|---|
+| [`clone/re/unpack.py`](../clone/re/unpack.py) | runs the "veloader", the small LE program behind PMODE/W, in unicorn up to the point where it calls the intro, at two load addresses, and checks a Python reimplementation of its decompressor (LZ77 with canonical Huffman codes) and its fixups against it |
+| [`clone/re/rep.py`](../clone/re/rep.py) | capstone helper on the program image: `func`, `dis`, `calls`, `xref`, `funcs`, `str`, `ints`, `ports` |
+| [`clone/re/run_clone.py`](../clone/re/run_clone.py) | runs the whole intro headless in unicorn without PMODE/W or the veloader: answers the DOS and DPMI calls, fakes a VESA 2.0 BIOS with 320x200 modes in 32 and 15 bits and a linear frame buffer, the timer chip and a Gravis UltraSound. Records per timer tick: the picture on screen, the music position, the part and the frames shown; per shown frame the timer value it was drawn with; every GUS write and the GUS memory. Snapshots at every part; `--freeze-timer`, `--ips` and `--part-ips` help find frame-rate dependent state |
+| [`clone/re/fpscheck.py`](../clone/re/fpscheck.py) | compares two runs made at different CPU speeds frame by frame at equal timer values |
+| [`clone/re/frames2mp4.py`](../clone/re/frames2mp4.py), [`sheet.py`](../clone/re/sheet.py) | turn a capture into a video or a contact sheet |
+| [`clone/re/models/`](../clone/re/models/) | the agents' Python models: the core (unpacker, clock, helpers), the textures and pictures, the module builder and MXMPlay, the 3D engine, the grid filler and its parts, the 3D parts, the particle parts and the radial blur |
+| [`clone/remake/tools/compare.py`](../clone/remake/tools/compare.py) | the remake's frames next to the capture's frame drawn with the nearest timer value, with an optional difference score |
+| [`clone/remake/tools/align_art.py`](../clone/remake/tools/align_art.py) | the redrawn pictures: makes the uploads, fits a redraw onto the original and then each word or line on its own, turns the glyphs' key colour into alpha, and makes the comparison sheet |
+| [`clone/remake/tools/particle_frames.py`](../clone/remake/tools/particle_frames.py) | writes the capture's frame times for the particle parts into the remake's `particle_frames.h` |
+
+[`clone/re/README.md`](../clone/re/README.md) lists the commands in order.
+
 ## The emulator harness in short
 
 `run_paper.py` doesn't emulate a PC. It emulates just enough for this one program:
@@ -102,8 +118,10 @@ python3 re303.py func 0x2d81c         # list a routine
 
 That is a few hundred lines of Python. It gives an exact, repeatable run of the original that can be stopped,
 inspected and resumed at any tick. `run_jizz.py` does the same for JIZZ, with DOS32's services and a VESA BIOS
-instead of PMODE and VGA, and `run_stars.py` for STARS. `run_dope.py` adds a second CPU, because DOPE's parts run in
-real mode while its music player runs in 32-bit protected mode, and it skips the time a retrace wait would spin.
+instead of PMODE and VGA, `run_stars.py` for STARS, and `run_clone.py` for clone meets clone, which never waits for
+the retrace and so draws as many frames as its emulated CPU speed allows. `run_dope.py` adds a second CPU, because
+DOPE's parts run in real mode while its music player runs in 32-bit protected mode, and it skips the time a retrace
+wait would spin.
 
 ## In the remakes
 
@@ -117,6 +135,8 @@ The remakes do their own loading at run time, in C++:
   DIET-compressed files of its overlay; `stars/remake/src/exe.*` reads by address and by file number.
 - `dope/remake/src/rnc.cpp` unpacks the RNC-packed executables in DOPE.EXE; `dope/remake/src/exe.*` reads by
   `SEG:OFF` address in each.
+- `clone/remake/src/unpack.cpp` unpacks CLONE.EXE like its veloader (decompressor and fixups);
+  `clone/remake/src/exe.*` reads by address in the image relocated for 0x400000.
 
-The redrawn pictures of STARS and DOPE are made outside the remakes (ChatGPT's image generation, then
+The redrawn pictures of STARS, DOPE and clone meets clone are made outside the remakes (ChatGPT's image generation, then
 `tools/align_art.py`) and read from `<demo>/remake/art/` as PNG files; see [how-it-was-made.md](how-it-was-made.md).

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Packages a MinGW build of a remake as a Windows release zip.
 #
-#   scripts/package-windows.sh <303|paper|jizz|stars|dope> [BUILD_DIR] [OUT_DIR]
+#   scripts/package-windows.sh <303|paper|jizz|stars|dope|clone> [BUILD_DIR] [OUT_DIR]
 #
 # BUILD_DIR defaults to <repo>/<demo>/remake/build-win (as in the remakes' READMEs), OUT_DIR to <repo>/out.
 # Writes OUT_DIR/<demo>-remake-windows-x64.zip with one folder of the same name inside: the program, every DLL it
 # needs that is not part of Windows, README.txt, fetch-originals.ps1, the licenses, and an empty original/ folder
-# for the original files; for STARS, DOPE and Paper also the art/ folder with the redrawn pictures (from
-# <repo>/<demo>/remake/art), which the program finds next to itself. Fails if the program needs a DLL that is
-# neither a Windows system DLL nor found in BUILD_DIR or the MinGW sysroot.
+# for the original files; for STARS, DOPE, clone meets clone, Paper and 303 also the art/ folder with the redrawn
+# pictures (from <repo>/<demo>/remake/art), which the program finds next to itself. Fails if the program needs a DLL
+# that is neither a Windows system DLL nor found in BUILD_DIR or the MinGW sysroot.
 #
 # The packaged program and DLLs are stripped (the static MinGW runtime libraries bring debug info along); the
 # build folder is not changed.
@@ -27,7 +27,8 @@ paper) program=paper-remake.exe ;;
 jizz)  program=jizz-remake.exe ;;
 stars) program=stars-remake.exe ;;
 dope)  program=dope-remake.exe ;;
-*)     die "usage: $0 <303|paper|jizz|stars|dope> [BUILD_DIR] [OUT_DIR]" ;;
+clone) program=clone-remake.exe ;;
+*)     die "usage: $0 <303|paper|jizz|stars|dope|clone> [BUILD_DIR] [OUT_DIR]" ;;
 esac
 build=${2:-$repo/$demo/remake/build-win}
 out=${3:-$repo/out}
@@ -120,11 +121,11 @@ if [ "$demo" = 303 ]; then
 fi
 
 # ---------------------------------------------------------------- redrawn pictures
-# STARS, DOPE, Paper and 303 look for an art folder next to the program (findArt in src/main.cpp); 303's also has
-# art/video/<CLIP>/ with the restored video frames.
+# STARS, DOPE, clone meets clone, Paper and 303 look for an art folder next to the program (findArt in
+# src/main.cpp); 303's also has art/video/<CLIP>/ with the restored video frames.
 art_note=""
 case "$demo" in
-stars | dope | paper | 303)
+stars | dope | clone | paper | 303)
     art=$repo/$demo/remake/art
     [ -f "$art/README.md" ] || die "$art/README.md not found"
     mkdir -p "$stage/art"
@@ -220,6 +221,23 @@ any resolution in true colour instead of 320x200 in 256 colours.'
   --original-art    show the original pixels instead of the redrawn pictures
   --exe FILE        the original DOPE.EXE
   --mod FILE        the original DOPE.MOD (default: next to DOPE.EXE)
+  --art DIR         the folder with the redrawn pictures"
+elif [ "$demo" = clone ]; then
+    title="clone meets clone by Acme and Fudge - high resolution remake for Windows (x64)"
+    about='A re-implementation of "clone meets clone", the 64k intro by Acme and Fudge (design Aap and Echo, effects
+Echo, music Simon, graphics Aap) that won the PC 64k intro competition at Takeover '"'"'98. It plays the
+original'"'"'s effects, timing and music, rendered at any resolution instead of 320x200 (the original already
+draws in true colour).'
+    zipfile=acme_cln.zip
+    needed="CLONE.EXE (63,994 bytes)"
+    options="  --window          run in a window instead of fullscreen
+  --size 1280x960   window size
+  --start SECONDS   start position
+  --ss 2            render at twice the resolution and downsample (antialiasing)
+  --loop            restart at the end
+  --info            show the time, music position and part in the window title
+  --original-art    show the original pixels instead of the redrawn pictures
+  --exe FILE        the original CLONE.EXE
   --art DIR         the folder with the redrawn pictures"
 else
     title="Paper by Psychic Link - high resolution remake for Windows (x64)"

@@ -4,16 +4,18 @@ The remakes were made in November 2026, over a few days, by [Claude Code](https:
 (Anthropic's coding agent) working with Dennis van der Stelt. Dennis brought the original releases and his memory
 of how the demos looked and sounded, and he decided what was right. Claude Code did the reverse engineering and
 wrote the code. This page describes the way of working. The making-of pages for [303](../303/docs/making-of.md),
-[Paper](../paper/docs/making-of.md), [JIZZ](../jizz/docs/making-of.md), [STARS](../stars/docs/making-of.md) and
-[DOPE](../dope/docs/making-of.md) have the details for each production.
+[Paper](../paper/docs/making-of.md), [JIZZ](../jizz/docs/making-of.md), [STARS](../stars/docs/making-of.md),
+[DOPE](../dope/docs/making-of.md) and [clone meets clone](../clone/docs/making-of.md) have the details for each
+production.
 
 ## The goal
 
 The aim, in Dennis's words, was a remake that is "the same as the original, but way sharper". The original runs at
 320×200 in 256 colours. The remake should run at any resolution in true colour, keep the original's motion,
 timing, composition, colours and music, and run on Windows and Linux. (JIZZ already ran in hicolor, 65,536
-colours, at 320×200; for it the gain is resolution and true-colour maths.) For STARS and DOPE, Dennis also wanted
-the hand-drawn pictures sharper, which code alone cannot do; see [Redrawn pictures](#redrawn-pictures).
+colours, at 320×200, and clone meets clone in true colour; for them the gain is resolution and exact maths.) For
+STARS, DOPE and clone meets clone, Dennis also wanted the hand-drawn pictures sharper, which code alone cannot do;
+see [Redrawn pictures](#redrawn-pictures).
 
 ## From watching to reading the code
 
@@ -29,16 +31,19 @@ From then on the executable was the source of truth:
    compressed with PKLITE, with 58 DIET-compressed data files appended; the loader stub and PKLITE's decompressor
    were run in an emulator and the files unpacked with a decompressor checked against the program's own. DOPE is a
    chain of executables in one file, eight of them packed with Rob Northen's ProPack; every packer stub was run in
-   an emulator. For JIZZ, STARS and DOPE a Python reimplementation was checked against the emulated original; the
-   remakes do the same unpacking in C++ at start-up. Then disassemble with capstone.
+   an emulator. clone meets clone is a Watcom C program packed into a "VE" container that a small LE loader under
+   PMODE/W unpacks; the loader's own code was run in an emulator. For JIZZ, STARS, DOPE and clone meets clone a
+   Python reimplementation was checked against the emulated original; the remakes do the same unpacking in C++ at
+   start-up. Then disassemble with capstone.
 2. **Map the skeleton.** Find the main script, the clock (what advances per timer tick, per drawn frame, or per
    music row), the calling conventions, the asset loaders and the shared helpers. This is written down once, in a
    brief that every later agent reads.
-3. **Get a ground truth.** For Paper, JIZZ, STARS and DOPE, the whole production runs headless in an emulator
-   (unicorn, with fake VGA or VESA, timer and sound-card hardware), recording the exact screen, palette and
-   sound-card writes for every tick or displayed frame. STARS runs at the speed of a 486DX2/66, the machine its NFO
-   recommends. DOPE needs two emulated CPUs that share memory: one in real mode for its chain loader and its parts,
-   one in 32-bit mode for the music player. For 303, a video capture of the original running on a Pentium MMX
+3. **Get a ground truth.** For Paper, JIZZ, STARS, DOPE and clone meets clone, the whole production runs headless
+   in an emulator (unicorn, with fake VGA or VESA, timer and sound-card hardware), recording the exact screen,
+   palette and sound-card writes for every tick or displayed frame. STARS runs at the speed of a 486DX2/66, the
+   machine its NFO recommends, and clone meets clone at about the 133 MHz Pentium its INFO asks for. DOPE needs
+   two emulated CPUs that share memory: one in real mode for its chain loader and its parts, one in 32-bit mode
+   for the music player. For 303, a video capture of the original running on a Pentium MMX
    served as the reference.
 4. **Decompile in parallel.** Split the program into scopes (one part, or the shared start-up code) and give each
    to an agent. Each agent writes a notes file:
@@ -48,7 +53,8 @@ From then on the executable was the source of truth:
    - the quirks a viewer would notice;
    - what is still unknown.
 
-   For Paper, JIZZ, STARS and DOPE, every agent also built a Python model and checked it against the capture.
+   For Paper, JIZZ, STARS, DOPE and clone meets clone, every agent also built a Python model and checked it
+   against the capture.
 5. **Port in parallel.** Shared building blocks first (palette system, random generator, 3D engine, music), then
    one agent per part. Each agent owns its own files and builds in its own folder, so they don't get in each
    other's way. A second brief fixes the conventions: time, screen coordinates, colours, how state is stepped.
@@ -61,13 +67,13 @@ From then on the executable was the source of truth:
 ## Redrawn pictures
 
 Effects can be recomputed at any resolution, but a picture drawn pixel by pixel cannot: scaled up, it stays 320×200.
-For STARS and DOPE, Dennis asked for high-resolution versions of the hand-drawn pictures (title cards,
-backgrounds, labels, logos, sprites and textures that are drawn as they are), faithful to the originals. They were
-made like this:
+For STARS, DOPE and clone meets clone, Dennis asked for high-resolution versions of the hand-drawn pictures (title
+cards, backgrounds, labels, logos, sprites and textures that are drawn as they are), faithful to the originals. They
+were made like this:
 
 1. **Upload the real pixels.** Each original picture, with the palette the demo shows it with, is scaled up with
    nearest-neighbour to its display shape (a 320×200 screen to 4:3, a texture with square texels), so the image generator sees the exact pixels.
-   STARS's sprites are laid out on a flat key colour that stands for transparency.
+   STARS's sprites and clone meets clone's glyphs are laid out on a flat key colour that stands for transparency.
 2. **Ask for a faithful redraw.** ChatGPT's image generation got the same prompt for every picture, with a short
    description of what it shows: the same composition, pose, proportions, framing, colours and text, letter for
    letter; only the resolution and the detail change; nothing added, removed, moved, cropped or zoomed. Related
@@ -76,15 +82,16 @@ made like this:
 3. **Align and measure.** `tools/align_art.py` in each remake fits the redraw onto the original (scale in x and y
    and an offset), writes it covering exactly the original's frame, and measures how well it matches: the colour
    difference in the original's pixel grid and the correlation of their detail. For DOPE it can also match the
-   redraw's colours to the original's where the generator made them darker or shifted their hue.
+   redraw's colours to the original's where the generator made them darker or shifted their hue; for clone meets
+   clone it fits every word of a caption on its own, where the generator spaced the words a little differently.
 
 The redraws live in `<demo>/remake/art/` with a README that names the original artist and gives, per picture, the
 prompt, the attempts and the measured fit ([STARS](../stars/remake/art/README.md),
-[DOPE](../dope/remake/art/README.md)). Generated textures, maps and anything an effect reads through palette indices
-stay computed from the original. ChatGPT refused one picture, the third of STARS's three women; it was redrawn
-with the open image-edit model Qwen-Image-Edit on Comfy Cloud instead, with the other two redraws as style
-references. The remakes show the redraws by default and the original pixels with `--original-art`; palette fades
-are colour multiplies, so they apply to both.
+[DOPE](../dope/remake/art/README.md), [clone meets clone](../clone/remake/art/README.md)). Generated textures, maps
+and anything an effect reads through palette indices stay computed from the original. ChatGPT refused one picture,
+the third of STARS's three women; it was redrawn with the open image-edit model Qwen-Image-Edit on Comfy Cloud
+instead, with the other two redraws as style references. The remakes show the redraws by default and the original
+pixels with `--original-art`; palette fades are colour multiplies, so they apply to both.
 
 [redrawing-pictures.md](redrawing-pictures.md) is the recipe for the next picture: what gets a redraw, the upload,
 the ChatGPT prompt, what to do when ChatGPT refuses or falls short (the Comfy Cloud workflow is saved in
@@ -99,15 +106,17 @@ the ChatGPT prompt, what to do when ChatGPT refuses or falls short (the Comfy Cl
   For example, Paper's flock part is skipped on fast PCs, which is why so many videos of Paper lack it.
 - **Time is the hard part.** Demos mix three clocks: the timer interrupt, the drawn frame and the music position.
   Getting every variable onto the right clock decides whether a port matches at all. Replaying per-tick state
-  from the start of each part makes seeking exact and keeps every frame a pure function of time.
+  from the start of each part makes seeking exact and keeps every frame a pure function of time. clone meets clone
+  has no frame-rate limit at all: it moves everything by the time since the last frame, and what it does once per
+  frame (its particles) is stepped at the emulator capture's own frame times.
 - **Human judgement where data runs out.** Several decisions came from Dennis rather than from the code: the 303
   opening was wrong, the Paper flock was missing, and the flock moved too fast. The original's flock speed depends
   on the PC, and Dennis picked 34 fps from three test renders. For JIZZ and STARS he left most decisions to the
   agents; they are listed in their making-ofs.
 - **Nothing copied.** The remakes read every table, image, string, mesh and sample from the original files at run
   time, by address. The source is a re-implementation, and the originals stay their authors' property. The
-  redrawn pictures of STARS and DOPE are new pictures made from the originals; they are kept apart in `art/` and
-  stay under the originals' non-commercial terms.
+  redrawn pictures of STARS, DOPE and clone meets clone are new pictures made from the originals; they are kept
+  apart in `art/` and stay under the originals' non-commercial terms.
 
 ## Tools
 
