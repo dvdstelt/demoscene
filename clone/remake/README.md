@@ -82,3 +82,10 @@ frame rate at the capture's frame steps. Details in [`../re/PORT.md`](../re/PORT
   rotation, part 4's pulse one frame behind, and the changes of events 201, 401, 403 and 501 integrated from the
   capture's frame before the event (7..24 ms before the row). At another frame rate the original differs by that
   much.
+- 3D engine (parts 7..10): faces are ordered by a depth buffer instead of the painter's sort into 4096 depth buckets
+  (the same picture in every checked frame; the faces inside part 9's blocks, which only the sort can show, stay
+  hidden). Perspective is exact per pixel (the original divides every 8 pixels), the bilinear weights, the shade
+  and its exponential decode are continuous instead of 4-bit weights, 16.16 steps and a byte table: 0.7..2.2 levels
+  on average on the dumped frames. Where a map is minified (part 8's fly-in, small cubes) it is filtered to its mean
+  instead of aliasing into speckle. A triangle that crosses the edge of the window is shaded affinely on the screen as
+  a whole; the original re-interpolates the shade where its clipper cuts it.
