@@ -72,3 +72,13 @@ frame rate at the capture's frame steps. Details in [`../re/PORT.md`](../re/PORT
   real machine it depends on the frame rate).
 - Text redraws carry their grey as coverage of white: over the particles of part 1 the title has no dark rim
   (the original's anti-aliasing pixels are opaque).
+- Parts 11, 2, 5 and 4 (the grid filler): evaluated per pixel instead of on the original's 8 × 8 blocks, the grid
+  texture mipmapped where the original shows block noise (part 5's strong zoom, the far ends of the tunnels). The
+  original's truncations (texture levels, light, the bilinear sum, the decode: about 1.6 levels of 4.4 %) are
+  replaced by their mean, so the colours match on average. The 0.001 guard in the original's cylinder distance
+  makes a bright dot of under one original pixel at a tunnel's vanishing point, which the original's grid hardly
+  ever samples; it is left out.
+- The grid parts keep the capture's frame-rate effects: part 2's camera position one frame (24.7 ms) behind its
+  rotation, part 4's pulse one frame behind, and the changes of events 201, 401, 403 and 501 integrated from the
+  capture's frame before the event (7..24 ms before the row). At another frame rate the original differs by that
+  much.
