@@ -1,7 +1,7 @@
 # Making of the STARS remake
 
 STARS was remade after 303, Paper and JIZZ, at the same time as DOPE by Complex, and like JIZZ it went straight to
-the executable. Claude Code agents did the work, directed by Dennis van der Stelt, who supplied the original
+the executable. Claude Code agents did the work, directed by me, Dennis van der Stelt; I supplied the original
 release. [../../docs/how-it-was-made.md](../../docs/how-it-was-made.md) describes the general way of working. New
 for STARS (and DOPE) are the redrawn pictures: the remake shows high-resolution redraws of RA's pixel art, and the
 original pixels on request.

@@ -1,8 +1,8 @@
 # Making of the Paper remake
 
-Paper was the second production remade here, after [303](../../303/docs/making-of.md). With 303, rebuilding from
-a video first and decompiling later meant doing much of the work twice. So Paper started with the executable, and
-the brief was: reverse engineer everything, then port it. The work was done by Claude Code agents, directed by
+Paper was the second production remade here, after [303](../../303/docs/making-of.md). With 303, rebuilding from a
+video first and decompiling later meant doing much of the work twice. So Paper started with the executable, and the
+brief was: reverse engineer everything, then port it. The work was done by Claude Code agents, directed by me,
 Dennis van der Stelt; [../../docs/how-it-was-made.md](../../docs/how-it-was-made.md) describes the way of working.
 
 ## 1. Unpacking
@@ -34,8 +34,8 @@ That capture (`full.frames`, about 790 MB) is the ground truth for everything th
 The capture also explained the missing part. The flock part waits for the palette fade to rise above zero before
 its first loop test. The fade only rises in the timer interrupt, so if set-up and the first frame finish within
 one tick, the part ends immediately. On a fast PC that is what happens, and that is why so many videos of Paper
-lack the flock. The harness slows the PC down for that part (`--plane-budget 750000`, about 34 fps, the speed
-Dennis remembered it at).
+lack the flock. The harness slows the PC down for that part (`--plane-budget 750000`, about 34 fps, the speed I
+remembered it at).
 
 ## 3. Decompiling
 
@@ -116,7 +116,7 @@ been run on Windows.
 ## Afterwards
 
 The original's flock moves once per drawn frame, so its speed depended on the PC. The first remake stepped it too
-fast. Dennis remembered the planes turning less and flying in one direction for longer, and chose 34 fps from
+fast. I remembered the planes turning less and flying in one direction for longer, and chose 34 fps from
 three test renders.
 
 ## The redrawn sketch

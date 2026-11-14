@@ -334,7 +334,7 @@ vertices (`texsel_check.py`).
 - The bump map's rows 0..10 hold the "C" mesh's normals and map coordinates (2.1); they are read for u >> 8 & 63
   <= 5, i.e. near the pentagon corner at x ≈ -8000 of both slabs: noisy shading there. A remake reading the map
   from 23D1:0000 reproduces it; it is part of the original's look (not a resolution artefact), but harmless to
-  replace by the flat value 0x99 (offset (0, 0)) if it looks wrong at high resolution — maintainer's choice.
+  replace by the flat value 0x99 (offset (0, 0)) if it looks wrong at high resolution — my choice.
 - A remake: env map by the interpolated view-space normal (per pixel) with bilinear filtering, plus the bump
   offset (column, row) from the bilinearly filtered decoded bump map, added to the env coordinates in texels. Bump
   map position: row = (u & 0x3FFF) / 128, column = (w & 0x3FFF) / 128 (0..128, wrapping; the original reads row
@@ -523,7 +523,7 @@ Evaluate exactly:
   float trigonometry;
 - integer projection (truncating idiv, rounding shifts): floats;
 - the 16-bit back-face cross product (7.4): a correct test; this changes the close-ups (faces no longer vanish),
-  so list it under "Known differences" (or reproduce it, maintainer's choice);
+  so list it under "Known differences" (or reproduce it, my choice);
 - the 70 Hz blend: blend per retrace in time (sub-frames for fast motion) instead of per drawn frame;
 - the black screen row 199 (output-buffer row 200 is never blended): a buffer-layout artefact, drop it.
 
@@ -535,7 +535,7 @@ Keep (part of the look):
 - the credit band being black (no scene) while it is active, the cross-fade between consecutive strips;
 - the backdrop being a static picture behind the moving scene, and going through the blur like the scene (it and
   the "C" fade in through the blur when they appear at step 25);
-- the bump noise from the overlapping mesh data at one corner of each slab (see 7.3, maintainer's choice);
+- the bump noise from the overlapping mesh data at one corner of each slab (see 7.3, my choice);
 - the white fade (+1 per retrace for 35 retraces, then white).
 
 ---------------------------------------------------------------------------------------------------------------------

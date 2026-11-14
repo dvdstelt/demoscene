@@ -1,7 +1,7 @@
 # Making of the JIZZ remake
 
 JIZZ was the third remake, after 303 and Paper, and it went straight to the executable: no version rebuilt from a
-video. Claude Code agents did the work, directed by Dennis van der Stelt, who supplied the original release and
+video. Claude Code agents did the work, directed by me, Dennis van der Stelt; I supplied the original release and
 left the decisions to the agents for this one. [../../docs/how-it-was-made.md](../../docs/how-it-was-made.md)
 describes the general way of working.
 
@@ -77,7 +77,7 @@ exact product, so g++, MinGW and MSVC give the same bytes.
 
 ## Decisions
 
-For this remake Dennis left the decisions to the agents. The main ones:
+For this remake I left the decisions to the agents. The main ones:
 
 - **Clock.** JIZZ animates from MXMPlay's timer, not from a fixed tick, so the remake's clock is the music time in
   seconds and every part evaluates the original's timer formulas continuously.

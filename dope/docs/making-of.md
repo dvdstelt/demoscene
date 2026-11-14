@@ -1,7 +1,7 @@
 # Making of the DOPE remake
 
 DOPE was remade after 303, Paper and JIZZ, at the same time as STARS by NoooN, and like those two it went straight
-to the executable. Claude Code agents did the work, directed by Dennis van der Stelt, who supplied the original
+to the executable. Claude Code agents did the work, directed by me, Dennis van der Stelt; I supplied the original
 release. [../../docs/how-it-was-made.md](../../docs/how-it-was-made.md) describes the general way of working. As in
 STARS, the remake shows high-resolution redraws of the hand-drawn pictures, and the original pixels on request.
 

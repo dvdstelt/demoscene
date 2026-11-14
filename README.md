@@ -68,10 +68,10 @@ a window.
 
 ## How they were made
 
-The work was done with [Claude Code](https://claude.com/claude-code), Anthropic's coding agent, directed by Dennis
-van der Stelt. He supplied the original files, compared the results with how he remembered the demos and pointed
-out what was wrong. Claude Code did the reverse engineering and wrote the code. Many agents worked in parallel,
-each on one part of a demo:
+The work was done with [Claude Code](https://claude.com/claude-code), Anthropic's coding agent, directed by me,
+Dennis van der Stelt. I supplied the original files, compared the results with how I remembered the demos and
+pointed out what was wrong. Claude Code did the reverse engineering and wrote the code. Many agents worked in
+parallel, each on one part of a demo:
 
 1. **Watch.** The first 303 remake was rebuilt by eye from a video capture, after decoding the data files exactly:
    LZW archives, a custom video codec, and a tracker module with MP2 vocals.

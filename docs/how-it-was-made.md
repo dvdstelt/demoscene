@@ -1,27 +1,27 @@
 # How the remakes were made
 
 The remakes were made in November 2026, over a few days, by [Claude Code](https://claude.com/claude-code)
-(Anthropic's coding agent) working with Dennis van der Stelt. Dennis brought the original releases and his memory
-of how the demos looked and sounded, and he decided what was right. Claude Code did the reverse engineering and
-wrote the code. This page describes the way of working. The making-of pages for [303](../303/docs/making-of.md),
+(Anthropic's coding agent) working with me, Dennis van der Stelt. I brought the original releases and my memory of
+how the demos looked and sounded, and I decided what was right. Claude Code did the reverse engineering and wrote
+the code. This page describes the way of working. The making-of pages for [303](../303/docs/making-of.md),
 [Paper](../paper/docs/making-of.md), [JIZZ](../jizz/docs/making-of.md), [STARS](../stars/docs/making-of.md),
 [DOPE](../dope/docs/making-of.md) and [clone meets clone](../clone/docs/making-of.md) have the details for each
 production.
 
 ## The goal
 
-The aim, in Dennis's words, was a remake that is "the same as the original, but way sharper". The original runs at
-320×200 in 256 colours. The remake should run at any resolution in true colour, keep the original's motion,
-timing, composition, colours and music, and run on Windows and Linux. (JIZZ already ran in hicolor, 65,536
-colours, at 320×200, and clone meets clone in true colour; for them the gain is resolution and exact maths.) For
-STARS, DOPE and clone meets clone, Dennis also wanted the hand-drawn pictures sharper, which code alone cannot do;
-see [Redrawn pictures](#redrawn-pictures).
+My aim was a remake that is "the same as the original, but way sharper". The original runs at 320×200 in 256
+colours. The remake should run at any resolution in true colour, keep the original's motion, timing, composition,
+colours and music, and run on Windows and Linux. (JIZZ already ran in hicolor, 65,536 colours, at 320×200, and clone
+meets clone in true colour; for them the gain is resolution and exact maths.) For STARS, DOPE and clone meets clone,
+I also wanted the hand-drawn pictures sharper, which code alone cannot do; see [Redrawn
+pictures](#redrawn-pictures).
 
 ## From watching to reading the code
 
-The first attempt, [303 version 1](../303/remake-v1/), worked from a video. The data files were decoded exactly,
-and the effects were rebuilt by watching the capture. It looked right at first glance, but Dennis saw that many
-effects were not the real ones. The opening in particular was a different effect altogether.
+The first attempt, [303 version 1](../303/remake-v1/), worked from a video. The data files were decoded exactly, and
+the effects were rebuilt by watching the capture. It looked right at first glance, but I saw that many effects were
+not the real ones. The opening in particular was a different effect altogether.
 
 From then on the executable was the source of truth:
 
@@ -67,7 +67,7 @@ From then on the executable was the source of truth:
 ## Redrawn pictures
 
 Effects can be recomputed at any resolution, but a picture drawn pixel by pixel cannot: scaled up, it stays 320×200.
-For STARS, DOPE and clone meets clone, Dennis asked for high-resolution versions of the hand-drawn pictures (title
+For STARS, DOPE and clone meets clone, I asked for high-resolution versions of the hand-drawn pictures (title
 cards, backgrounds, labels, logos, sprites and textures that are drawn as they are), faithful to the originals. They
 were made like this:
 
@@ -109,9 +109,9 @@ the ChatGPT prompt, what to do when ChatGPT refuses or falls short (the Comfy Cl
   from the start of each part makes seeking exact and keeps every frame a pure function of time. clone meets clone
   has no frame-rate limit at all: it moves everything by the time since the last frame, and what it does once per
   frame (its particles) is stepped at the emulator capture's own frame times.
-- **Human judgement where data runs out.** Several decisions came from Dennis rather than from the code: the 303
+- **Human judgement where data runs out.** Several decisions came from me rather than from the code: the 303
   opening was wrong, the Paper flock was missing, and the flock moved too fast. The original's flock speed depends
-  on the PC, and Dennis picked 34 fps from three test renders. For JIZZ and STARS he left most decisions to the
+  on the PC, and I picked 34 fps from three test renders. For JIZZ and STARS I left most decisions to the
   agents; they are listed in their making-ofs.
 - **Nothing copied.** The remakes read every table, image, string, mesh and sample from the original files at run
   time, by address. The source is a re-implementation, and the originals stay their authors' property. The

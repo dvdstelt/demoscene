@@ -15,7 +15,7 @@ unpacked program image (`unpacked/stars_img.bin`), which are also the 32-bit pro
 
 ## Tools
 
-You need Python 3 with `unicorn`, `capstone`, `numpy` and `pillow` (on the maintainer's machine: inside the toolbox,
+You need Python 3 with `unicorn`, `capstone`, `numpy` and `pillow` (on my machine: inside the toolbox,
 `toolbox run -c acme303 python3 ...`) and the original `STARS.EXE` in [`../original/`](../original/). Run them from
 this folder, in this order:
 

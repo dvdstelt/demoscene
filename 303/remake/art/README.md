@@ -182,7 +182,7 @@ dancing and clowning (VS), people at computers (ALEX), a man's face looking arou
   most 2/255 from the PNGs), at the clip's frame rate: HARL 0–121, VS 0–60, ALEX 0–42 and PARANOID 0–44 (all).
 - **Model.** SeedVR2 (ByteDance's one-step diffusion model for video restoration) through the
   `ComfyUI-SeedVR2_VideoUpscaler` nodes, v2.5.24, on Comfy Cloud. A test on HARL's frames 0–59 compared it with
-  Upscayl's Real-ESRGAN models; Dennis chose SeedVR2.
+  Upscayl's Real-ESRGAN models; I chose SeedVR2.
 - **Settings**, the same as the test: DiT `seedvr2_ema_7b_sharp_fp16` (7B, the "sharp" variant), device `cuda:0`,
   attention `sdpa`, no block swap, `cache_model` off; VAE `ema_vae_fp16`, encode not tiled, decode tiled (1024,
   overlap 128); upscaler resolution 768 (the short side, so 160x96 becomes 1280x768), max resolution 0, batch size

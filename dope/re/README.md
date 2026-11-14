@@ -18,7 +18,7 @@ PMODE's code32 segment (file offset 0x17e0 of `unpacked/loader.bin`).
 ## Tools
 
 You need Python 3 with `unicorn` (2.x), `capstone`, `numpy` and `pillow` and the original `DOPE.EXE` and
-`DOPE.MOD` in [`../original/`](../original/). On the maintainer's machine they run inside the toolbox
+`DOPE.MOD` in [`../original/`](../original/). On my machine they run inside the toolbox
 (`toolbox run -c acme303 python3 ...`). Run them from this folder, in this order:
 
 ```

@@ -1,11 +1,11 @@
 # Making of the clone meets clone remake
 
 clone meets clone was remade after STARS and DOPE, in one day, and like them it went straight to the executable.
-Claude Code agents did the work, directed by Dennis van der Stelt, who supplied the original release.
-[../../docs/how-it-was-made.md](../../docs/how-it-was-made.md) describes the general way of working. As in STARS
-and DOPE, the remake shows high-resolution redraws of the hand-drawn pictures, and the original pixels on request.
-It is the second intro in this repository with music played by Niklas Beisert's MXMPlay, after JIZZ, and Aap, who
-drew its pictures, also drew 303's.
+Claude Code agents did the work, directed by me, Dennis van der Stelt; I supplied the original release.
+[../../docs/how-it-was-made.md](../../docs/how-it-was-made.md) describes the general way of working. As in STARS and
+DOPE, the remake shows high-resolution redraws of the hand-drawn pictures, and the original pixels on request. It is
+the second intro in this repository with music played by Niklas Beisert's MXMPlay, after JIZZ, and Aap, who drew its
+pictures, also drew 303's.
 
 ## Unpacking
 

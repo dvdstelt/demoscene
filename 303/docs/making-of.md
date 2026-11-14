@@ -2,8 +2,8 @@
 
 The 303 remake was made in two steps. The first version was rebuilt from a video and looked like the demo. The
 second was ported from the decompiled executable and runs the demo's own effects. Both were written by Claude Code
-agents, directed by Dennis van der Stelt; [../../docs/how-it-was-made.md](../../docs/how-it-was-made.md) describes
-the general way of working.
+agents, directed by me, Dennis van der Stelt; [../../docs/how-it-was-made.md](../../docs/how-it-was-made.md)
+describes the general way of working.
 
 ## The starting point
 
@@ -32,7 +32,7 @@ hexagon corridor with metaballs, environment-mapped meshes, the lyric overlays a
 order was measured on the capture. The capture plays 0.126% slow and starts 1.4 s into the music, so the soundtrack
 was aligned to it by cross-correlating onsets.
 
-The result looked and sounded like 303. Dennis's verdict was that much of it didn't match the real effects, and
+The result looked and sounded like 303. My verdict was that much of it didn't match the real effects, and
 that the opening in particular was wrong. Version 1 drew it as a tunnel, but in the demo the names "statix" and
 "vic" appear many times across the screen and then come together into big names. The video alone could not show
 how the effects really worked. That needed the code.
