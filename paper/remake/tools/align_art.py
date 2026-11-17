@@ -1,44 +1,58 @@
-"""Fits a high-resolution redraw of Paper's "Paper" sketch onto the original and writes the aligned shade map.
+"""Fits a high-resolution redraw of one of the pictures on Paper's logo page onto the original and writes it to art/.
 
-    python3 tools/align_art.py sketch REDRAW.png [--out art/sketch.png]   (inside the toolbox: numpy + PIL)
-    python3 tools/align_art.py --upload sketch OUT.png                    the nearest-neighbour picture to upload
-    python3 tools/align_art.py --sheet OUT.jpg sketch                     comparison sheet of art/sketch.png
+    python3 tools/align_art.py NAME REDRAW.png [--out art/NAME.png]     (inside the toolbox: numpy + PIL)
+    python3 tools/align_art.py --upload NAME OUT.png                    the nearest-neighbour picture to upload
+    python3 tools/align_art.py --sheet OUT.jpg NAME [NAME ...]          comparison sheet of art/NAME.png
 
-Adapted from stars/remake/tools/align_art.py and dope/remake/tools/align_art.py. Paper has one picture that is
-drawn as it is: the 224x83 pencil sketch of the word "Paper" at code32 0x1bf03 (4 bits per pixel, high nibble
-first, n = darkness 0..15, 0 = paper), which 0x5623 puts on the logo page at (48, 50) as the page value
-v = 63 - 4 n (paper/re/notes-logo.md, section 3). The script reads it from the unpacked program image
-(paper/re/dump/paper_img.bin; when that is missing it makes it from paper/original/PAPER.EXE with
-paper/re/unpklite.py). The other image of the logo part, the ink image at 0x196c3, is a map of palette indices
-that the flood fill colours; it is not redrawn (the remake upscales it, see src/scenes/logo.cpp).
+NAME is `sketch`, `text` or `ink`. Adapted from stars/remake/tools/align_art.py and dope/remake/tools/align_art.py.
+The three pictures are drawn by 0x5623 / 0x572f on the "present the Paper intro" page (paper/re/notes-logo.md,
+sections 3 and 4); the script reads them from the unpacked program image (paper/re/dump/paper_img.bin; when that is
+missing it makes it from paper/original/PAPER.EXE with paper/re/unpklite.py):
 
-The sketch is a shade map: it is uploaded and written as grey, grey = 255 * v / 63 (paper white 255, the darkest
-pencil, n = 11, grey 77). The remake reads v = 63 * grey / 255 and shades it with the paper grain exactly as it
-shades the original's v. The page is shown at 4:3, so one original pixel is 1.2 times as tall as wide. The upload
-puts the sketch on a 2:1 canvas of paper white (240 x 100 original pixels, the sketch at (8, 8)) so that the
-generator does not crop the strokes at the edges, and scales it up with nearest-neighbour, 10 x 12 per pixel
-(2400 x 1200).
+  sketch  the 224x83 pencil sketch of the word "Paper" at code32 0x1bf03 (4 bits per pixel, high nibble first,
+          n = darkness 0..15, 0 = paper), put on the page at (48, 50) as the page value v = 63 - 4 n. A shade map:
+          uploaded and written as grey, grey = 255 * v / 63 (paper white 255, the darkest pencil, n = 11, grey 77);
+          the remake reads v = 63 * grey / 255 and shades it with the paper grain exactly as the original's v. Canvas
+          240 x 100 original pixels of paper white, the sketch at (8, 8).
+  text    the sharp copy of "present the\x01intro" (0x5929) that 0x5623 draws with the 1-bit font (0xe2e, RLE at
+          0x18ed7) into its 320x80 text buffer from the pen (16, 1) ("intro" lands at (175, 40)). A coverage mask:
+          uploaded and written white on black (255 = letter); the remake draws the letters at its 0.5 contour and
+          builds the shadow from it. Canvas 324 x 135 of black, the buffer at (2, 27).
+  ink     the finished ink: the 224x92 ink image at 0x196c3 (4 bit, 0 = no ink, n = palette colour 0x40 + n of the
+          default palette 0x169a3) in its colours on white, as 0x572f's flood fill leaves it, at (48, 50) on the page.
+          A colour picture with alpha: the redraw is asked for on a transparent background and written as RGBA; the
+          remake reveals it with the fill timing it computes from the original's map. Canvas 252 x 105 of white,
+          the image at (14, 6).
 
-The fit maps redraw pixel coordinates (x, y) to original pixel coordinates (u, v):
+The page is shown at 4:3, so one original pixel is 1.2 times as tall as wide. The uploads put the picture on a 2:1
+canvas with a margin, so that the generator does not crop it at the edges, and scale it up with nearest-neighbour,
+10 x 12 per pixel (sketch 2400 x 1200, text 3240 x 1620, ink 2520 x 1260).
+
+The fit maps redraw pixel coordinates (x, y) to canvas pixel coordinates (u, v):
     u = sx * x + tx,   v = sy * y + ty
-A redraw that has the upload's framing and fills its frame has sx = 240 / width, sy = 100 / height and the offset
-of the canvas (-8, -8). The fit compares both pictures in the original's grid (the redraw area-averaged into it,
-both blurred so that detail the original does not have does not count): a brute-force search over scale and offset
-on a coarse grid, then Nelder-Mead on (scale, aspect, tx, ty) with less and less blur. It prints the scale and
-offset and the residual (RMS of the grey difference 0..255 in the original's grid, plain and with a 1-pixel blur,
-the share of pixels where one picture is paper and the other is not, and the correlation of the two pictures'
-detail, see `Fit.residual`), and writes the redraw resampled to cover exactly the sketch's 224x83 frame at the
-redraw's own pixel size (output width = 224 / sx, height from the pixel aspect), as an 8-bit greyscale PNG. Where
-the redraw does not reach, it pads with paper white.
+A redraw that has the upload's framing and fills it has sx = canvas width / width, sy = canvas height / height and
+offset 0. The fit compares both pictures in the original's grid (the redraw area-averaged into it, over the canvas
+colour where it has alpha, both blurred so that detail the original does not have does not count): a brute-force
+search over scale and offset on a coarse grid, then Nelder-Mead on (scale, aspect, tx, ty) with less and less
+blur. It prints the scale and offset and the residual (RMS of the colour difference 0..255 in the original's grid,
+plain and with a 1-pixel blur, the share of pixels where one picture is background and the other is not, and the
+correlation of the two pictures' detail, see `Fit.residual`), and writes the redraw resampled to cover exactly the
+picture's frame at the redraw's own pixel size (output width = frame width / sx, height from the pixel aspect).
 
-Tones: the generator's paper is rarely exactly white, and the remake shows the page value 63 around the sketch, so
-the redraw's tones are mapped onto the original's: a monotone tone curve from quantile matching in the original's
-grid (see `tone_curve`), which also makes the redraw's paper white, and greys from 252 up are set to white
-(`paper_white`: the generator's paper keeps a faint noise of a level or two). `--no-match` keeps the redraw's own
-greys (only the paper level is scaled to white).
+Tones:
+  sketch  the generator's paper is rarely exactly white, and the remake shows the page value 63 around the sketch,
+          so the redraw's tones are mapped onto the original's: a monotone tone curve from quantile matching in the
+          original's grid (see `tone_curve`), which also makes the redraw's paper white, and greys from 252 up are
+          set to white (`paper_white`: the generator's paper keeps a faint noise of a level or two).
+  text    the levels are stretched so that the background is 0 and the solid letters 255; the mismatch of the 0.5
+          contour with the original's pixel edges is printed as a share of the letters' pixels.
+  ink     the ink body gets the original's body colour 0x4b: per channel a piecewise-linear curve through 0, the
+          redraw's body (median of its opaque pixels) -> the original's (median of its ink pixels), and 255
+          (`body_match`); colour and alpha are resampled premultiplied.
+  `--no-match` keeps the redraw's own tones (sketch: only the paper level is scaled to white; ink: no colour match).
 
 Options:
-  --out FILE        output (default ../art/sketch.png next to this script)
+  --out FILE        output (default ../art/NAME.png next to this script)
   --img FILE        the unpacked program image (default ../../re/dump/paper_img.bin)
   --uniform         keep the redraw's pixels square (one scale), instead of fitting x and y separately
   --range R         search offsets up to R original pixels and scales up to 1 +- R/100 (default 12)
@@ -59,11 +73,21 @@ CODE32 = 0xd00  # image offset of the 32-bit segment
 SCREEN_ASPECT = 1.2  # an original screen pixel is 1.2 times as tall as wide on a 4:3 screen
 PAPER = 255.0
 
-# addr: code32 offset of the 4-bit image, w x h: its size, canvas: the upload canvas (CW, CH) and the frame's
-# position (cx, cy) in it, in original pixels, up: nearest-neighbour factors of the upload.
+# kind: 'shade' (a grey shade map), 'mask' (white on black coverage) or 'colour' (a colour picture with alpha);
+# w x h: the frame in original pixels; canvas: the upload canvas (CW, CH) and the frame's position (cx, cy) in it,
+# in original pixels; up: nearest-neighbour factors of the upload (10 x 12 = the 4:3 display shape); bg: the
+# canvas colour (0..255).
 SPECS = {
-    'sketch': dict(addr=0x1bf03, w=224, h=83, canvas=(240, 100, 8, 8), up=(10, 12)),
+    'sketch': dict(kind='shade', addr=0x1bf03, w=224, h=83, canvas=(240, 100, 8, 8), up=(10, 12), bg=255.0),
+    # the sharp copy of "present the\x01intro" in 0x5623's 320x80 text buffer (pen (16, 1)), white on black
+    'text': dict(kind='mask', w=320, h=80, canvas=(324, 135, 2, 27), up=(10, 12), bg=0.0),
+    # the finished ink: the ink image 0x196c3 (224x92) in its palette colours 0x41..0x4f, on white
+    'ink': dict(kind='colour', addr=0x196c3, w=224, h=92, canvas=(252, 105, 14, 6), up=(10, 12), bg=255.0),
 }
+FONT_RLE = 0x18ed7     # 0xe2e: 29 one-bit glyphs, 32 rows
+TEXT = 0x5929          # "present the\x01intro\0"
+TEXT_PEN = (16, 1)     # 0x5623: the sharp copy in the text buffer (stride 320)
+PALETTE = 0x169a3      # 768 bytes, 6-bit
 
 
 def spec(name):
@@ -88,22 +112,98 @@ def program_image(path):
         return f.read()
 
 
-def load_original(name, img_path=IMAGE):
-    """The sketch as grey (h, w, 3) float, 255 * v / 63 with v = 63 - 4 n (0x58ea with invert = 1)."""
-    s = spec(name)
-    img = program_image(img_path)
-    w, h = s['w'], s['h']
-    b = np.frombuffer(img, np.uint8, h * w // 2, CODE32 + s['addr'])
+def nibbles(img, addr, w, h):
+    """0x58ea: a 4-bit image, high nibble = left pixel."""
+    b = np.frombuffer(img, np.uint8, h * w // 2, CODE32 + addr)
     n = np.empty((h, w), np.int64)
     n[:, 0::2] = (b >> 4).reshape(h, w // 2)
     n[:, 1::2] = (b & 15).reshape(h, w // 2)
+    return n
+
+
+def font_glyphs(img):
+    """0xe2e: the 29 glyphs ('a'..'}') as (width, 32 x 60 bool array)."""
+    src = CODE32 + FONT_RLE
+    glyphs = []
+    for _ in range(29):
+        w = img[src]
+        src += 1
+        g = np.zeros((32, 60), bool)
+        for y in range(32):
+            x = 0
+            while True:
+                b = img[src]
+                src += 1
+                if b == 0:
+                    break
+                if b == 0xff:
+                    skip, run = img[src], img[src + 1]
+                    src += 2
+                else:
+                    skip, run = b & 15, b >> 4
+                x += skip
+                g[y, x:x + run] = True
+                x += run
+        glyphs.append((w, g))
+    return glyphs
+
+
+def text_mask(img):
+    """0x5623's sharp text in the 320x80 text buffer: 0x11b0 / 0xe8a from the pen (16, 1), linear addresses with
+    stride 320 (code 1 adds 10 + 0x303e: "intro" lands at (175, 40)). 255 = ink."""
+    glyphs = font_glyphs(img)
+    end = img.index(b'\0', CODE32 + TEXT)
+    s = img[CODE32 + TEXT:end]
+    buf = np.zeros(320 * 120, np.float64)
+    pos = TEXT_PEN[1] * 320 + TEXT_PEN[0]
+    for ch in s:
+        c = ch - ord('a')
+        if c < 0:
+            pos += 10
+            if ch == 1:
+                pos += 0x303e
+            continue
+        w, g = glyphs[c]
+        for y in range(32):
+            row = buf[pos + y * 320:pos + y * 320 + w]
+            row[g[y, :w]] = 255.0
+        pos += w + 1
+    return buf[:320 * 80].reshape(80, 320)
+
+
+def palette8(img):
+    """The default palette 0x169a3, 6-bit values scaled to 0..255 (display v / 63)."""
+    p = np.frombuffer(img, np.uint8, 768, CODE32 + PALETTE).reshape(256, 3).astype(np.float64)
+    return p * 255.0 / 63.0
+
+
+def load_original(name, img_path=IMAGE):
+    """The original picture as an (h, w, 3) float array 0..255: the sketch as grey 255 * v / 63 with v = 63 - 4 n
+    (0x58ea with invert = 1), the text as white on black, the ink in its palette colours on white."""
+    s = spec(name)
+    img = program_image(img_path)
+    if name == 'text':
+        g = text_mask(img)
+        return np.repeat(g[..., None], 3, axis=2)
+    n = nibbles(img, s['addr'], s['w'], s['h'])
+    if name == 'ink':
+        pal = palette8(img)
+        out = np.full((s['h'], s['w'], 3), 255.0)
+        out[n > 0] = pal[0x40 + n[n > 0]]
+        return out
     g = (63 - 4 * n) * 255.0 / 63.0
     return np.repeat(g[..., None], 3, axis=2)
 
 
+def ink_map(img_path=IMAGE):
+    """The ink image's values (92 x 224, 0 = no ink, n = colour 0x40 + n)."""
+    s = spec('ink')
+    return nibbles(program_image(img_path), s['addr'], s['w'], s['h'])
+
+
 def on_canvas(name, orig):
     cw, ch, cx, cy = spec(name)['canvas']
-    c = np.full((ch, cw, 3), PAPER)
+    c = np.full((ch, cw, 3), spec(name)['bg'])
     c[cy:cy + orig.shape[0], cx:cx + orig.shape[1]] = orig
     return c
 
@@ -337,21 +437,69 @@ def report(name, p, res, res0, p0):
           % ((name, rel, rely, tx - p0[2], ty - p0[3]) + res))
 
 
+def frame_size(s, p):
+    """The output size: the frame at the redraw's own horizontal pixel size, 4:3 pixel aspect."""
+    W, H = s['w'], s['h']
+    ow = int(round(W / p[0]))
+    return ow, int(round(ow * H * SCREEN_ASPECT / W))
+
+
+def render_frame(img, s, p, fill):
+    """The fitted redraw (PIL image) resampled to cover exactly the frame."""
+    cw, ch, cx, cy = s['canvas']
+    ow, oh = frame_size(s, p)
+    return render(img, (ow, oh), p, (s['w'] / ow, s['h'] / oh), (cx, cy), fill)
+
+
+def render_float(a, s, p, fill):
+    """render_frame for a float array (h, w): bicubic, through PIL's 32-bit float images."""
+    return np.asarray(render_frame(Image.fromarray(a.astype(np.float32), 'F'), s, p, fill), np.float64)
+
+
+def save(out, a, name):
+    out_path = a.out or os.path.join(HERE, '..', 'art', name + '.png')
+    os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
+    out.save(out_path, optimize=True)
+    print('  -> %s %dx%d %s (%.0f kB)' % (os.path.basename(out_path), out.size[0], out.size[1], out.mode,
+                                         os.path.getsize(out_path) / 1000))
+
+
 def align(a):
     name = a.name
     s = spec(name)
     orig = load_original(name, a.img)
     cw, ch, cx, cy = s['canvas']
     canvas = on_canvas(name, orig)
-    img = Image.open(a.redraw).convert('L').convert('RGB')
-    red = np.asarray(img, np.float64)
+    src = Image.open(a.redraw)
+    bg = np.array([s['bg']] * 3)
+    alpha = None
+    if s['kind'] == 'colour':
+        rgba = np.asarray(src.convert('RGBA'), np.float64)
+        alpha = rgba[..., 3] / 255.0
+        if alpha.min() > 0.99:
+            alpha = None
+            red = rgba[..., :3]
+        else:  # fitted as it looks on the canvas colour
+            red = rgba[..., :3] * alpha[..., None] + bg * (1 - alpha[..., None])
+    else:
+        red = np.asarray(src.convert('L').convert('RGB'), np.float64)
     rw, rh = red.shape[1], red.shape[0]
-    # Fitted against the whole canvas (the paper margins included), in canvas coordinates.
+    # Fitted against the whole canvas (the margins included), in canvas coordinates.
     p0 = (cw / rw, ch / rh, 0.0, 0.0)
-    bg = np.array([PAPER] * 3)
     p, res, res0 = fit_picture(canvas, bg, red, p0, a.range or 12, a.uniform)
-    print('%s: redraw %dx%d of a %dx%d canvas (frame at %d, %d)' % (name, rw, rh, cw, ch, cx, cy))
+    print('%s: redraw %dx%d%s of a %dx%d canvas (frame at %d, %d)'
+          % (name, rw, rh, ' with alpha' if alpha is not None else '', cw, ch, cx, cy))
     report(name, p, res, res0, p0)
+    if s['kind'] == 'mask':
+        align_mask(a, s, canvas, red, p)
+    elif s['kind'] == 'colour':
+        align_colour(a, s, canvas, red, alpha, p)
+    else:
+        align_shade(a, s, canvas, red, p)
+
+
+def align_shade(a, s, canvas, red, p):
+    bg = np.array([s['bg']] * 3)
     if a.match:
         red = paper_white(np.clip(tone_curve(canvas, red, p, bg)(red), 0, 255))
         fm = Fit(canvas, bg, red)
@@ -362,16 +510,67 @@ def align(a):
         red = np.clip(red * (PAPER / max(paper, 1.0)), 0, 255)
         print('  paper level %.1f set to white' % paper)
     img = Image.fromarray(np.round(red).astype(np.uint8))
-    # Output: the sketch's frame at the redraw's own horizontal pixel size.
-    W, H = s['w'], s['h']
-    ow = int(round(W / p[0]))
-    oh = int(round(ow * H * SCREEN_ASPECT / W))
-    out = render(img, (ow, oh), p, (W / ow, H / oh), (cx, cy), (255, 255, 255)).convert('L')
-    out_path = a.out or os.path.join(HERE, '..', 'art', name + '.png')
-    os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
-    out.save(out_path, optimize=True)
-    print('  -> %s %dx%d %s (%.0f kB)' % (os.path.basename(out_path), out.size[0], out.size[1], out.mode,
-                                         os.path.getsize(out_path) / 1000))
+    save(render_frame(img, s, p, (255, 255, 255)).convert('L'), a, a.name)
+
+
+def mask_mismatch(canvas, red, p):
+    """Where the redraw's 0.5 contour and the original's pixel edges disagree: the share of the original's ink
+    pixels that one side has and the other has not, in the original's grid (redraw area-averaged)."""
+    f = Fit(canvas, np.zeros(3), red)
+    f.prepare(p[0])
+    w = f.warp(p, ss=4)[..., 0] > 127.5
+    o = canvas[..., 0] > 127.5
+    return 100.0 * np.sum(w != o) / max(1, np.sum(o))
+
+
+def align_mask(a, s, canvas, red, p):
+    """A coverage mask: its levels stretched so that the background is 0 and the solid ink 255 (the remake
+    thresholds it at 0.5)."""
+    g = red[..., 0]
+    lo, hi = np.percentile(g, 50), np.percentile(g, 99.5)  # the canvas is mostly background
+    g = np.clip((g - lo) * 255.0 / max(hi - lo, 1.0), 0, 255)
+    red = np.repeat(g[..., None], 3, axis=2)
+    fm = Fit(canvas, np.zeros(3), red)
+    fm.prepare(p[0])
+    print('  levels %.1f..%.1f -> 0..255: | %.1f / %.1f / %.1f %% / %.2f |' % ((lo, hi) + fm.residual(p)))
+    print('  0.5 contour mismatch: %.2f %% of the ink pixels' % mask_mismatch(canvas, red, p))
+    out = np.clip(render_float(g, s, p, 0.0), 0, 255)
+    save(Image.fromarray(np.round(out).astype(np.uint8), 'L'), a, a.name)
+
+
+def body_match(a, rgb, alpha):
+    """Gives the redraw's ink body the original's body colour 0x4b: per channel a piecewise-linear curve through
+    0 -> 0, the redraw's body (the median of its opaque pixels) -> the original's body (the median of the original's
+    ink pixels) and 255 -> 255, so the highlights stay light and the red rims red."""
+    n = ink_map(a.img)
+    ob = np.median(load_original('ink', a.img)[n > 0], axis=0)
+    rb = np.median(rgb[alpha > 0.98], axis=0)
+    out = np.empty_like(rgb)
+    for k in range(3):
+        out[..., k] = np.interp(rgb[..., k], [0.0, rb[k], 255.0], [0.0, ob[k], 255.0])
+    print('  body colour (%.0f, %.0f, %.0f) -> the original\'s (%.0f, %.0f, %.0f)' % (tuple(rb) + tuple(ob)))
+    return out
+
+
+def align_colour(a, s, canvas, red, alpha, p):
+    """A colour picture with alpha, written as RGBA covering the frame. Colour and alpha are resampled
+    premultiplied, so that no background colour bleeds into the edges."""
+    if alpha is None:
+        sys.exit('%s: the redraw has no alpha channel' % a.name)
+    bg = s['bg']
+    straight = np.where(alpha[..., None] > 0, (red - bg * (1 - alpha[..., None])) / np.maximum(alpha[..., None], 1e-6), 0)
+    if a.match:
+        straight = body_match(a, straight, alpha)
+        fm = Fit(canvas, np.array([bg] * 3), straight * alpha[..., None] + bg * (1 - alpha[..., None]))
+        fm.prepare(p[0])
+        print('  after the colour match: | %.1f / %.1f / %.1f %% / %.2f |' % fm.residual(p))
+    rgb = straight * alpha[..., None]  # premultiplied colour
+    A = np.clip(render_float(alpha, s, p, 0.0), 0, 1)
+    P = np.stack([render_float(rgb[..., k], s, p, 0.0) for k in range(3)], axis=2)
+    C = np.clip(P / np.maximum(A[..., None], 1e-3), 0, 255)
+    C[A < 1 / 255.0] = 0
+    out = np.dstack([C, A * 255.0])
+    save(Image.fromarray(np.round(out).astype(np.uint8), 'RGBA'), a, a.name)
 
 
 def upload(a):
@@ -380,15 +579,18 @@ def upload(a):
     s = spec(name)
     c = on_canvas(name, load_original(name, a.img))
     fx, fy = s['up']
-    img = Image.fromarray(np.round(c).astype(np.uint8)).convert('L')
+    img = Image.fromarray(np.round(c).astype(np.uint8))
+    if s['kind'] != 'colour':
+        img = img.convert('L')
     ch, cw = c.shape[:2]
     img.resize((cw * fx, ch * fy), Image.NEAREST).save(a.redraw)
     print('%s: %dx%d' % (a.redraw, cw * fx, ch * fy))
 
 
 def sheet(a):
-    """Original (nearest-neighbour) above the redraw, and an overlay: the original's strokes in red over the redraw
-    in grey, where they agree the strokes look dark red."""
+    """Per picture: the original (nearest-neighbour), the redraw (the colour picture over white), and an overlay.
+    Sketch: the original's strokes in red over the redraw in grey (where they agree the strokes look dark red).
+    Text and ink: the original's ink pixels in red, the redraw's coverage in cyan (where they agree: white)."""
     try:
         font = ImageFont.truetype('DejaVuSans-Bold.ttf', 16)
     except OSError:
@@ -404,14 +606,28 @@ def sheet(a):
         art = os.path.join(a.art, name + '.png')
         panels = [(left, '%s: original' % name)]
         if os.path.exists(art):
-            r = Image.open(art).convert('L').resize((pw, ph), Image.LANCZOS)
-            panels.append((r.convert('RGB'), '%s: redraw (%s)' % (name, os.path.basename(art))))
-            o = np.asarray(Image.fromarray(np.round(orig[..., 0]).astype(np.uint8)).resize((pw, ph), Image.BILINEAR),
-                           np.float64) / 255.0
-            g = np.asarray(r, np.float64) / 255.0
-            ov = np.stack([g, g * o, g * o], axis=2)  # the original's darkness removes green and blue
-            panels.append((Image.fromarray(np.round(ov * 255).astype(np.uint8)),
-                           '%s: overlay (original in red over the redraw)' % name))
+            if s['kind'] == 'colour':
+                im = Image.open(art).convert('RGBA').resize((pw, ph), Image.LANCZOS)
+                r = np.asarray(im, np.float64)
+                cov = r[..., 3] / 255.0
+                shown = r[..., :3] * cov[..., None] + 255.0 * (1 - cov[..., None])
+                o = (ink_map(a.img) > 0).astype(np.uint8) * 255
+            else:
+                g = np.asarray(Image.open(art).convert('L').resize((pw, ph), Image.LANCZOS), np.float64)
+                shown, cov = np.repeat(g[..., None], 3, axis=2), g / 255.0
+                o = np.round(orig[..., 0]).astype(np.uint8)
+            panels.append((Image.fromarray(np.round(np.clip(shown, 0, 255)).astype(np.uint8)),
+                           '%s: redraw (%s)' % (name, os.path.basename(art))))
+            if s['kind'] == 'shade':
+                o = np.asarray(Image.fromarray(o).resize((pw, ph), Image.BILINEAR), np.float64) / 255.0
+                ov = np.stack([cov, cov * o, cov * o], axis=2)  # the original's darkness removes green and blue
+                label = 'overlay (original in red over the redraw)'
+            else:
+                o = np.asarray(Image.fromarray(o).resize((pw, ph), Image.NEAREST), np.float64) / 255.0
+                ov = np.stack([o, cov, cov], axis=2)
+                label = 'overlay (original red, redraw cyan, both white)'
+            panels.append((Image.fromarray(np.round(np.clip(ov, 0, 1) * 255).astype(np.uint8)),
+                           '%s: %s' % (name, label)))
         for im, label in panels:
             d = ImageDraw.Draw(im)
             d.text((8, 6), label, fill=(255, 200, 0), font=font, stroke_width=2, stroke_fill=(0, 0, 0))
@@ -429,6 +645,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('name', nargs='?')
     ap.add_argument('redraw', nargs='?')
+    ap.add_argument('more', nargs='*')
     ap.add_argument('--out')
     ap.add_argument('--img', default=IMAGE)
     ap.add_argument('--art', default=os.path.join(HERE, '..', 'art'))
@@ -439,7 +656,7 @@ def main():
     ap.add_argument('--upload', action='store_true')
     a = ap.parse_args()
     if a.sheet:
-        a.names = [x for x in [a.name, a.redraw] if x]
+        a.names = [x for x in [a.name, a.redraw] + a.more if x]
         sheet(a)
     elif a.upload and a.name and a.redraw:
         upload(a)

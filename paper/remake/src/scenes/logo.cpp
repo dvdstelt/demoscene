@@ -17,15 +17,28 @@
 // (full.frames record t is the frame drawn before IRQ t), so remake tick t matches capture record t + 1 exactly.
 //
 // High resolution:
-//   - text: the core font's anti-aliased outlines drawn into a UNORM intensity buffer covering the original's 320x80
-//     text buffer (saturating adds as the byte adds), the 0xf47 blurs as Gaussians of the same variance. The buffer is
-//     cached per output size.
+//   - text, by default: the high-resolution redraw art/text.png (paper/art.h; paper/remake/art/README.md), a coverage
+//     mask of the sharp copy over the 320x80 text buffer. The original blurs its 1-bit sharp copy once (sigma 1 px),
+//     which at 320x200 is its anti-aliasing; here the page pass draws the letters from the mask, anti-aliased at the
+//     output resolution (the mask's 0.5 contour is the edge). The shadow is built as the original builds it, from the
+//     same mask: drawn at +4,+3 at half strength into a UNORM buffer and blurred as 5 blur calls (sigma sqrt(5) px);
+//     T = min(1, shadow + letters). Cached per output size.
+//   - text with --original-art (or without the file): the core font's anti-aliased outlines drawn into a UNORM
+//     intensity buffer covering the original's 320x80 text buffer (saturating adds as the byte adds), the 0xf47 blurs
+//     as Gaussians of the same variance. The buffer is cached per output size.
 //   - sketch: by default the high-resolution redraw art/sketch.png (paper/art.h; paper/remake/art/README.md), a grey
 //     shade map grey = 255 v / 63 over the sketch's 224x83 frame, sampled trilinearly and shaded exactly as the
 //     original's page values; with --original-art (or without the file) Catmull-Rom on the 4-bit darkness values,
 //     clamped to the range of the nearest 2x2 texels (no ringing). 0x572f writes every ink pixel over the sketch,
 //     but the ink pass lets the page show through the ink's light greys (partial coverage, below), so with the
 //     redraw the page pass hides the sketch where the fill has reached an ink pixel of any colour (fill channel G).
+//   - ink, by default: the high-resolution redraw art/ink.png of the finished ink (colour with alpha over the ink
+//     image's 224x92 frame), revealed by the original's fill timing: R(p) on the original map is extended to a field
+//     of kRevealScale samples per original pixel (revealField: the Gaussian-weighted mean of the ticks of the nearest
+//     original ink pixel's region), and the ink shows where R < tick + 0.5 (the original's pixel set {R <= n} at whole
+//     ticks n), with an anti-aliased front that moves on continuously between ticks. The page pass hides the sketch
+//     within 1 original pixel of the arrived ink (inkDistance). The next two items (the ink image's outline and
+//     colours) are used with --original-art (or without the file); the fill simulation serves both.
 //   - ink outline: the fill is simulated exactly (the original's list algorithm) to get every ink pixel's arrival tick
 //     R(p). Each frame a small pass writes s_p = ramp(tau - R(p) + 1) x w_p per ink texel (fill fraction 0 before, 1
 //     from its own tick on, times the outline weight w_p, see InkTexels); the ink pass Catmull-Rom interpolates the s_p
@@ -69,6 +82,9 @@ constexpr int kEndCounter = 0x2c0;          // [0x1ea8f]: the part ends at music
 constexpr int kPad = 2;                     // zero texels around the images (bicubic footprint)
 constexpr float kTickBase = 5600.0f;        // arrival ticks are stored relative to this (float precision)
 constexpr float kNever = 1.0e6f;            // arrival of wall pixels
+constexpr int kRevealScale = 4;             // reveal-field samples per original pixel and axis (ink redraw)
+constexpr double kRevealSigma = 0.6;        // its Gaussian, original pixels
+constexpr float kHideMax = 4.0f;            // distances to the ink redraw are stored up to this (original pixels)
 
 // 0x58ea: 4-bit image, 112 bytes per row, high nibble = left pixel.
 std::vector<uint8_t> unpackNibbles(const PaperExe& exe, uint32_t addr, int rows) {
@@ -121,6 +137,140 @@ std::vector<int> simulateFill(const Ctx& c, const std::vector<uint8_t>& ink) {
         }
     }
     return arrival;
+}
+
+// The ink redraw's reveal field: the arrival tick R - kTickBase at kRevealScale x kRevealScale samples per original
+// pixel over the 224x92 ink frame (row-major, row 0 at the top), kNever only if there is no ink at all. A sample takes
+// the region (4-connected ink, one per seed) of its nearest original ink pixel and the Gaussian-weighted mean of that
+// region's arrival ticks around it. Inside the ink this follows the original's fronts smoothly (along a straight
+// front R(x) = x - 0.5 for the pixel [n, n + 1) with R = n, so R < tick + 0.5 is exactly the original's pixel set at
+// whole ticks); outside the original's pixels (the redraw's edges, the ink image's holes) the nearby ticks carry on,
+// and two regions never mix.
+std::vector<float> revealField(const std::vector<int>& arrival) {
+    constexpr int W = kImgW, H = kInkH, S = kRevealScale, win = 2;
+    auto inked = [&](int x, int y) {
+        return x >= 0 && y >= 0 && x < W && y < H && arrival[size_t(y) * W + x] != INT_MAX;
+    };
+    // regions: 4-connected components of the ink pixels
+    std::vector<int> region(size_t(W) * H, -1);
+    std::vector<int> queue;
+    int regions = 0;
+    for (int i = 0; i < W * H; i++) {
+        if (!inked(i % W, i / W) || region[size_t(i)] >= 0) continue;
+        region[size_t(i)] = regions;
+        queue.assign(1, i);
+        for (size_t j = 0; j < queue.size(); j++) {
+            int x = queue[j] % W, y = queue[j] / W;
+            const int nb[4][2] = {{x - 1, y}, {x + 1, y}, {x, y - 1}, {x, y + 1}};
+            for (const auto& n : nb)
+                if (inked(n[0], n[1]) && region[size_t(n[1]) * W + n[0]] < 0) {
+                    region[size_t(n[1]) * W + n[0]] = regions;
+                    queue.push_back(n[1] * W + n[0]);
+                }
+        }
+        regions++;
+    }
+    // the nearest ink pixel of every pixel (multi-source BFS, 8 neighbours), for samples far from the ink
+    std::vector<int> nearest(size_t(W) * H, -1);
+    queue.clear();
+    for (int i = 0; i < W * H; i++)
+        if (region[size_t(i)] >= 0) {
+            nearest[size_t(i)] = i;
+            queue.push_back(i);
+        }
+    for (size_t j = 0; j < queue.size(); j++) {
+        int x = queue[j] % W, y = queue[j] / W;
+        for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++) {
+                int nx = x + dx, ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= W || ny >= H || nearest[size_t(ny) * W + nx] >= 0) continue;
+                nearest[size_t(ny) * W + nx] = nearest[size_t(queue[j])];
+                queue.push_back(ny * W + nx);
+            }
+    }
+    // per sub-pixel position f of a sample and pixel offset d: the squared distance to that pixel's centre along one
+    // axis and its Gaussian factor (the weights are separable)
+    double d2[S][2 * win + 1], g[S][2 * win + 1];
+    for (int f = 0; f < S; f++)
+        for (int d = -win; d <= win; d++) {
+            double e = d + 0.5 - (f + 0.5) / S;
+            d2[f][d + win] = e * e;
+            g[f][d + win] = std::exp(-0.5 * e * e / (kRevealSigma * kRevealSigma));
+        }
+    std::vector<float> out(size_t(W) * S * H * S, kNever);
+    for (int sy = 0; sy < H * S; sy++)
+        for (int sx = 0; sx < W * S; sx++) {
+            const int cx = sx / S, cy = sy / S, fx = sx % S, fy = sy % S;  // pixel and position in it
+            int best = -1;
+            double bestD = 1e30;
+            for (int dy = -win; dy <= win; dy++)
+                for (int dx = -win; dx <= win; dx++) {
+                    int x = cx + dx, y = cy + dy;
+                    if (!inked(x, y)) continue;
+                    double d = d2[fx][dx + win] + d2[fy][dy + win];
+                    if (d < bestD) bestD = d, best = y * W + x;
+                }
+            if (best < 0) best = nearest[size_t(cy) * W + cx];
+            if (best < 0) continue;
+            const int k = region[size_t(best)];
+            double sw = 0, sr = 0;
+            for (int dy = -win; dy <= win; dy++)
+                for (int dx = -win; dx <= win; dx++) {
+                    int x = cx + dx, y = cy + dy;
+                    if (!inked(x, y) || region[size_t(y) * W + x] != k) continue;
+                    double w = g[fx][dx + win] * g[fy][dy + win];
+                    sw += w;
+                    sr += w * arrival[size_t(y) * W + x];
+                }
+            double r = sw > 1e-9 ? sr / sw : double(arrival[size_t(best)]);
+            out[size_t(sy) * W * S + sx] = float(r - kTickBase);
+        }
+    return out;
+}
+
+// The distance (original pixels, up to kHideMax) from every reveal-field sample to the ink redraw (its alpha >= 0.5,
+// read bilinearly), row-major like revealField: the page pass hides the sketch near the ink.
+std::vector<float> inkDistance(const ArtImage& art) {
+    const int S = kRevealScale, W = kImgW * S, H = kInkH * S, R = int(kHideMax) * S;
+    auto alpha = [&](int x, int y) {
+        x = std::clamp(x, 0, art.w - 1);
+        y = std::clamp(y, 0, art.h - 1);
+        return float(art.px[(size_t(y) * art.w + x) * 4 + 3]);
+    };
+    std::vector<uint8_t> in(size_t(W) * H);
+    for (int y = 0; y < H; y++)
+        for (int x = 0; x < W; x++) {
+            float u = (x + 0.5f) / W * art.w - 0.5f, v = (y + 0.5f) / H * art.h - 0.5f;
+            int i = int(std::floor(u)), j = int(std::floor(v));
+            float fu = u - i, fv = v - j;
+            float a = (alpha(i, j) * (1 - fu) + alpha(i + 1, j) * fu) * (1 - fv) +
+                      (alpha(i, j + 1) * (1 - fu) + alpha(i + 1, j + 1) * fu) * fv;
+            in[size_t(y) * W + x] = a >= 127.5f;
+        }
+    // the horizontal distance (samples) to the nearest ink sample in the row, then the nearest over the rows within R
+    std::vector<float> hd(size_t(W) * H, 1e9f), out(size_t(W) * H, kHideMax);
+    for (int y = 0; y < H; y++) {
+        float* row = &hd[size_t(y) * W];
+        for (int x = 0, last = -1000000; x < W; x++) {
+            if (in[size_t(y) * W + x]) last = x;
+            row[x] = float(x - last);
+        }
+        for (int x = W - 1, last = 1000000; x >= 0; x--) {
+            if (in[size_t(y) * W + x]) last = x;
+            row[x] = std::min(row[x], float(last - x));
+        }
+    }
+    for (int y = 0; y < H; y++)
+        for (int x = 0; x < W; x++) {
+            float best = 1e18f;
+            for (int dy = -R; dy <= R; dy++) {
+                if (y + dy < 0 || y + dy >= H) continue;
+                float h = hd[size_t(y + dy) * W + x];
+                best = std::min(best, h * h + float(dy * dy));
+            }
+            out[size_t(y) * W + x] = std::min(kHideMax, std::sqrt(best) / S);
+        }
+    return out;
 }
 
 // Catmull-Rom weight of a sample at distance t.
@@ -232,6 +382,12 @@ vec4 catmullRom(sampler2D tex, vec2 t) {
               textureLod(tex, vec2(c3.x, c3.y), 0.0) * w3.x;
     return r0 * w0.y + r1 * w12.y + r2 * w3.y;
 }
+// The ink redraw's reveal at ink-frame position q (original pixels): 1 where the fill has arrived, R < tau + 0.5,
+// with an anti-aliased front (needs uniform control flow: derivatives)
+float inkReveal(sampler2D reveal, vec2 q, float tau) {
+    float m = tau + 0.5 - texture(reveal, q / vec2(224.0, 92.0)).r;
+    return clamp(m / max(fwidth(m), 1e-4) + 0.5, 0.0, 1.0);
+}
 )";
 
 const char* kPageFS = R"(
@@ -244,6 +400,11 @@ uniform sampler2D sketchArt; // the redraw: page value v / 63 over the sketch's 
 uniform bool redraw;         // true: sketchArt, false: sketch
 uniform sampler2D fill;      // this frame's fill fractions (G: every ink pixel), padded by PAD
 uniform vec2 textTexel;      // text-buffer pixels per texel
+uniform bool textArt;        // true: the letters from textMask (textBuf then holds only the shadow)
+uniform sampler2D textMask;  // the text redraw: coverage over the 320x80 text buffer, row 0 at the top
+uniform bool inkArt;         // true: the ink is the redraw, drawn by the ink pass
+uniform sampler2D reveal;    // its reveal field: R arrival tick - TICK_BASE, G distance to the ink (original px)
+uniform float tau;           // tick - TICK_BASE
 
 // 0x5623 text mapping: buffer rows 0..39 -> page rows 10..49, rows 40..79 -> 158..197, x + 4
 float textValue(vec2 p) {
@@ -266,12 +427,40 @@ float sketchDark(vec2 q) {
     return clamp(n, min(min(a, b), min(c, d)), max(max(a, b), max(c, d)));
 }
 
+// The redraw's letters at text-buffer position b, anti-aliased at the output resolution: the mask's 0.5 contour is
+// the edge (Catmull-Rom while the mask is magnified, its mipmaps when it is minified). Uniform control flow.
+float textCoverage(vec2 b) {
+    vec2 m = b / vec2(320.0, 80.0), t = m * vec2(textureSize(textMask, 0));
+    float k = max(length(dFdx(t)), length(dFdy(t)));  // mask texels per output pixel
+    float c = mix(catmullRom(textMask, t).r, texture(textMask, m).r, clamp(k - 1.0, 0.0, 1.0));
+    return clamp((c - 0.5) / max(fwidth(c), 1e-4) + 0.5, 0.0, 1.0);
+}
+
 void main() {
     vec2 vga = vec2(uv.x * 320.0, (1.0 - uv.y) * 200.0);
     // page value v (63 = white paper .. 0 = black): the text (rows 10..49, 158..197) and the sketch (overwrites rows
     // 50..132, where there is no text; min() only meets their faint tails at row 50)
-    float v = 63.0 - 63.75 * textValue(vga);
+    float T = textValue(vga);
+    if (textArt) {
+        // the sharp letters of each half: "present the" (buffer rows 1..32) on page rows 10..46, "intro" (40..71) on
+        // 158..197 (the mask also holds the other line, which the page does not show there)
+        bool top = vga.y < 100.0;
+        vec2 b = vec2(vga.x - 4.0, vga.y - (top ? 10.0 : 118.0));
+        float c = textCoverage(b);
+        bool line = b.x >= 0.0 && (top ? vga.y >= 10.0 && vga.y < 47.0 : vga.y >= 158.0 && vga.y < 198.0);
+        T = min(1.0, T + (line ? c : 0.0));
+    }
+    float v = 63.0 - 63.75 * T;
     vec2 q = vga - LOGO;
+    // Where the ink redraw has arrived it hides the sketch, within 1 original pixel of the ink: in the original the
+    // ink pixels cover every pencil pixel except 50 (the "stx" signature and single pixels at the ink's edge), and
+    // every stroke of the sketch redraw except the signature lies within 1 px of the ink redraw (reveal channel G:
+    // the distance to it). (Derivatives: uniform control flow.)
+    float hide = 0.0;
+    if (inkArt) {
+        float near = 1.0 - smoothstep(0.75, 1.25, texture(reveal, q / vec2(224.0, 92.0)).g);
+        hide = near * inkReveal(reveal, q, tau);
+    }
     if (redraw) {
         // The ink covers the sketch wherever the ink image has ink, its light grey rims and highlights included
         // (0x572f writes every ink pixel over the page). The ink pass treats the light greys as partial coverage
@@ -280,10 +469,12 @@ void main() {
         // (derivatives and the mipmapped read outside the frame test: they need uniform control flow)
         float m = catmullRom(fill, q + PAD).g - 0.5;
         float inked = clamp(m / max(length(vec2(dFdx(m), dFdy(m))), 1e-6) + 0.5, 0.0, 1.0);
+        if (inkArt) inked = max(inked, hide);
         float art = 63.0 * texture(sketchArt, q / vec2(224.0, 83.0)).r;
         if (q.x >= 0.0 && q.x < 224.0 && q.y >= 0.0 && q.y < 83.0) v = min(v, mix(art, 63.0, inked));
     } else if (q.x > -2.0 && q.x < 226.0 && q.y > -2.0 && q.y < 85.0) {
-        v = min(v, 63.0 - 4.0 * sketchDark(q));
+        float sk = 63.0 - 4.0 * sketchDark(q);
+        v = min(v, inkArt ? mix(sk, 63.0, hide) : sk);
     }
     // 0x1949: LUT[grain][v] = max(0, v + 2e - 64) through the grey ramp
     float e = paperGrain(grain, vga);
@@ -354,10 +545,38 @@ void main() {
 }
 )";
 
+// The text redraw's shadow (0x5623's copy at (20,4) = the sharp copy's position + (4,3), at half strength) into the
+// text buffer target, which then gets the 5 blur calls.
+const char* kShadowFS = R"(
+in vec2 uv;
+out vec4 o;
+uniform sampler2D mask;  // coverage over the 320x80 text buffer, row 0 at the top
+void main() {
+    vec2 b = vec2(uv.x * 320.0, (1.0 - uv.y) * 80.0) - vec2(4.0, 3.0);
+    float inside = (b.x >= 0.0 && b.y >= 0.0 && b.x < 320.0 && b.y < 80.0) ? 1.0 : 0.0;
+    o = vec4(0.5 * inside * texture(mask, b / vec2(320.0, 80.0)).r, 0.0, 0.0, 1.0);
+}
+)";
+
+// The ink redraw over the ink frame, revealed by the fill (premultiplied output).
+const char* kInkArtFS = R"(
+in vec2 vga;
+out vec4 o;
+uniform sampler2D inkPic;    // premultiplied RGBA over the 224x92 ink frame, row 0 at the top
+uniform sampler2D reveal;    // arrival tick - TICK_BASE
+uniform float tau;           // tick - TICK_BASE
+void main() {
+    vec2 q = vga - LOGO;
+    o = texture(inkPic, q / vec2(224.0, 92.0)) * inkReveal(reveal, q, tau);
+}
+)";
+
 struct LogoScene : Scene {
-    Shader page, fillShader, inkShader;
-    Texture sketchTex, sketchArt, shapeTex, toneTex, redTex;
-    bool redraw = false;  // sketchArt holds the redraw (art/sketch.png)
+    Shader page, fillShader, inkShader, shadowShader, inkArtShader;
+    Texture sketchTex, sketchArt, shapeTex, toneTex, redTex, textMask, inkPic, revealTex;
+    bool redraw = false;   // sketchArt holds the redraw (art/sketch.png)
+    bool textArt = false;  // textMask holds the text redraw (art/text.png)
+    bool inkArt = false;   // inkPic holds the ink redraw (art/ink.png), revealTex its reveal field
     Target fill;  // per ink texel: fill fraction x outline weight, fill fraction; rebuilt for every frame's tick
     std::array<float, 33> ramp{};
     std::string text;
@@ -380,21 +599,40 @@ struct LogoScene : Scene {
 
         std::vector<uint8_t> sk = unpackNibbles(exe, kSketchImage, kSketchH);
         upload(sketchTex, 1, std::vector<float>(sk.begin(), sk.end()), kSketchH, true);
-        GreyImage art;
+        ArtImage art;
         redraw = loadArtGrey(c, "sketch", &art);
         if (redraw)  // grey = 255 v / 63 over the 224x83 frame; mipmapped for small frames, clamped at the edges
             sketchArt.createRaw(art.w, art.h, GL_R8, GL_RED, GL_UNSIGNED_BYTE, art.px.data(), true, false, true);
+        textArt = loadArtGrey(c, "text", &art);
+        if (textArt)  // coverage over the 320x80 text buffer
+            textMask.createRaw(art.w, art.h, GL_R8, GL_RED, GL_UNSIGNED_BYTE, art.px.data(), true, false, true);
 
         std::vector<uint8_t> ink = unpackNibbles(exe, kInkImage, kInkH);
-        InkTexels it = inkTexels(DefaultPalette(exe), ink, simulateFill(c, ink));
+        std::vector<int> arrival = simulateFill(c, ink);
+        InkTexels it = inkTexels(DefaultPalette(exe), ink, arrival);
         upload(shapeTex, 2, it.shape, kInkH, false);
         upload(toneTex, 4, it.tone, kInkH, true);
         upload(redTex, 4, it.red, kInkH, true);
+        inkArt = loadArtRgba(c, "ink", &art);
+        if (inkArt) {  // colour with alpha over the 224x92 ink frame, premultiplied for filtering
+            for (size_t i = 0; i < art.px.size(); i += 4)
+                for (size_t k = 0; k < 3; k++) art.px[i + k] = uint8_t((art.px[i + k] * art.px[i + 3] + 127) / 255);
+            inkPic.createRaw(art.w, art.h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, art.px.data(), true, false, true);
+            std::vector<float> r = revealField(arrival), d = inkDistance(art), rg(r.size() * 2);
+            for (size_t i = 0; i < r.size(); i++) {
+                rg[2 * i] = r[i];
+                rg[2 * i + 1] = d[i];
+            }
+            revealTex.createRaw(kImgW * kRevealScale, kInkH * kRevealScale, GL_RG32F, GL_RG, GL_FLOAT, rg.data(), true,
+                                false);
+        }
 
         ramp = frontRamp();
         page.build(kFullscreenVS, std::string(kTexturesGLSL) + kLogoGLSL + kPageFS, "logo page");
         fillShader.build(kFullscreenVS, kFillFS, "logo fill");
         inkShader.build(kInkVS, std::string(kLogoGLSL) + kInkFS, "logo ink");
+        if (textArt) shadowShader.build(kFullscreenVS, kShadowFS, "logo text shadow");
+        if (inkArt) inkArtShader.build(kInkVS, std::string(kLogoGLSL) + kInkArtFS, "logo ink redraw");
         fill.create(kImgW + 2 * kPad, kInkH + 2 * kPad, false, GL_RG16F);
     }
 
@@ -413,6 +651,18 @@ struct LogoScene : Scene {
         blur(c, t, 2, Edge::Zero, 320, 80, GL_R16);
     }
 
+    // With the text redraw the buffer holds only the shadow: the mask at (+4,+3) at half strength, blurred 5 times
+    // (10 passes, as the original's shadow copy); the page pass adds the sharp letters from the mask.
+    void buildTextShadow(Ctx& c, Target& t) {
+        t.bind();
+        setBlend(Blend::None);  // the page may be rendered inside another part's passes (the peels)
+        shadowShader.use();
+        textMask.bind(0);
+        shadowShader.set("mask", 0);
+        drawFullscreen();
+        blur(c, t, 10, Edge::Zero, 320, 80, GL_R16);
+    }
+
     const Target& textFor(Ctx& c, int w, int h) {
         int th = std::max(1, int(std::lround(h * 0.4)));
         for (TextCache& e : cache)
@@ -422,11 +672,14 @@ struct LogoScene : Scene {
         e.t.create(w, th, false, GL_R16);
         e.w = w;
         e.h = th;
-        buildText(c, e.t);
+        if (textArt)
+            buildTextShadow(c, e.t);
+        else
+            buildText(c, e.t);
         return e.t;
     }
 
-    void drawPage(Ctx& c, const Target& tb) {
+    void drawPage(Ctx& c, const Target& tb, double tick) {
         page.use();
         gl::ActiveTexture(GL_TEXTURE0);
         gl::BindTexture(GL_TEXTURE_2D, tb.tex);
@@ -441,6 +694,17 @@ struct LogoScene : Scene {
         page.set("fill", 4);
         page.set("redraw", redraw ? 1 : 0);
         page.set("textTexel", 320.0f / tb.w, 80.0f / tb.h);
+        page.set("textArt", textArt ? 1 : 0);
+        page.set("inkArt", inkArt ? 1 : 0);
+        if (textArt) {
+            textMask.bind(5);
+            page.set("textMask", 5);
+        }
+        if (inkArt) {
+            revealTex.bind(6);
+            page.set("reveal", 6);
+            page.set("tau", float(tick - kTickBase));
+        }
         drawFullscreen();
     }
 
@@ -468,15 +732,29 @@ struct LogoScene : Scene {
         drawQuad();
     }
 
+    void drawInkArt(double tick) {
+        inkArtShader.use();
+        inkPic.bind(0);
+        revealTex.bind(1);
+        inkArtShader.set("inkPic", 0);
+        inkArtShader.set("reveal", 1);
+        inkArtShader.set("tau", float(tick - kTickBase));
+        inkArtShader.set("rect", float(kLogoX), float(kLogoY), float(kImgW), float(kInkH));
+        drawQuad();
+    }
+
     void render(Ctx& c, double tick) override {
         Target& out = *c.out;
         const Target& tb = textFor(c, out.w, out.h);
         setBlend(Blend::None);
         updateFill(tick);
         out.bind();
-        drawPage(c, tb);
+        drawPage(c, tb, tick);
         setBlend(Blend::Premul);
-        drawInk();
+        if (inkArt)
+            drawInkArt(tick);
+        else
+            drawInk();
         setBlend(Blend::None);
     }
 };

@@ -21,7 +21,7 @@
 
 namespace paper {
 
-bool loadArtGrey(const Ctx& c, const std::string& name, GreyImage* out) {
+static bool loadArt(const Ctx& c, const std::string& name, int channels, ArtImage* out) {
     if (!c.art()) return false;
     const std::string path = c.artDir + "/" + name + ".png";
     if (FILE* f = std::fopen(path.c_str(), "rb")) {
@@ -31,7 +31,7 @@ bool loadArtGrey(const Ctx& c, const std::string& name, GreyImage* out) {
         return false;
     }
     int w = 0, h = 0, ch = 0;
-    unsigned char* px = stbi_load(path.c_str(), &w, &h, &ch, 1);
+    unsigned char* px = stbi_load(path.c_str(), &w, &h, &ch, channels);
     if (!px) {
         SDL_Log("art: cannot read %s (%s): using the original's pixels", path.c_str(),
                 stbi_failure_reason() ? stbi_failure_reason() : "unknown error");
@@ -39,9 +39,14 @@ bool loadArtGrey(const Ctx& c, const std::string& name, GreyImage* out) {
     }
     out->w = w;
     out->h = h;
-    out->px.assign(px, px + size_t(w) * h);
+    out->channels = channels;
+    out->px.assign(px, px + size_t(w) * h * channels);
     stbi_image_free(px);
     return true;
 }
+
+bool loadArtGrey(const Ctx& c, const std::string& name, ArtImage* out) { return loadArt(c, name, 1, out); }
+
+bool loadArtRgba(const Ctx& c, const std::string& name, ArtImage* out) { return loadArt(c, name, 4, out); }
 
 }  // namespace paper

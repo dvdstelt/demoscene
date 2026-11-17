@@ -133,3 +133,18 @@ tiles. `remake/tools/align_art.py` fits it onto the original (offset under 0.6 o
 the fit. The redraw's crisp strokes showed through the ink's light grey rims and highlights, which the remake draws
 as partial coverage, so with the redraw the logo part hides the sketch under every ink pixel the fill has reached,
 as the original does. `--original-art` shows the original sketch, drawn as before.
+
+## The text and the ink
+
+On a 4K screen the logo page still looked like a bad remake of the retro logo: "present the" and "intro" were
+soft, and the inked "Paper" was blobby, with jagged edges, white holes and red specks. Both came from drawing the
+original's 320x200 shortcuts larger. The original blurs its 1-bit letters once as anti-aliasing, which at 2560x1920
+is a blur about 8 pixels wide, and the ink was a computer upscale of Statix's hand-painted pixels. So both got
+redraws with ChatGPT too, each kept at the first attempt. The text is a sharp white-on-black mask of the 1-bit
+letters, every letter within a fraction of an original pixel of the original's; the remake draws it anti-aliased at
+the output resolution and builds the shadow from the same mask, as the original does. The ink is the finished inked
+logo on a transparent background, given the original's body colour. The flood fill still decides when it appears:
+the remake runs the fill on the original's map, extends every pixel's arrival tick to the redraw, and shows the
+redraw where the fill has arrived, so the fronts move when and where the original's do.
+[`remake/art/README.md`](../remake/art/README.md) has the prompts and the fits. `--original-art` still gives the
+frames from before.

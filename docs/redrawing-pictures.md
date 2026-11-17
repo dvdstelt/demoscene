@@ -20,8 +20,11 @@ redraw keeps what the effect needs; the decompiling notes say how each picture i
 - a shade map coloured through palette ramps (DOPE's logo) or shaded with a paper grain (Paper's sketch): redraw it
   as a grey shade map, with the background exactly the value around it;
 - a coverage mask (DOPE's credits): redraw it as white on black;
-- a map of palette indices that an effect writes pixel by pixel (Paper's ink image, which a flood fill colours): do
-  not redraw it, upscale it in the remake from its values;
+- a map of palette indices that an effect only reveals pixel by pixel (Paper's ink image, which a flood fill
+  colours): redraw the finished picture (on a transparent background) and keep the effect's map from the original;
+  Paper's remake runs the fill on the original's map and reveals the redraw by its timing;
+- text drawn with a bitmap font and blurred as anti-aliasing (Paper's "present the" / "intro"): redraw the 1-bit
+  text as a white-on-black mask and draw it sharp, anything built from it (a shadow) from the same mask;
 - an env map that is only read inside a disc (DOPE's p5): keep the layout exactly;
 - a picture whose parts are coloured separately (STARS's flower eyes in four palette bands): keep each part where
   it is;
@@ -135,13 +138,13 @@ colour and moved a hand, one filled the background shape. The full account is in
 
 ## 5. Fit and check
 
-`tools/align_art.py NN RAW.png` (STARS: picture number; DOPE: picture name; Paper: `sketch`) fits the redraw onto
-the original (scale in x and y, offset), writes it to `art/` covering exactly the original's frame at the redraw's
-own resolution, and prints the fit: the scale and offset, and the residual (RMS colour difference in the original's
-pixel grid, plain and blurred, the share of pixels where one is background and the other is not, and the
-correlation of their detail; 1.00 is every shape in place). DOPE's version has `--match`, which gives the redraw the
-original's colours where the generator made them darker or shifted their hue; Paper's does the same for its grey
-sketch by default.
+`tools/align_art.py NN RAW.png` (STARS: picture number; DOPE: picture name; Paper: `sketch`, `text`, `ink`) fits
+the redraw onto the original (scale in x and y, offset), writes it to `art/` covering exactly the original's frame
+at the redraw's own resolution, and prints the fit: the scale and offset, and the residual (RMS colour difference
+in the original's pixel grid, plain and blurred, the share of pixels where one is background and the other is not,
+and the correlation of their detail; 1.00 is every shape in place). DOPE's version has `--match`, which gives the
+redraw the original's colours where the generator made them darker or shifted their hue; Paper's does the same for
+its grey sketch and gives its ink the original's body colour, by default.
 
 ```
 toolbox run -c acme303 python3 stars/remake/tools/align_art.py 13 stars/re/art-raw/stars13_r2A_s1303.png
