@@ -200,6 +200,7 @@ void Hires::liveness(uint32_t a, int maxOps, bool keepB2) {
 
 HiresRun Hires::run(uint32_t a, int maxOps) {
     HiresRun out;
+    const bool logo = a == kLogoScript;
     rng = scriptSeed(X);
     w = 0;
     liveness(a, maxOps, a == kLogoScript);
@@ -265,6 +266,8 @@ HiresRun Hires::run(uint32_t a, int maxOps) {
             break;
         }
         case 0x0e: {
+            if (logo && out.beforeMul[0].empty())  // the clouds (kLogoClouds)
+                for (int p = 0; p < 3; p++) out.beforeMul[p] = B[w][p].empty() ? Plane(NN, 0.0f) : B[w][p];
             const int n = X.u8(a + 2);
             for (int i = 0; i < Pm.n; i++) {
                 float* d = P(w, Pm.p[i]);

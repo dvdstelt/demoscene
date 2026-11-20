@@ -29,7 +29,7 @@ constexpr int kBuf = 0x30000;    // a texture buffer: planes R (+0), G (+0x10000
 // The texture buffers by their slot in the engine's pointer table at 0x654a (pointer variable 0x654a + 4 * slot;
 // slot 0 = [0x654a] is the core's light map 0x6592, not a script texture), plus the two RLE pictures as their own
 // entries (not buffers of the original: the bitmaps the logo / testshit scripts decode, kept for the parts that need
-// their coverage at high resolution).
+// their coverage at high resolution), and the clouds the logo script multiplies them with.
 enum Id : int {
     kMap1 = 1,      // [0x654e]
     kMap2,          // [0x6552]
@@ -50,10 +50,12 @@ enum Id : int {
     kLogo2,         // [0x658e]  0x20000 bytes: 16-bit 320x200, the "jizz!" picture (copied from B2 by 0x12d44)
     kPictureA,      // RLE picture at 0x275b8 ("~JIZZ~ TBL'97"), 256x200 in a 256x256 plane, grey in R = G = B
     kPictureB,      // RLE picture at 0x27d68 (Sjaak's "jizz" logo)
+    kLogoClouds,    // the clouds of the logo script 0x12a7d (its W just before its first multiply): logo1 and logo2 are
+                    // these clouds times picture A and B; for the redrawn pictures (jizz/art.h)
     kCount
 };
 
-const char* name(int id);            // "map1", ..., "blobheights", "testshit", "logo1", "pictureA", ...
+const char* name(int id);            // "map1", ..., "blobheights", "testshit", "logo1", "pictureA", "logoclouds"
 uint32_t pointerVar(int id);         // 0x654a + 4 * id for the buffers, 0 for the pictures
 int byPointerVar(uint32_t var);      // 0x654e..0x658e -> id, -1 otherwise
 int byName(const std::string& n);    // -1 if unknown
@@ -69,7 +71,8 @@ struct Options {
 };
 
 struct Texture {
-    // Exact, as the original leaves its buffer after 0x12c50 (0x30000 bytes, logo2 0x20000; pictures: their plane).
+    // Exact, as the original leaves its buffer after 0x12c50 (0x30000 bytes, logo2 0x20000; pictures: their plane;
+    // the logo clouds: the planar buffer).
     std::vector<uint8_t> original;
     // Exact content as 3 planar 256x256 byte planes R, G, B: the same as `original` for planar textures; for the
     // converted ones the planes just before the conversion (the format ops only change storage: interleave, 5:6:5,

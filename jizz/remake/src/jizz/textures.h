@@ -16,6 +16,8 @@
 //   - Testshit, Logo1, Logo2 are 320x200 pictures in the original (tile320 / 5:6:5): screen pixel (x, y) is texel
 //     (x mod 256, y), so sample u = x / 256 (repeat), v = y / 256. Rows 200..255 are black.
 //   - PictureA / PictureB: the two RLE bitmaps alone (grey in R = G = B), e.g. as coverage for the "jizz!" picture.
+//   - LogoClouds: the blurred clouds the logo script multiplies the pictures with (byte * picture / 256), for the
+//     redrawn pictures (jizz/art.h); same layout as Logo1 / Logo2.
 // Storage conversions of the original (interleaved RGB for the engine, 5:6:5 copies, 320-wide rows) are not
 // separate textures: they hold the same content. Changes the parts make to a buffer are the parts' business:
 //   - the tunnel part 0x169e7 copies map5 over map1 (engine slot 1 = map5 from 4:00 on): bySlot(1, true);
@@ -55,8 +57,9 @@ enum class Tex : int {
     Logo2,            // [0x658e] the "jizz!" picture, 320x200
     PictureA,         // RLE bitmap 0x275b8 ("~JIZZ~ TBL'97")
     PictureB,         // RLE bitmap 0x27d68 (the "jizz" logo)
+    LogoClouds,       // the clouds of the logo script 0x12a7d: Logo1 / Logo2 = these clouds x PictureA / PictureB
 };
-constexpr int kTexCount = int(Tex::PictureB) + 1;
+constexpr int kTexCount = int(Tex::LogoClouds) + 1;
 
 class Textures {
 public:

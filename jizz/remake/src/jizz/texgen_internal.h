@@ -85,6 +85,7 @@ struct ExactRun {
     int wEnd = 0;                                    // which buffer W was at op 0x01
     std::array<std::vector<uint8_t>, 4> content;     // per buffer: planes before its first format op, if any
     std::array<std::vector<uint8_t>, 4> buffers;     // B0..B3 at the end
+    std::vector<uint8_t> beforeMul;                  // W just before the first multiply (op 0x0e), empty if none
     std::vector<std::pair<std::string, std::vector<uint8_t>>> saves;
     int closeCalls = 0;
 };
@@ -100,6 +101,7 @@ struct HiresRun {
     bool ok = false;                                 // false: the script uses an op the float path does not have
     std::array<std::vector<float>, 3> result;        // W at op 0x01
     std::array<std::vector<float>, 3> b2;            // B2 at the end (logo2)
+    std::array<std::vector<float>, 3> beforeMul;     // logo script only: W just before its first multiply (the clouds)
     int wEnd = 0;
     std::string why;
     std::array<double, 0x27> msPerOp{};              // time spent per opcode (profiling)

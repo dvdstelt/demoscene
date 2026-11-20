@@ -212,6 +212,7 @@ ExactRun Exact::run(uint32_t a, int maxOps) {
             break;
         }
         case 0x0e: {  // multiply by B[n]
+            if (out_.beforeMul.empty()) out_.beforeMul = B[w];
             const uint8_t* S = buf(X.u8(a + 2));
             for (int i = 0; i < P.n; i++) {
                 uint8_t* d = plane(w, P.p[i]);

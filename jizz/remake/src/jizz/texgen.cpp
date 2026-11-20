@@ -21,7 +21,8 @@ namespace jizz::texgen {
 namespace {
 const char* const kNames[kCount] = {"lightmap", "map1",     "map2",  "map3",  "map4",     "map5",     "weirdtxt",
                                     "map7",     "map8",     "map9",  "blobheights", "testshit", "logo1", "map10",
-                                    "map14",    "map15",    "map1a", "logo2", "pictureA", "pictureB"};
+                                    "map14",    "map15",    "map1a", "logo2", "pictureA", "pictureB",
+                                    "logoclouds"};
 
 double msSince(std::chrono::steady_clock::time_point t0) {
     return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
@@ -194,6 +195,9 @@ Result build(const JizzExe& exe, const Options& opt) {
             Texture& l2 = res.tex[kLogo2];  // 0x12d44: B2 (16-bit 320x200) -> [0x658e]
             l2.original.assign(ex.buffers[2].begin(), ex.buffers[2].begin() + 0x20000);
             l2.planar = ex.content[2];
+            Texture& lc = res.tex[kLogoClouds];  // the clouds, W before the first multiply
+            lc.original = ex.beforeMul;
+            lc.planar = ex.beforeMul;
             const std::vector<uint32_t> pics = pictureAddresses(exe, b.script);
             if (pics.size() != 2) throw std::runtime_error("texgen: logo script without its two pictures");
             for (int i = 0; i < 2; i++) {
@@ -209,7 +213,7 @@ Result build(const JizzExe& exe, const Options& opt) {
             if (opt.captureSaves)
                 for (auto& s : ex.saves) res.saves.push_back(std::move(s));
         }
-        if (useHires(b.id) || (b.id == kLogo1 && useHires(kLogo2))) {
+        if (useHires(b.id) || (b.id == kLogo1 && (useHires(kLogo2) || useHires(kLogoClouds)))) {
             const auto th = std::chrono::steady_clock::now();
             HiresRun hr = runHires(exe, b.script, scale, b.id == kTestshit);
             t.peakPlanes = hr.peakPlanes;
@@ -222,6 +226,8 @@ Result build(const JizzExe& exe, const Options& opt) {
                 if (b.id == kBlobHeights) gradientsHires(scale, hr.result);
                 if (useHires(b.id)) finish(t, b.id, std::move(hr.result));
                 if (b.id == kLogo1 && useHires(kLogo2)) finish(res.tex[kLogo2], kLogo2, std::move(hr.b2));
+                if (b.id == kLogo1 && useHires(kLogoClouds) && !hr.beforeMul[0].empty())
+                    finish(res.tex[kLogoClouds], kLogoClouds, std::move(hr.beforeMul));
             }
             t.msHires = msSince(th);
         }

@@ -8,15 +8,22 @@
 //   row = 1.3 |(X, Y)| + B sin(2 pi (A col + C) / 256),   warp = map5(col, row) * (31 - lv) / 32
 // with C = 5t / 8192 (negated when S = -1) and lv = 5 sin(2 pi t / 2^20) + 6 cos(2 pi t / 838860.8) + 13 minus the
 // pulse, all from the timer and continuous (the original rounds the star offsets per angle byte and lv to integers,
-// and reads the nearest texel). The picture is the filtered high-resolution logo2 texture; its opaque area (the
-// non-zero pixels plus the outline, i.e. the non-zero area dilated by one original pixel) is an anti-aliased shape
-// from a distance field built at 4x the original resolution.
+// and reads the nearest texel).
+//
+// The picture, with the redraw (art/logo.png, jizz/art.h): the script's clouds (Tex::LogoClouds) times the redraw's
+// shape at the picture's solid level, as the script multiplies them (logo2 = clouds x picture / 256); the shape is
+// the redraw's coverage at 1/2, anti-aliased at the output resolution. Its opaque area (the shape plus the outline,
+// i.e. the shape dilated by one original pixel) comes from a distance field of the redraw at its own resolution.
+// With --original-art (or without the file): the filtered high-resolution logo2 texture; its opaque area (the
+// non-zero pixels plus the outline) is an anti-aliased shape from a distance field built at 4x the original
+// resolution.
 #include <algorithm>
 #include <cmath>
 #include <vector>
 
 #include "demo.h"
 #include "exe.h"
+#include "jizz/art.h"
 #include "jizz/core.h"
 #include "jizz/textures.h"
 
@@ -72,7 +79,33 @@ void main() {
 }
 )";
 
+const char* kPicArtFS = R"(
+in vec2 uv;
+out vec4 o;
+uniform sampler2D clouds;  // the script's clouds (256x256 texels, wrapping): logo2 = clouds x picture / 256
+uniform sampler2D art;     // the redraw: coverage over the 256x200 picture, x wrapping at 256 (tile320)
+uniform sampler2D dist;    // distance to the redraw's shape (coverage >= 1/2) in original pixels, over 256x200
+uniform vec2 size;
+uniform float level;       // the picture's solid level / 256
+void main() {
+    vec2 vga = vec2(gl_FragCoord.x * (320.0 / size.x), (size.y - gl_FragCoord.y) * (200.0 / size.y));
+    vec2 q = vga - vec2(0.0, 20.0);                      // 0x1239b: picture rows 30..159 -> page rows 50..179
+    vec2 a = q / vec2(256.0, 200.0);
+    float m = texture(art, a).r;
+    float inner = clamp((m - 0.5) / max(fwidth(m), 1e-3) + 0.5, 0.0, 1.0);  // the shape, one output pixel of edge
+    if (q.y < 30.0 || q.y > 160.0) discard;
+    float d = texture(dist, a).r;
+    float w = 320.0 / size.x;                            // one output pixel in original pixels
+    float cov = clamp((1.0 - d) / w + 0.5, 0.0, 1.0);    // outline: one original pixel around the shape
+    if (cov <= 0.0) discard;
+    // the multiply's floor as its mean (texgen_hires.cpp); dark in the outline ring
+    vec3 c = max(texture(clouds, q / 256.0).rgb * level - 0.5 / 255.0, 0.0);
+    o = vec4(c * inner, cov);
+}
+)";
+
 // Squared Euclidean distance transform of one line (Felzenszwalb & Huttenlocher), f = 0 on the set, large off it.
+// Samples one unit apart; for a spacing s, pass f / s^2 and multiply the result by s^2.
 void edt1d(const double* f, int n, double* d, int* v, double* z) {
     int k = 0;
     v[0] = 0;
@@ -108,8 +141,17 @@ public:
         pos_ = c.positionTime(kPos);
         start_ = pos_ + kSetup;
         warp_.build(kFullscreenVS, std::string(kGLSL) + kWarpFS, "logo warp");
-        pic_.build(kFullscreenVS, kPicFS, "logo picture");
-        buildDistance(tx);
+        ArtImage im;
+        if (loadArtGrey(c, "logo", &im)) {
+            uploadArt(im, art_);
+            buildArtDistance(im);
+            const uint8_t* pb = tx.planar(Tex::PictureB);
+            level_ = float(*std::max_element(pb, pb + 65536)) / 256.0f;  // 255: the picture's solid pixels
+            pic_.build(kFullscreenVS, kPicArtFS, "logo picture (redraw)");
+        } else {
+            pic_.build(kFullscreenVS, kPicFS, "logo picture");
+            buildDistance(tx);
+        }
     }
 
     void render(Ctx& c, double t) override {
@@ -155,10 +197,20 @@ public:
 
         setBlend(Blend::Alpha);  // 0x1239b: the picture and its outline over the warp
         pic_.use();
-        tx.bind(Tex::Logo2, 0);
-        dist_.bind(1);
-        pic_.set("pic", 0);
-        pic_.set("dist", 1);
+        if (art_.id) {
+            tx.bind(Tex::LogoClouds, 0);
+            art_.bind(1);
+            dist_.bind(2);
+            pic_.set("clouds", 0);
+            pic_.set("art", 1);
+            pic_.set("dist", 2);
+            pic_.set("level", level_);
+        } else {
+            tx.bind(Tex::Logo2, 0);
+            dist_.bind(1);
+            pic_.set("pic", 0);
+            pic_.set("dist", 1);
+        }
         pic_.set("size", float(c.out->w), float(c.out->h));
         drawFullscreen();
         setBlend(Blend::None);
@@ -217,11 +269,36 @@ private:
         dist_.createRaw(w, h, GL_R16F, GL_RED, GL_FLOAT, out.data(), true, false, false);
     }
 
+    // The same for the redraw: the distance to its shape (coverage >= 1/2) in original pixels, at the redraw's own
+    // resolution over the 256x200 picture (one sample is 256 / w original pixels across and 200 / h down), wrapping
+    // in x like the picture. Only the outline needs it, so it is clamped at 4 pixels.
+    void buildArtDistance(const ArtImage& im) {
+        const int w = im.w, h = im.h;
+        const double sx = 256.0 / w, sy = 200.0 / h;  // sample spacing in original pixels
+        std::vector<double> f(size_t(w) * h), d(std::max(w, h)), col(std::max(w, h)), z(std::max(w, h) + 1);
+        std::vector<int> v(std::max(w, h));
+        for (size_t i = 0; i < f.size(); i++) f[i] = im.px[i] >= 128 ? 0.0 : 1e12;
+        for (int i = 0; i < w; i++) {  // columns, spacing sy
+            for (int j = 0; j < h; j++) col[j] = f[size_t(j) * w + i] / (sy * sy);
+            edt1d(col.data(), h, d.data(), v.data(), z.data());
+            for (int j = 0; j < h; j++) f[size_t(j) * w + i] = d[j] * sy * sy;
+        }
+        std::vector<float> out(size_t(w) * h);
+        const double half = 0.25 * (sx + sy);  // the boundary lies about half a sample outside the last inside one
+        for (int j = 0; j < h; j++) {  // rows, spacing sx
+            for (int i = 0; i < w; i++) col[i] = f[size_t(j) * w + i] / (sx * sx);
+            edt1d(col.data(), w, d.data(), v.data(), z.data());
+            for (int i = 0; i < w; i++)
+                out[size_t(j) * w + i] = float(std::min(4.0, std::max(0.0, std::sqrt(d[i] * sx * sx) - half)));
+        }
+        dist_.createRaw(w, h, GL_R16F, GL_RED, GL_FLOAT, out.data(), true, true, false);
+    }
+
     Shader warp_, pic_;
-    Texture dist_;
+    Texture dist_, art_;  // art_: the redraw (id 0 with --original-art)
     double pos_ = 0, start_ = 0, twoPi16k_ = 0;
     int A0_ = 7, B0_ = 25, S0_ = 0;
-    float k256_ = 0;
+    float k256_ = 0, level_ = 1;
 };
 
 REGISTER_SCENE(LogoScene, "logo");

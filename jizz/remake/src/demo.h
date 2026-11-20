@@ -89,6 +89,9 @@ struct Ctx {
     const JizzExe* exe = nullptr;   // the original's program image
     Music* music = nullptr;         // positions and the timer of the original player
     Target* out = nullptr;          // the target the current part draws into (bound when render() is called)
+    // The redrawn pictures (jizz/art.h): the art folder, empty with --original-art or when none was found.
+    std::string artDir;
+    bool art() const { return !artDir.empty(); }
 
     // ---- the original's clock and music sync
     double timer(double t) const;          // xmpGetTimer at music time t (PIT clocks, 1,193,182 per second)
