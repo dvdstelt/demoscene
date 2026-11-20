@@ -42,8 +42,8 @@ further unless asked; fixes there should stay minimal.
 
 ### Redrawn pictures
 
-STARS, DOPE, clone meets clone, Paper and 303 show high-resolution redraws of their hand-drawn pictures by default,
-and the original pixels with `--original-art`; 303 also shows its video clips restored with SeedVR2
+STARS, DOPE, clone meets clone, Paper, 303 and JIZZ show high-resolution redraws of their hand-drawn pictures by
+default, and the original pixels with `--original-art`; 303 also shows its video clips restored with SeedVR2
 (`303/remake/art/video/`).
 Photos of real people are not redrawn. The redraws are AI redraws made from the original pictures, at the maintainer's request, and
 stay faithful to them: the same composition, pose, proportions, framing, colours and text; only resolution and detail

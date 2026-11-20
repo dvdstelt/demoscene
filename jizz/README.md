@@ -27,7 +27,7 @@ A 4K video of the remake is coming to YouTube.
 
 | folder | what it is |
 |---|---|
-| [`remake/`](remake/) | The remake: every routine ported from the decompiled executable, checked against the original running in an emulator. |
+| [`remake/`](remake/) | The remake: every routine ported from the decompiled executable, checked against the original running in an emulator. [`remake/art/`](remake/art/) holds the redrawn pictures. |
 | [`re/`](re/) | The reverse-engineering notes for every routine, the unpacker, the emulator harness and the scripts the agents used to check their models. |
 | [`original/`](original/) | Put `JIZZ.EXE` here (it is not in the repository). |
 | [`docs/making-of.md`](docs/making-of.md) | How the remake was made. |
@@ -43,8 +43,9 @@ A 4K video of the remake is coming to YouTube.
 
 The remake reads everything from `JIZZ.EXE`: the program image (unpacked with its own DOS32 loader), the texture
 scripts and pictures, the music and its synthesiser parameters, the object scripts, the camera paths and the sync
-table. Nothing from the intro is copied into the source. [`remake/README.md`](remake/README.md) lists the options and
-the build details per platform.
+table. Nothing from the intro is copied into the source. The two hand-drawn pictures, Sjaak's "jizz" logo and the
+end picture "~JIZZ~ TBL'97", are shown as high-resolution redraws from `remake/art/`; add `--original-art` to see
+the original pixels. [`remake/README.md`](remake/README.md) lists the options and the build details per platform.
 
 ## How close is it?
 

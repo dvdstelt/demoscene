@@ -67,9 +67,9 @@ From then on the executable was the source of truth:
 ## Redrawn pictures
 
 Effects can be recomputed at any resolution, but a picture drawn pixel by pixel cannot: scaled up, it stays 320×200.
-For STARS, DOPE and clone meets clone, I asked for high-resolution versions of the hand-drawn pictures (title
-cards, backgrounds, labels, logos, sprites and textures that are drawn as they are), faithful to the originals. They
-were made like this:
+For every remake, I asked for high-resolution versions of the hand-drawn pictures (title cards, backgrounds,
+labels, logos, sprites and textures that are drawn as they are), faithful to the originals. They were made like
+this:
 
 1. **Upload the real pixels.** Each original picture, with the palette the demo shows it with, is scaled up with
    nearest-neighbour to its display shape (a 320×200 screen to 4:3, a texture with square texels), so the image generator sees the exact pixels.
@@ -86,12 +86,14 @@ were made like this:
    clone it fits every word of a caption on its own, where the generator spaced the words a little differently.
 
 The redraws live in `<demo>/remake/art/` with a README that names the original artist and gives, per picture, the
-prompt, the attempts and the measured fit ([STARS](../stars/remake/art/README.md),
+prompt, the attempts and the measured fit ([303](../303/remake/art/README.md),
+[Paper](../paper/remake/art/README.md), [JIZZ](../jizz/remake/art/README.md), [STARS](../stars/remake/art/README.md),
 [DOPE](../dope/remake/art/README.md), [clone meets clone](../clone/remake/art/README.md)). Generated textures, maps
-and anything an effect reads through palette indices stay computed from the original. ChatGPT refused one picture,
-the third of STARS's three women; it was redrawn with the open image-edit model Qwen-Image-Edit on Comfy Cloud
-instead, with the other two redraws as style references. The remakes show the redraws by default and the original
-pixels with `--original-art`; palette fades are colour multiplies, so they apply to both.
+and anything an effect reads through palette indices stay computed from the original; where an effect colours a
+grey picture (JIZZ multiplies its logo with computed clouds), only the grey picture is redrawn. ChatGPT refused one
+picture, the third of STARS's three women; it was redrawn with the open image-edit model Qwen-Image-Edit on Comfy
+Cloud instead, with the other two redraws as style references. The remakes show the redraws by default and the
+original pixels with `--original-art`; palette fades are colour multiplies, so they apply to both.
 
 [redrawing-pictures.md](redrawing-pictures.md) is the recipe for the next picture: what gets a redraw, the upload,
 the ChatGPT prompt, what to do when ChatGPT refuses or falls short (the Comfy Cloud workflow is saved in
@@ -115,8 +117,8 @@ the ChatGPT prompt, what to do when ChatGPT refuses or falls short (the Comfy Cl
   agents; they are listed in their making-ofs.
 - **Nothing copied.** The remakes read every table, image, string, mesh and sample from the original files at run
   time, by address. The source is a re-implementation, and the originals stay their authors' property. The
-  redrawn pictures of STARS, DOPE and clone meets clone are new pictures made from the originals; they are kept
-  apart in `art/` and stay under the originals' non-commercial terms.
+  redrawn pictures are new pictures made from the originals; they are kept apart in `art/` and stay under the
+  originals' non-commercial terms.
 
 ## Tools
 

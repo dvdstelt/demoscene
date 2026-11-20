@@ -75,6 +75,22 @@ positions exactly (`remake/tools/test_music.cpp`). The rounding of the synthesis
 C++: every 24-bit result is computed as a double and rounded once, and products with double constants use an
 exact product, so g++, MinGW and MSVC give the same bytes.
 
+## The redraws
+
+At 4K the "jizz" logo had stair-stepped edges and the small "jizz!" signature was pixelated, so JIZZ got redraws
+like the other remakes. Its two pictures are 4-bit grey bitmaps that a texture script multiplies with blurred
+clouds: Sjaak's logo, shown by the "jizz" part, and Jace's "~JIZZ~ TBL'97", the end picture. Only the grey pictures
+were redrawn, with ChatGPT's image generation from the original pixels in one conversation; the pastel colours stay
+the script's clouds. The logo's second attempt was kept (the first was about 9 % too thin and merged the thin
+streaks of one stroke), the lettering's first (the second overcorrected its stroke weight). ChatGPT refused nothing.
+`remake/tools/align_art.py` fits each redraw onto the original; both lie on it within a fraction of an original
+pixel. At 2880x2160 one original pixel is 9 output pixels wide, more than the 1024x1024 textures hold, so the
+remake keeps the clouds as their own texture and the two parts multiply them with the redraw in the shader, the
+edges anti-aliased at the output resolution; the logo's one-pixel dark outline comes from a distance field of the
+redraw. The TBL part's letter mask is a generated texture made from the lettering, so it keeps the original picture.
+[`remake/art/README.md`](../remake/art/README.md) has the prompts, the attempts and the fits. `--original-art` gives
+the frames from before.
+
 ## Decisions
 
 For this remake I left the decisions to the agents. The main ones:

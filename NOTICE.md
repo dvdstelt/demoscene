@@ -29,12 +29,13 @@ The remakes read the original files at run time. You need your own copy of each 
 here is a re-implementation written from an analysis of the originals. Data such as images, music, meshes, tables
 and text is never copied into it.
 
-The STARS, DOPE, clone meets clone, Paper and 303 remakes also include redrawn versions of the originals'
+The STARS, DOPE, clone meets clone, Paper, 303 and JIZZ remakes also include redrawn versions of the originals'
 hand-drawn pictures (`stars/remake/art/`, `dope/remake/art/`, `clone/remake/art/`, `paper/remake/art/`,
-`303/remake/art/`): high-resolution AI redraws made from the original pictures, faithful to them, and shown instead
-of the original pixels unless `--original-art` is given. 303's remake also includes its video clips restored at high
-resolution with an AI video model (`303/remake/art/video/`), shown the same way. They are derived from the original
-artists' work and footage, which stay theirs, and fall under the same non-commercial terms as everything else here.
+`303/remake/art/`, `jizz/remake/art/`): high-resolution AI redraws made from the original pictures, faithful to
+them, and shown instead of the original pixels unless `--original-art` is given. 303's remake also includes its
+video clips restored at high resolution with an AI video model (`303/remake/art/video/`), shown the same way. They
+are derived from the original artists' work and footage, which stay theirs, and fall under the same
+non-commercial terms as everything else here.
 Each folder's README names the artist of every picture.
 
 This project is not affiliated with or endorsed by the original authors. It is a non-commercial tribute: nobody

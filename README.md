@@ -17,7 +17,7 @@ meets clone, 320×200 in true colour).
 |---|---|---|---|---|
 | [**303**](303/) | Acme | X'97, April 1997 | PC demo, winner of the X'97 demo competition | [remake](303/remake/), ported from the executable routine by routine; [first version](303/remake-v1/) rebuilt from a video |
 | [**Paper**](paper/) | Psychic Link | Wired '96, November 1996 | 64k intro | [remake](paper/remake/), ported from the executable routine by routine and checked tick by tick in an emulator, with a redrawn sketch, text and inked logo |
-| [**JIZZ**](jizz/) | The Black Lotus | Wired '97, 1997 | 64k intro, winner of the PC 64k intro competition | [remake](jizz/remake/), ported from the executable routine by routine and checked against an emulator capture |
+| [**JIZZ**](jizz/) | The Black Lotus | Wired '97, 1997 | 64k intro, winner of the PC 64k intro competition | [remake](jizz/remake/), ported from the executable routine by routine and checked against an emulator capture, with a redrawn logo and end picture |
 | [**STARS**](stars/) | NoooN | Assembly '95, August 1995 | PC demo, winner of the PC demo competition | [remake](stars/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures |
 | [**DOPE**](dope/) | Complex | The Gathering '95, April 1995 | PC demo, winner of the PC demo competition | [remake](dope/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures |
 | [**clone meets clone**](clone/) | Acme and Fudge | Takeover '98, May 1998 | 64k intro, winner of the PC 64k intro competition | [remake](clone/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures |
@@ -27,9 +27,9 @@ vector engine by Nix. STARS was coded by KARL and BARTi, with pictures by RA and
 jmagic, with graphics and music by jugi. clone meets clone was coded by Echo, with graphics by Aap (who also drew
 303's) and music by Simon.
 
-The STARS, DOPE and clone meets clone remakes show high-resolution redraws of the originals' hand-drawn pictures:
-AI redraws made from the original pictures and faithful to them. Start them with `--original-art` to see the
-original pixels instead.
+All six remakes show high-resolution redraws of the originals' hand-drawn pictures: AI redraws made from the original
+pictures and faithful to them (303 also shows its video clips restored with a video model). Start them with
+`--original-art` to see the original pixels instead.
 
 ## Watch
 
@@ -87,9 +87,9 @@ parallel, each on one part of a demo:
    with fake VGA or VESA, timer and Gravis UltraSound hardware. That gives the exact screen, palette and sound-card
    state for every timer tick or displayed frame, which was used to check every routine.
 4. **Port and compare.** Each part was rewritten for the GPU and compared frame by frame with the original.
-5. **Redraw.** For STARS, DOPE and clone meets clone, the hand-drawn pictures were redrawn at high resolution with
-   ChatGPT's image generation from the original pixels (one that ChatGPT refused with Qwen-Image-Edit on Comfy
-   Cloud), then fitted onto the originals and measured against them.
+5. **Redraw.** For all six, the hand-drawn pictures were redrawn at high resolution with ChatGPT's image
+   generation from the original pixels (one that ChatGPT refused with Qwen-Image-Edit on Comfy Cloud), then fitted
+   onto the originals and measured against them; 303's video clips were restored with SeedVR2.
    [docs/redrawing-pictures.md](docs/redrawing-pictures.md) is the recipe.
 
 [docs/how-it-was-made.md](docs/how-it-was-made.md) has the whole story. Each demo also has a making-of:
@@ -110,7 +110,7 @@ and the scene's own record of the time.
   README.md           about the original, versions, how to run
   original/           put the original files here (not in Git)
   remake/             the current remake (CMake project)
-  remake/art/         the redrawn pictures (all but JIZZ)
+  remake/art/         the redrawn pictures
   remake-v1/          303 only: the first version, rebuilt from a video
   re/                 reverse-engineering notes and scripts
   docs/               making-of, the original's techniques, images
@@ -131,8 +131,8 @@ music replay routine by Phantom of Sonic PC (GUS part adapted by jmagic), 3D obj
 *clone meets clone* is by Acme and Fudge: design by Aap and Echo, effects by Echo, music by Simon, graphics by Aap,
 texture mapper and grid filler by Craft, the original radial blur by Dune, graphics help by Assa, the VESA library by
 Submissive, MXMPlay by Pascal (Niklas Beisert), PMODE/W by Daredevil and Tran. The originals and everything in them
-remain theirs; the redrawn pictures of STARS, DOPE and clone meets clone are derived from their artists' work and
-stay under the same non-commercial terms. This project is a non-commercial tribute, not affiliated with them. See
+remain theirs; the redrawn pictures are derived from their artists' work and stay under the same non-commercial
+terms. This project is a non-commercial tribute, not affiliated with them. See
 [NOTICE.md](NOTICE.md).
 
 The code and documentation in this repository are licensed under the

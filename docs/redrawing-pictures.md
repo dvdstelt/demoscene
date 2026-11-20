@@ -30,7 +30,11 @@ redraw keeps what the effect needs; the decompiling notes say how each picture i
   it is;
 - a picture that is also a texture elsewhere (STARS's women in the warp part, their middle 256 columns): keep that
   region exactly in place;
-- a sprite with a transparent colour: upload it on a flat key colour and turn that into alpha afterwards.
+- a sprite with a transparent colour: upload it on a flat key colour and turn that into alpha afterwards;
+- a grey picture that a script multiplies with a generated texture (JIZZ's logo and end picture, times blurred
+  clouds): redraw the grey picture as a coverage mask, keep the generated texture computed (the remake keeps the
+  script's input to the multiply as its own texture) and do the multiply in the shader, so the picture's edges are
+  anti-aliased at the output resolution.
 
 ## 2. Prepare the upload
 
@@ -60,16 +64,21 @@ what it shows:
 - the format: "a landscape 4:3 image, as large as you can make it".
 
 A second or third attempt says exactly what to correct (a moved word, a dropped signature, a wrong letter). ChatGPT
-returns about 1450×1088 for 4:3 and 1774×887 for 2:1. Keep the raw downloads in `<demo>/re/art-raw/` (ignored by
-Git). The exact prompts and attempts per picture are in [stars/remake/art/README.md](../stars/remake/art/README.md),
-[dope/remake/art/README.md](../dope/remake/art/README.md) and
-[paper/remake/art/README.md](../paper/remake/art/README.md).
+returns about 1450×1088 for 4:3, 1774×887 for 2:1 and 1254×1254 for a square. Keep the raw downloads in
+`<demo>/re/art-raw/` (ignored by Git). The exact prompts and attempts per picture are in
+[stars/remake/art/README.md](../stars/remake/art/README.md),
+[dope/remake/art/README.md](../dope/remake/art/README.md),
+[paper/remake/art/README.md](../paper/remake/art/README.md) and
+[jizz/remake/art/README.md](../jizz/remake/art/README.md).
 
-If Chrome does not start a download (it happened for Paper's sketch: neither ChatGPT's download button nor an
-`<a download>` did anything), take the image from the page: draw it at 1:1 (`image-rendering: pixelated`) in a
-fixed overlay and capture it in tiles with the browser extension's zoom action (`save_to_disk`, scale 1, a region
-starting at the page origin so that one image pixel is one output pixel), then stitch the tiles. Overlapping tiles
-must agree exactly; compare the stitched image's channel sums with those of the image decoded in the page.
+When more than one browser is connected to the browser extension, use the one that runs on this machine: start a
+small `<a download>` of a blob from the page and check that it arrives in `~/Downloads` (JIZZ's redraws were
+downloaded that way). If Chrome does not start a download (it happened for Paper's sketch: neither ChatGPT's
+download button nor an `<a download>` did anything), take the image from the page: draw it at 1:1
+(`image-rendering: pixelated`) in a fixed overlay and capture it in tiles with the browser extension's zoom action
+(`save_to_disk`, scale 1, a region starting at the page origin so that one image pixel is one output pixel), then
+stitch the tiles. Overlapping tiles must agree exactly; compare the stitched image's channel sums with those of the
+image decoded in the page.
 
 ChatGPT checks its finished images and may refuse one ("the image we created may violate our content policies"):
 it refused one of STARS's three cartoon women (picture 13), a nude, and accepted another nude (picture 12). Do not
