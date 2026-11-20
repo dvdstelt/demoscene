@@ -6,9 +6,9 @@
 # BUILD_DIR defaults to <repo>/<demo>/remake/build-win (as in the remakes' READMEs), OUT_DIR to <repo>/out.
 # Writes OUT_DIR/<demo>-remake-windows-x64.zip with one folder of the same name inside: the program, every DLL it
 # needs that is not part of Windows, README.txt, fetch-originals.ps1, the licenses, and an empty original/ folder
-# for the original files; for STARS, DOPE, clone meets clone, Paper and 303 also the art/ folder with the redrawn
-# pictures (from <repo>/<demo>/remake/art), which the program finds next to itself. Fails if the program needs a DLL
-# that is neither a Windows system DLL nor found in BUILD_DIR or the MinGW sysroot.
+# for the original files, and the art/ folder with the redrawn pictures (from <repo>/<demo>/remake/art), which the
+# program finds next to itself. Fails if the program needs a DLL that is neither a Windows system DLL nor found in
+# BUILD_DIR or the MinGW sysroot.
 #
 # The packaged program and DLLs are stripped (the static MinGW runtime libraries bring debug info along); the
 # build folder is not changed.
@@ -121,11 +121,11 @@ if [ "$demo" = 303 ]; then
 fi
 
 # ---------------------------------------------------------------- redrawn pictures
-# STARS, DOPE, clone meets clone, Paper and 303 look for an art folder next to the program (findArt in
-# src/main.cpp); 303's also has art/video/<CLIP>/ with the restored video frames.
+# Every remake looks for an art folder next to the program (findArt in src/main.cpp); 303's also has
+# art/video/<CLIP>/ with the restored video frames.
 art_note=""
 case "$demo" in
-stars | dope | clone | paper | 303)
+stars | dope | clone | paper | 303 | jizz)
     art=$repo/$demo/remake/art
     [ -f "$art/README.md" ] || die "$art/README.md not found"
     mkdir -p "$stage/art"
@@ -187,7 +187,9 @@ effects, timing and music, rendered at any resolution in true colour instead of 
   --ss 2            render at twice the resolution and downsample (antialiasing)
   --loop            restart at the end
   --info            show the position and part in the window title
-  --exe FILE        the original JIZZ.EXE"
+  --original-art    show the original pixels instead of the redrawn logo and end picture
+  --exe FILE        the original JIZZ.EXE
+  --art DIR         the folder with the redrawn pictures"
 elif [ "$demo" = stars ]; then
     title="STARS by NoooN - high resolution remake for Windows (x64)"
     about='A re-implementation of "STARS: Wonders of the World" by NoooN (music Groo, 3D BARTi, system and effects

@@ -2,13 +2,14 @@
 # Render the YouTube videos of the remakes into videos/ (git-ignored).
 #
 #   scripts/render-videos.sh [paper|paper-compare|303|jizz|stars|dope|clone ...]   (default: all that can be made)
-#   scripts/render-videos.sh 303-original stars-original ...                    the same with --original-art
+#   scripts/render-videos.sh 303-original jizz-original stars-original ...      the same with --original-art
 #
 # Needs the remakes built in <demo>/remake/build, the originals in <demo>/original/, and ffmpeg with libsvtav1
 # (Fedora's ffmpeg-free has it). paper-compare also needs the emulator capture paper/re/full.frames (see
 # paper/re/README.md); its sound is the remake's, because the capture's simplified GUS does not ramp volumes down.
-# The remakes with redrawn pictures (Paper, 303, STARS, DOPE, clone) show them by default; the "-original" targets
-# render them with the original pictures (and 303's original video clips) into <demo>-remake-original-art-2160p60.mp4.
+# The remakes with redrawn pictures (Paper, 303, JIZZ, STARS, DOPE, clone) show them by default; the "-original"
+# targets render them with the original pictures (and 303's original video clips) into
+# <demo>-remake-original-art-2160p60.mp4.
 #
 # Output: 2880x2160 (4:3 at 2160p, so YouTube offers 4K), 60 fps, AV1 (CRF 18) + AAC 320k in MP4.
 set -euo pipefail
@@ -64,7 +65,8 @@ jizz() {
   local bin=$ROOT/jizz/remake/build/jizz-remake
   [ -x "$bin" ] || { echo "build jizz/remake first"; return 1; }
   # --from/--to are in seconds of music time: the whole intro is 0..147.75
-  "$bin" --video "$OUT/jizz-remake-2160p60.mp4" --fps "$FPS" --shotsize "$SIZE" --vcodec "$VCODEC"
+  "$bin" $(variant "${1:-}") --video "$OUT/jizz-remake$(suffix "${1:-}")-2160p60.mp4" --fps "$FPS" \
+         --shotsize "$SIZE" --vcodec "$VCODEC"
 }
 
 stars() {
@@ -101,6 +103,7 @@ for t in "${targets[@]}"; do
     303) r303 || true ;;
     303-original) r303 original || true ;;
     jizz) jizz || true ;;
+    jizz-original) jizz original || true ;;
     stars) stars || true ;;
     stars-original) stars original || true ;;
     dope) dope || true ;;
