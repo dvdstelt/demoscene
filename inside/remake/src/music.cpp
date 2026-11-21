@@ -26,7 +26,7 @@ double Soundtrack::rowCallback(int row) const {
 double Soundtrack::refreshOf(double t) const { return startRefresh + t * kRefreshHz; }
 double Soundtrack::timeOf(double refresh) const { return (refresh - startRefresh) / kRefreshHz; }
 
-Soundtrack renderSoundtrack(const InsideExe&, std::span<const uint8_t> amf, int rate) {
+Soundtrack renderSoundtrack(const InsideExe&, std::span<const uint8_t> amf, std::span<const uint8_t>, int rate) {
     if (amf.size() < 4 || amf[0] != 'A' || amf[1] != 'M' || amf[2] != 'F') throw std::runtime_error("EYE.AMF: not AMF");
     Soundtrack s;
     s.rate = rate;

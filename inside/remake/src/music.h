@@ -29,5 +29,6 @@ struct Soundtrack {
     double timeOf(double refresh) const;         // refresh -> music time t (s)
 };
 
-// amf: EYE.AMF. Throws std::runtime_error if it is not the module the player expects.
-Soundtrack renderSoundtrack(const InsideExe& exe, std::span<const uint8_t> amf, int rate);
+// amf: EYE.AMF; dsd: SDIGUS.DSD, DSMI's GUS driver (the remake reads its volume table, notes-music.md). Throws
+// std::runtime_error if they are not the files the player expects.
+Soundtrack renderSoundtrack(const InsideExe& exe, std::span<const uint8_t> amf, std::span<const uint8_t> dsd, int rate);

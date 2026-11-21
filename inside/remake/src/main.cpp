@@ -50,8 +50,8 @@ struct Options {
 void usage() {
     SDL_Log(
         "inside-remake [options]\n"
-        "  --data DIR          the folder with the original INSIDE.EXE, INSIDE.DAT and EYE.AMF (default: next to the program,\n"
-        "                      its parents or the current dir, or in an 'original' folder there)\n"
+        "  --data DIR          the folder with the original INSIDE.EXE, INSIDE.DAT, EYE.AMF and SDIGUS.DSD (default: next to\n"
+        "                      the program, its parents or the current dir, or in an 'original' folder there)\n"
         "  --art DIR           the redrawn pictures (default: an 'art' folder next to the program or in its parents, or remake/art there)\n"
         "  --original-art      show the original's pixels instead of the redraws\n"
         "  --window            run in a window instead of fullscreen\n"
@@ -99,8 +99,8 @@ std::vector<std::string> searchDirs() {
     return dirs;
 }
 
-// The folder with INSIDE.EXE, INSIDE.DAT and EYE.AMF (any case): the hint, the program's folder and its parents, the
-// current folder and its parents, and an 'original' folder in each (the repository's inside/original).
+// The folder with INSIDE.EXE, INSIDE.DAT, EYE.AMF and SDIGUS.DSD (any case): the hint, the program's folder and its
+// parents, the current folder and its parents, and an 'original' folder in each (the repository's inside/original).
 std::string findFile(const std::string& dir, const char* name) {
     std::string lower = name;
     for (char& ch : lower) ch = char(std::tolower(uint8_t(ch)));
@@ -115,7 +115,7 @@ std::string findData(const std::string& hint) {
     for (const auto& d : dirs)
         for (const char* sub : {"", "/original"})
             if (!findFile(d + sub, "INSIDE.EXE").empty() && !findFile(d + sub, "INSIDE.DAT").empty() &&
-                !findFile(d + sub, "EYE.AMF").empty())
+                !findFile(d + sub, "EYE.AMF").empty() && !findFile(d + sub, "SDIGUS.DSD").empty())
                 return d + sub;
     return "";
 }
@@ -313,21 +313,22 @@ int main(int argc, char** argv) {
     std::string err;
     std::string dir = findData(opt.exePath);
     if (dir.empty()) {
-        fail("Could not find INSIDE.EXE, INSIDE.DAT and EYE.AMF.\nPut them next to the program, in a folder named "
-             "'original' next to it or in a parent folder,\nor pass --data <folder>.");
+        fail("Could not find INSIDE.EXE, INSIDE.DAT, EYE.AMF and SDIGUS.DSD.\nPut them next to the program, in a folder "
+             "named 'original' next to it or in a parent folder,\nor pass --data <folder>.");
         return 1;
     }
     if (!exe.load(findFile(dir, "INSIDE.EXE"), &err) || !dat.load(findFile(dir, "INSIDE.DAT"), &err)) {
         fail("Could not read the original files in " + dir + ":\n" + err);
         return 1;
     }
-    bool amfOk = false;
+    bool amfOk = false, dsdOk = false;
     std::vector<uint8_t> amf = readFile(findFile(dir, "EYE.AMF"), &amfOk);
+    std::vector<uint8_t> dsd = readFile(findFile(dir, "SDIGUS.DSD"), &dsdOk);
     uint64_t t1 = SDL_GetTicksNS();
     Soundtrack music;
     try {
-        if (!amfOk) throw std::runtime_error("cannot read EYE.AMF");
-        music = renderSoundtrack(exe, amf, kAudioRate);
+        if (!amfOk || !dsdOk) throw std::runtime_error("cannot read EYE.AMF or SDIGUS.DSD");
+        music = renderSoundtrack(exe, amf, dsd, kAudioRate);
     } catch (const std::exception& e) {
         fail(std::string("music: ") + e.what());
         return 1;

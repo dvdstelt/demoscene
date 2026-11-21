@@ -67,8 +67,6 @@ target_include_directories(inside PRIVATE src third_party)
 target_link_libraries(inside PRIVATE SDL3::SDL3 Threads::Threads)
 target_compile_options(inside PRIVATE ${INSIDE_WARNINGS})
 target_compile_definitions(inside PRIVATE ${INSIDE_DEFINES})
-# development only: the capture in inside/re, for the music placeholder (music.cpp) until the player port is in
-target_compile_definitions(inside PRIVATE INSIDE_RE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../re")
 if(MINGW)
   target_link_options(inside PRIVATE -static -static-libgcc -static-libstdc++)
 endif()
