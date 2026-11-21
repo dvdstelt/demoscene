@@ -304,7 +304,7 @@ elif [ "$demo" = inside ]; then
 music Yolk and Legend) that won the PC demo competition at The Gathering '"'"'96. It plays the original'"'"'s
 effects, timing and music, rendered at any resolution in true colour instead of 320x200 in 256 colours.'
     zipfile=inside.zip
-    needed="INSIDE.EXE (113,134 bytes), INSIDE.DAT (1,349,919 bytes) and EYE.AMF (677,491 bytes)"
+    needed="INSIDE.EXE (113,134 bytes), INSIDE.DAT (1,349,919 bytes), EYE.AMF (677,491 bytes) and SDIGUS.DSD (32,768 bytes)"
     options="  --window          run in a window instead of fullscreen
   --size 1280x960   window size
   --start SECONDS   start position
@@ -312,7 +312,7 @@ effects, timing and music, rendered at any resolution in true colour instead of 
   --loop            restart at the end
   --info            show the time, music position and part in the window title
   --original-art    show the original pixels instead of the redrawn pictures
-  --data DIR        the folder with the original INSIDE.EXE, INSIDE.DAT and EYE.AMF
+  --data DIR        the folder with the original INSIDE.EXE, INSIDE.DAT, EYE.AMF and SDIGUS.DSD
   --art DIR         the folder with the redrawn pictures"
 else
     title="Paper by Psychic Link - high resolution remake for $platform"

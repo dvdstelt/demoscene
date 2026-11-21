@@ -95,6 +95,7 @@ demo_info() {
             "INSIDE.EXE   15ac35f8ea1c4cb32cd70b1fb7ba425af5bb60cb6c81794da26497c8ceeb53ef"
             "INSIDE.DAT   9026946bd6988f3f375559a47982c7483a33817ef89d725f4ea194df84e5a865"
             "EYE.AMF      bf6172d3b1728da542b71f355ef4b58f9573a76fec02fd9ea99a801b5886d01f"
+            "SDIGUS.DSD   9eebd39b89135d55039cd7b8de33a032555c0c6859a26efe2ecc07e36737eef1"
         )
         ;;
     *) return 1 ;;
