@@ -42,6 +42,11 @@ start `acme303`. Or build it yourself:
 
 ## How close is it?
 
+![The original (left, from a video capture) and the remake (right) at the same moments](docs/images/original-vs-remake.jpg)
+
+*The original (left, from a video capture of it running on a Pentium MMX) and the remake (right, with the restored
+video clip and the redrawn picture), at the same moments.*
+
 The remake runs the original's routines, ported one by one and compared side by side with a capture of the
 original running on a Pentium MMX. Two things cannot be exact:
 
