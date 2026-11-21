@@ -27,6 +27,11 @@ namespace {
 constexpr uint32_t kFlash = 0x400498, kInverse = 0x400454, kBlack = 0x400438;
 constexpr uint32_t kWhiteFlashers[] = {0x40a678, 0x40a098, 0x4093f0, 0x405f1c, 0x40461c};
 constexpr uint32_t kFlowerShow = 0x409358;
+// Fades a part starts itself with 0x4004ac(level, n) (notes-core.md section 6): the intro's init fades in from black
+// over 120 refreshes (its first step at the first record of the intro, the script's entry 0x4038c8); the flight's start
+// 0x402c28 fades in over 60 (from the black the script's fade-out left).
+struct PartFade { uint32_t routine; float level; int steps; };
+constexpr PartFade kPartFades[] = {{0x4038c8, 1.0f, 120}, {0x402c28, 1.0f, 60}};
 }  // namespace
 
 Fade::Fade(Ctx& c) {
@@ -39,12 +44,14 @@ Fade::Fade(Ctx& c) {
         if (white) ops_.push_back({FadeOp::Flash, e.refresh, 1.0f, 15});
         else if (e.routine == kInverse || e.routine == kFlowerShow) ops_.push_back({FadeOp::Inverse, e.refresh, 1.0f, 20});
         else if (e.routine == kBlack) ops_.push_back({FadeOp::Black, e.refresh, 0.0f, 40});
+        for (const PartFade& f : kPartFades)
+            if (e.routine == f.routine) ops_.push_back({FadeOp::Fade, e.refresh, f.level, f.steps});
     }
     std::stable_sort(ops_.begin(), ops_.end(), [](const FadeOp& x, const FadeOp& y) { return x.refresh < y.refresh; });
     // step the state once per refresh, like 0x400540 in the timer callback
     first_ = ops_.empty() ? 0 : int(std::floor(ops_.front().refresh)) - 1;
     int last = int(std::ceil(c.music ? c.music->endRefresh : 0)) + 2;
-    double cur_a = 1, cur_b = 0, fa = 1, fb = 0, da = 0, db = 0, level = 1;
+    double cur_a = 0, cur_b = 0, fa = 0, fb = 0, da = 0, db = 0, level = 0;   // the DAC starts black
     int left = 0;
     size_t next = 0;
     for (int r = first_; r <= last; r++) {
