@@ -26,10 +26,10 @@ retrace wait inside a handler lets time pass.
 
 Outputs (prefix --out):
   <out>.frames  header b'INSDFRM1' + <IIII: width 320, height 200, record bytes 64768, header bytes 24; then per
-                screen refresh, at the start of its first displayed line (the timer interrupt copies a finished frame
-                just after the retrace before it), the 64,000 bytes of VGA memory and the 768 bytes of the DAC (6 bits
-                per entry). Record k is the picture shown from time k / 70.086 s on.
-  <out>.ticks   per screen refresh: frame, time (s), music order, row, demo ticks [0x424880] (float, 280 Hz), part
+                screen refresh, at the start of the first displayed line after its retrace (the timer interrupt copies
+                a finished frame just after the retrace), the 64,000 bytes of VGA memory and the 768 bytes of the DAC
+                (6 bits per entry). Record k is written at program time (k + 1) / 70.086 s and shown from then on.
+  <out>.ticks   per screen refresh: frame, time (s), music order, row, frame clock [0x424880] (float, 70 Hz), part
                 ticks [0x4248c8], script index [0x4248bc], frame routine [0x424888], tick routine [0x4248b4],
                 frames shown [0x42488c], timer interrupts so far, main EIP
   <out>.flips   per frame copied to the screen by the timer interrupt (0x400694): number, frame, time, order, row,
@@ -846,7 +846,7 @@ def main():
             frames.write(bytes(st['dac']))
 
     # frames are recorded at the start of each refresh's line 0; a resumed run continues at the snapshot's frame
-    next_frame = FRAME * max(1, st['frame'])
+    next_frame = FRAME * (st['frame'] + 1)
     last_fn = None
     while not st['stop'] and st['frame'] < a.frames:
         # the next event: PIT interrupt or the start of a retrace
