@@ -1,47 +1,32 @@
-"""Fits a high-resolution redraw of one of clone meets clone's ten pictures onto the original and writes art/NAME.png.
+"""Fits a high-resolution redraw of one of Inside's pictures onto the original and writes art/NAME.png.
 
-    python3 tools/align_art.py NAME REDRAW.png [--match] [--no-elements]   fit and write art/NAME.png
-    python3 tools/align_art.py --upload NAME OUT.png                       the nearest-neighbour picture to upload
-    python3 tools/align_art.py --sheet OUT.jpg NAME [NAME ...]             comparison sheet: original | redraw
-(inside the toolbox: numpy + PIL). Adapted from dope/remake/tools/align_art.py and 303/remake/tools/align_art.py.
+    python3 tools/align_art.py --upload NAME OUT.png         the nearest-neighbour picture to give the image generator
+    python3 tools/align_art.py NAME REDRAW.png [--match]      fit the redraw and write art/NAME.png
+    python3 tools/align_art.py --sheet OUT.jpg NAME [NAME ..] comparison sheet: original | redraw
+(inside the toolbox: numpy + PIL). Adapted from clone/remake/tools/align_art.py (the fit) and
+dope/remake/tools/align_art.py (the colour match).
 
-NAME is a picture of clone/re/dump/pictures/ (written by clone/re/models/gfx/pictures.py: RGBA, the 6-bit grey
-value << 2, transparent pixels alpha 0), see clone/re/notes-gfx.md, section 7. All ten are grey and drawn 1:1 at
-fixed positions on the 320x200 screen, which is shown at 4:3: one original pixel is 1.2 times as tall as wide. A
-6-bit grey v is read as 255 * v / 63 (white 63 is 255, as the remake shows it).
+NAME is a picture of PICTURES below (the remake's src/pictures.cpp has the same list): 8-bit pixels and a 6-bit
+palette from INSIDE.DAT (read with inside/re/datfile.py; the original files must be in inside/original), shown on the
+320x200 screen at 4:3, so one original pixel is 1.2 times as tall as wide. A 6-bit value v is read as 255 * v / 63.
 
-- texts (meet_us, get_them_clones, connect_the_dots, tunnels_meet_more_tunnels, title_clone_meets_clone,
-  credits_aap_echo_simon): white anti-aliased letters on black (the transparent pixels are drawn on a black box;
-  the anti-aliasing towards black is opaque). Uploaded grey on a black canvas of a shape the generator makes (3:1;
-  the credits square), written as 8-bit grey, white text on black;
-- glyphs (glyph1..4): a white brush shape with a thick black outline on transparency (a hard 1-bit edge). Uploaded
-  on a flat magenta key (255, 0, 255) on a square canvas; the key is turned into alpha afterwards (`unmix`: a
-  pixel is a * grey + (1 - a) * key, so a follows from how far it is from grey towards the key; the redraw's own
-  key colour is measured on its border, `normalise_key`) and the picture is written as 8-bit grey with alpha.
+- opaque pictures: uploaded as they are, written as RGB;
+- pictures with a transparent index: uploaded on a flat key colour that the picture does not use (KEY below), and
+  the key is turned into alpha afterwards (a pixel is a * c + (1 - a) * key; a follows from how far it is from the key
+  along the key's direction), written as RGBA.
 
-The fit maps redraw pixel coordinates (x, y) to original pixel coordinates (u, v): u = sx * x + tx,
-v = sy * y + ty. It compares both pictures in the original's grid (the redraw area-averaged into it, both blurred
-so that detail the original does not have does not count; glyphs on the key, so the silhouette counts): a
-brute-force search over scale and offset on a coarse grid, then Nelder-Mead on (scale, aspect, tx, ty) with less
-and less blur. It prints the scale (relative to "the redraw fills the upload's canvas") and offset and the residual
-(RMS of the difference 0..255 in the original's grid, plain and with a 1-pixel blur, the share of pixels where one
-picture is background (black, or the key) and the other is not, and the correlation of the two pictures' detail,
-see `Fit.residual`).
-
-Texts are then fitted again per element (`elements`: the words, split at gaps of 3 or more empty columns; the
-credits' three lines, split at empty rows), each starting from the whole's fit, and each element is written
-exactly into its rectangle, so every word stays at its pixels even where the generator spaced the words a little
-differently. The rectangles meet in the middle of the gaps, where both pictures are black.
-
-The output covers exactly the original's frame at the redraw's own pixel size (width = W / sx, height from the
-pixel aspect); where the redraw does not reach it is black (texts) or transparent (glyphs).
+The fit maps redraw pixel coordinates (x, y) to original pixel coordinates (u, v): u = sx * x + tx, v = sy * y + ty,
+comparing both in the original's grid (the redraw area-averaged into it, both blurred so that detail the original
+does not have does not count): a brute-force search over scale and offset, then Nelder-Mead with less and less blur.
+It prints the residual (RMS of the colour difference 0..255 in the original's grid, plain and with a 1-pixel blur,
+the share of pixels where one picture is background and the other is not, and the correlation of the detail).
+--match gives the redraw the original's colour distribution per channel (quantile matching in the original's grid),
+for redraws that came out darker or with shifted colours.
 
 Options:
   --range R         search offsets up to R original pixels and scales up to 1 +- R/100 (default 12)
   --uniform         one scale for x and y
-  --match           after the fit, give the redraw the original's grey distribution: a monotone tone curve from
-                    quantile matching in the original's grid (`tone_curve`; glyphs: inside both silhouettes)
-  --no-elements     texts: keep the whole's fit for every word
+  --match           match the colours to the original's
   --out FILE        output (default ../art/NAME.png next to this script)
 """
 import argparse
@@ -52,115 +37,184 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PICTURES = os.path.join(HERE, '..', '..', 're', 'dump', 'pictures')
-ART = os.path.join(HERE, '..', 'art')
-SCREEN_ASPECT = 1.2  # an original screen pixel is 1.2 times as tall as wide on a 4:3 screen
-KEY = np.array([255.0, 0.0, 255.0])  # the glyphs' transparency on the upload
-BLACK = np.zeros(3)
+sys.path.insert(0, os.path.join(HERE, '..', '..', 're'))
+import datfile  # noqa: E402
 
-# kind: 'text' (grey on black) or 'glyph' (grey with alpha). canvas: the upload's display shape (width / height).
-# margin: the canvas's margin around the frame, as a share of the frame's width. split: how the text is cut into
-# elements ('cols': at runs of at least n empty columns, 'rows': at runs of empty rows).
-TEXT = dict(kind='text', canvas=3.0, margin=0.15, split=('cols', 3))
-GLYPH = dict(kind='glyph', canvas=1.0, margin=0.12)
-SPECS = {
-    'meet_us': TEXT,
-    'get_them_clones': TEXT,
-    'connect_the_dots': TEXT,
-    'tunnels_meet_more_tunnels': TEXT,
-    'title_clone_meets_clone': TEXT,
-    'credits_aap_echo_simon': dict(TEXT, canvas=1.0, split=('rows', 1)),
-    'glyph1': GLYPH,
-    'glyph2': GLYPH,
-    'glyph3': GLYPH,
-    'glyph4': GLYPH,
+ORIGINAL = os.path.join(HERE, '..', '..', 'original', 'INSIDE.DAT')
+ART = os.path.join(HERE, '..', 'art')
+SCREEN_ASPECT = 1.2
+KEY = np.array([0.0, 0.0, 255.0])   # blue: none of the keyed pictures uses it
+
+# name: INSIDE.DAT file, palette, width, height, transparent index (None: opaque), the upload's margin around the
+# picture (share of its width; keyed pictures only), what it shows (for the prompt)
+PICTURES = {
+    'logo_inside': dict(file='logo/inside.raw', pal='logo/logo.pal', w=249, h=139, key=0, margin=0.10,
+                        what='the title INSIDE in twisted 3D letters with a painted texture'),
+    'water': dict(file='water/water.raw', pal='water/water.pal', w=320, h=200, key=None, margin=0.0,
+                  what='a blurred blue view of an interior seen through water'),
 }
+# The credits' name pictures (notes-credits.md 4.2): level maps 0..31 (shown here as grey 255 * L / 31 on black) of a
+# flat star (level 10), a scanned face (a photo of a real person: never uploaded, never redrawn) and the name. The
+# upload and the redraw have the face filled with the star's level (face_mask); the remake puts the original's face
+# back on top of the redraw.
+for _n, _f, _w, _h, _t in (('credits_destop', 'kredu1', 173, 75, 'DESTOP'), ('credits_wili', 'kredu7', 129, 75, 'WILI'),
+                          ('credits_jouni', 'kredu2', 146, 75, 'JOUNI'), ('credits_juliet', 'kredu8', 154, 70, 'JULIET'),
+                          ('credits_yolk_legend', 'kredu3', 318, 82, 'YOLK & LEGEND')):
+    PICTURES[_n] = dict(file='credits/%s.raw' % _f, pal=None, w=_w, h=_h, key=None, margin=0.08, levels=True,
+                        what='a flat grey star (or two) and the name %s in heavy oblique white capitals' % _t)
+
+_dat = None
+
+
+def dat():
+    global _dat
+    if _dat is None:
+        _dat = datfile.Dat(ORIGINAL)
+    return _dat
 
 
 def spec(name):
-    if name not in SPECS:
-        sys.exit('unknown picture %s (one of %s)' % (name, ', '.join(SPECS)))
-    return SPECS[name]
+    if name not in PICTURES:
+        sys.exit('unknown picture %s (one of %s)' % (name, ', '.join(PICTURES)))
+    return PICTURES[name]
+
+
+# The faces in the name pictures (original pixel coordinates; measured on the level maps): ellipses (cx, cy, rx, ry)
+# and boxes (x0, y0, x1, y1) that cover each scanned face with its hair and nothing of the name. Inside them every
+# pixel that is not the star's level 10 is the face. The remake uses the same shapes (src/scenes/credits.cpp).
+FACES = {
+    'credits_destop': dict(ellipses=[(50, 35, 36, 30)], boxes=[(78, 4, 93, 38)]),
+    'credits_wili': dict(ellipses=[(77, 37, 25, 28)], boxes=[]),
+    'credits_jouni': dict(ellipses=[(50, 38, 23, 27)], boxes=[]),
+    'credits_juliet': dict(ellipses=[(51, 36, 27, 25)], boxes=[]),
+    'credits_yolk_legend': dict(ellipses=[(49, 38, 34, 28), (266, 38, 28, 30)], boxes=[]),
+}
+
+
+def face_mask(name, level):
+    h, w = level.shape
+    yy, xx = np.mgrid[0:h, 0:w] + 0.5
+    inside = np.zeros((h, w), bool)
+    for cx, cy, rx, ry in FACES[name]['ellipses']:
+        inside |= ((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2 <= 1.0
+    for x0, y0, x1, y1 in FACES[name]['boxes']:
+        inside |= (xx >= x0) & (xx < x1) & (yy >= y0) & (yy < y1)
+    return inside & (level != 10)
+
+
+def star_polygons(level):
+    """The stars of a name picture as 10-vertex polygons, from their own pixels: the convex hull of each star's level-10
+    pixels is the pentagon of its five tips; the inner corners are where the lines from each tip to the tips two
+    steps away cross. Stars are told apart by x (YOLK & LEGEND has one at the left and one at the right)."""
+    ys, xs = np.nonzero(level == 10)
+    pts = np.stack([xs + 0.5, ys + 0.5], axis=1)
+    groups = [pts]
+    if xs.max() - xs.min() > 150:                       # two stars
+        mid = (xs.max() + xs.min()) / 2
+        groups = [pts[pts[:, 0] < mid], pts[pts[:, 0] >= mid]]
+    polys = []
+    for g in groups:
+        c = g.mean(axis=0)
+        d = np.hypot(*(g - c).T)
+        ang = np.arctan2(g[:, 1] - c[1], g[:, 0] - c[0])
+        tips = []
+        free = np.ones(len(g), bool)
+        for _ in range(5):
+            k = int(np.argmax(np.where(free, d, -1)))
+            tips.append(g[k])
+            da = np.abs((ang - ang[k] + np.pi) % (2 * np.pi) - np.pi)
+            free &= da > np.pi / 5
+        tips = sorted(tips, key=lambda t: np.arctan2(t[1] - c[1], t[0] - c[0]))
+
+        def cross(p1, p2, p3, p4):
+            d1, d2 = p2 - p1, p4 - p3
+            den = d1[0] * d2[1] - d1[1] * d2[0]
+            t = ((p3[0] - p1[0]) * d2[1] - (p3[1] - p1[1]) * d2[0]) / den
+            return p1 + t * d1
+        poly = []
+        for k in range(5):
+            poly.append(tips[k])
+            poly.append(cross(tips[k], tips[(k + 2) % 5], tips[(k + 1) % 5], tips[(k - 1) % 5]))
+        polys.append(np.array(poly))
+    return polys
+
+
+def inside_polygon(poly, x, y):
+    inside = np.zeros(x.shape, bool)
+    n = len(poly)
+    for k in range(n):
+        x1, y1 = poly[k]
+        x2, y2 = poly[(k + 1) % n]
+        cond = (y1 > y) != (y2 > y)
+        xi = x1 + (y - y1) * (x2 - x1) / np.where(y2 != y1, y2 - y1, 1)
+        inside ^= cond & (x < xi)
+    return inside
+
+
+def remove_faces(name, level):
+    """The level map with every face pixel replaced by the star (inside its polygon) or black."""
+    mask = face_mask(name, level)
+    h, w = level.shape
+    yy, xx = np.mgrid[0:h, 0:w] + 0.5
+    star = np.zeros((h, w), bool)
+    for poly in star_polygons(level):
+        star |= inside_polygon(poly, xx, yy)
+    out = level.copy()
+    out[mask] = np.where(star[mask], 10, 0)
+    return out
 
 
 def load_original(name):
-    """The picture as grey (h, w) 0..255 (255 * v / 63) and alpha (h, w) 0 or 1."""
-    a = np.asarray(Image.open(os.path.join(PICTURES, name + '.png')).convert('RGBA'), np.float64)
-    grey = a[..., 0] / 4.0 * 255.0 / 63.0
-    alpha = (a[..., 3] > 127).astype(np.float64)
-    return grey * alpha, alpha
+    """RGB (h, w, 3) 0..255 and alpha (h, w) 0 or 1."""
+    s = spec(name)
+    if s.get('levels'):
+        lv = np.frombuffer(dat().get(s['file']), np.uint8)[:s['w'] * s['h']].reshape(s['h'], s['w']).copy()
+        lv = remove_faces(name, lv.astype(np.int32))
+        g = lv.astype(np.float64) * 255.0 / 31.0
+        return np.repeat(g[..., None], 3, axis=2), np.ones(lv.shape)
+    pal = np.frombuffer(dat().get(s['pal']), np.uint8).reshape(256, 3).astype(np.float64)
+    rgb = np.minimum(pal, 63) * 255.0 / 63.0
+    px = np.frombuffer(dat().get(s['file']), np.uint8)[:s['w'] * s['h']].reshape(s['h'], s['w'])
+    alpha = np.ones(px.shape) if s['key'] is None else (px != s['key']).astype(np.float64)
+    return rgb[px] * alpha[..., None], alpha
 
 
 def background(name):
-    return KEY if spec(name)['kind'] == 'glyph' else BLACK
+    return KEY if spec(name)['key'] is not None else np.zeros(3)
 
 
-def composite(name, grey, alpha):
-    """RGB (h, w, 3) as uploaded: texts grey on black, glyphs grey over the key."""
-    g = np.repeat(grey[..., None], 3, axis=2)
-    a = alpha[..., None]
-    return g * a + background(name) * (1 - a)
+def composite(name, rgb, alpha):
+    return rgb * alpha[..., None] + background(name) * (1 - alpha[..., None])
 
 
-def unmix(rgb, key=KEY):
-    """Glyph redraw (h, w, 3) on the key -> grey (h, w) and alpha (h, w). A pixel is a * g + (1 - a) * key: its
-    distance from grey along (R + B) / 2 - G is (1 - a) times the key's, a grey pixel's is 0."""
-    dk = (key[0] + key[2]) / 2.0 - key[1]
-    d = (rgb[..., 0] + rgb[..., 2]) / 2.0 - rgb[..., 1]
-    a = np.clip(1.0 - d / dk, 0.0, 1.0)
-    a = np.clip((a - 0.02) / 0.96, 0.0, 1.0)  # the generator's noise on the flat key and on the grey
-    g = np.where(a > 1e-3, (rgb[..., 1] - (1 - a) * key[1]) / np.maximum(a, 1e-3), 0.0)
-    return np.clip(g, 0, 255), a
+def unmix(img, key=KEY):
+    """Keyed redraw (h, w, 3) -> colour (h, w, 3) and alpha (h, w): the distance from the key along the key's
+    direction (for blue: B - (R + G) / 2) is (1 - a) times the key's own."""
+    kd = key[2] - (key[0] + key[1]) / 2.0
+    d = img[..., 2] - (img[..., 0] + img[..., 1]) / 2.0
+    a = np.clip(1.0 - d / kd, 0.0, 1.0)
+    a = np.clip((a - 0.03) / 0.94, 0.0, 1.0)
+    c = np.where(a[..., None] > 1e-3, (img - (1 - a[..., None]) * key) / np.maximum(a[..., None], 1e-3), 0.0)
+    return np.clip(c, 0, 255), a
 
 
 def normalise_key(red):
-    """The generator's key is not exactly KEY (ChatGPT: about 249, 4, 249): measure it on the redraw's border (the
-    canvas margin) and put the picture on the exact KEY."""
+    """Measure the generator's key on the redraw's border and put the picture on the exact KEY."""
     h, w = red.shape[:2]
     b = max(2, min(h, w) // 50)
     border = np.concatenate([red[:b].reshape(-1, 3), red[-b:].reshape(-1, 3), red[:, :b].reshape(-1, 3),
                              red[:, -b:].reshape(-1, 3)])
     key = np.median(border, axis=0)
-    g, a = unmix(red, key)
-    return np.repeat(g[..., None], 3, axis=2) * a[..., None] + KEY * (1 - a[..., None]), key
-
-
-def elements(name, grey):
-    """The rectangles (x0, y0, x1, y1) fitted on their own: the words (or lines), meeting in the middle of the gaps."""
-    s = spec(name)
-    if 'split' not in s:
-        return []
-    axis, n = s['split']
-    used = (grey > 0).any(axis=0 if axis == 'cols' else 1)
-    cuts, run = [], 0
-    for i, u in enumerate(used):
-        if not u:
-            run += 1
-            continue
-        if run >= n and i - run > 0:
-            cuts.append(i - run + run // 2)  # the middle of the gap
-        run = 0
-    edges = [0] + cuts + [len(used)]
-    h, w = grey.shape
-    if axis == 'cols':
-        return [(a, 0, b, h) for a, b in zip(edges[:-1], edges[1:])]
-    return [(0, a, w, b) for a, b in zip(edges[:-1], edges[1:])]
+    c, a = unmix(red, key)
+    return c * a[..., None] + KEY * (1 - a[..., None]), key
 
 
 def canvas(name, w, h):
-    """The upload canvas in original pixels (CW, CH) and the frame's position (cx, cy) in it."""
-    s = spec(name)
-    m = max(4, int(round(s['margin'] * w)))
-    cw, ch = w + 2 * m, h + 2 * m
-    if cw / (ch * SCREEN_ASPECT) > s['canvas']:
-        ch = int(round(cw / s['canvas'] / SCREEN_ASPECT))
-    else:
-        cw = int(round(ch * SCREEN_ASPECT * s['canvas']))
-    return cw, ch, (cw - w) // 2, (ch - h) // 2
+    m = int(round(spec(name)['margin'] * w))
+    return w + 2 * m, h + 2 * m, m, m
 
 
 def upload_scale(cw):
-    """Nearest-neighbour factors (5k, 6k): screen pixels at 4:3, about 2000 pixels wide."""
     k = max(1, int(round(2000.0 / (5 * cw))))
     return 5 * k, 6 * k
 
@@ -345,52 +399,6 @@ def fit_picture(orig, bg, red, p0, rng, uniform):
     return p, fit.residual(p), fit.residual(p0)
 
 
-def fit_element(orig, bg, red, p, rect):
-    """Fits the redraw again on one rectangle (x0, y0, x1, y1) of orig, starting from the whole's fit p: the
-    horizontal scale and both offsets, small blurs; the vertical scale stays the whole's, so that every word keeps
-    the same letter height. Returns the fit in orig's coordinates, its residual on the rectangle and the residual of
-    p there."""
-    x0, y0, x1, y1 = rect
-    sub = orig[y0:y1, x0:x1]
-    sx, sy, tx, ty = p
-    pe0 = (sx, sy, tx - x0, ty - y0)
-    fit = Fit(sub, bg, red)
-    fit.prepare(sx)
-    pe = pe0
-    for sigma in (1.0, 0.5):
-        def f(q, pe=pe):
-            return fit.cost((pe[0] * np.exp(q[0]), sy, pe[2] + q[1], pe[3] + q[2]), sigma)
-        q = nelder_mead(f, [0, 0, 0], [0.01, 0.3, 0.3])
-        pe = (pe[0] * np.exp(q[0]), sy, pe[2] + q[1], pe[3] + q[2])
-    if fit.cost(pe, 0.5) > fit.cost(pe0, 0.5):
-        pe = pe0
-    return (pe[0], pe[1], pe[2] + x0, pe[3] + y0), fit.residual(pe), fit.residual(pe0)
-
-
-def tone_curve(name, orig_grey, orig_alpha, red, p):
-    """A monotone tone curve that gives the redraw's grey the original's distribution: quantile matching of the
-    redraw in the original's grid (area-averaged) against the original, both blurred by half a pixel. Glyphs: only
-    where both are opaque. Returns a function of grey 0..255."""
-    bg = background(name)
-    fit = Fit(composite(name, orig_grey, orig_alpha), bg, red)
-    fit.prepare(p[0])
-    w = fit.warp(p, ss=4)
-    if spec(name)['kind'] == 'glyph':
-        wg, wa = unmix(w)
-        mask = (wa > 0.99) & (orig_alpha > 0.5)
-        o = orig_grey
-    else:
-        wg, mask, o = w.mean(axis=2), np.ones(orig_grey.shape, bool), orig_grey
-    wg = blur(wg[..., None], 0.5)[..., 0][mask]
-    o = blur(o[..., None], 0.5)[..., 0][mask]
-    q = np.linspace(0, 100, 257)
-    xr, xo = np.percentile(wg, q), np.percentile(o, q)
-    xr = np.maximum.accumulate(xr) + np.arange(len(xr)) * 1e-6  # strictly increasing for interp
-    xp = np.concatenate([[min(0.0, xr[0] - 1)], xr, [max(255.0, xr[-1] + 1)]])
-    fp = np.concatenate([[xo[0] - xr[0] + xp[0]], xo, [xo[-1] + xp[-1] - xr[-1]]])
-    return lambda g: np.interp(g, xp, np.clip(fp, 0, 255))
-
-
 def render(img, size, p, scale_uv, fill, origin=(0.0, 0.0)):
     """Resamples img (PIL) so that output pixel (X, Y) shows original coordinates (u0 + X * su, v0 + Y * sv)."""
     sx, sy, tx, ty = p
@@ -410,70 +418,60 @@ def report(p, res, res0, p0):
           '(redraw just stretched to the canvas: %.1f, %.1f, %.2f %%, %.3f)' % (res + res0))
 
 
+def colour_match(orig, alpha, red, p):
+    """Per channel, a monotone curve that gives the redraw the original's distribution (quantile matching in the
+    original's grid, where the original is opaque)."""
+    fit = Fit(orig, np.zeros(3), red)
+    fit.prepare(p[0])
+    w = fit.warp(p, ss=4)
+    mask = alpha > 0.5
+    out = red.copy()
+    q = np.linspace(0, 100, 257)
+    for ch in range(3):
+        xr = np.percentile(blur(w[..., ch:ch + 1], 0.5)[..., 0][mask], q)
+        xo = np.percentile(blur(orig[..., ch:ch + 1], 0.5)[..., 0][mask], q)
+        xr = np.maximum.accumulate(xr) + np.arange(len(xr)) * 1e-6
+        out[..., ch] = np.interp(red[..., ch], xr, xo)
+    return out
+
+
 def align(a):
     name = a.name
     s = spec(name)
-    grey, alpha = load_original(name)
-    orig = composite(name, grey, alpha)
+    rgb, alpha = load_original(name)
+    orig = composite(name, rgb, alpha)
     bg = background(name)
-    fill = tuple(int(c) for c in bg)
-    H, W = grey.shape
-    img = Image.open(a.redraw).convert('RGB')
-    red = np.asarray(img, np.float64)
-    if s['kind'] == 'text':
-        red = np.repeat(red.mean(axis=2, keepdims=True), 3, axis=2)  # grey only
-    else:
+    H, W = alpha.shape
+    red = np.asarray(Image.open(a.redraw).convert('RGB'), np.float64)
+    if s['key'] is not None:
         red, key = normalise_key(red)
         print('%s: the redraw\'s key colour %.1f, %.1f, %.1f' % ((name,) + tuple(key)))
     rw, rh = red.shape[1], red.shape[0]
     CW, CH, cx, cy = canvas(name, W, H)
     p0 = (CW / rw, CH / rh, -cx, -cy)
-    p, res, res0 = fit_picture(orig, bg, red, p0, a.range, a.uniform)
-    print('%s: redraw %dx%d of a %dx%d canvas (frame %dx%d at %d, %d)' % (name, rw, rh, CW, CH, W, H, cx, cy))
+    fit = Fit(orig, bg, red)
+    p = refine(fit, coarse_search(fit, p0, a.range, a.uniform), a.uniform)
+    res, res0 = fit.residual(p), fit.residual(p0)
+    print('%s: redraw %dx%d of a %dx%d canvas (picture %dx%d at %d, %d)' % (name, rw, rh, CW, CH, W, H, cx, cy))
     report(p, res, res0, p0)
     if a.match:
-        curve = tone_curve(name, grey, alpha, red, p)
-        if s['kind'] == 'glyph':
-            g, al = unmix(red)
-            g = curve(g)
-            red = np.repeat(g[..., None], 3, axis=2) * al[..., None] + KEY * (1 - al[..., None])
+        if s['key'] is not None:
+            c, al = unmix(red)
+            c = colour_match(orig, alpha, c, p)
+            red = c * al[..., None] + KEY * (1 - al[..., None])
         else:
-            red = np.repeat(curve(red[..., :1]), 3, axis=2)
+            red = colour_match(orig, alpha, red, p)
         fm = Fit(orig, bg, red)
         fm.prepare(p[0])
-        print('  after the tone match: residual %.1f / %.1f / %.2f %% / %.3f' % fm.residual(p))
+        print('  after the colour match: residual %.1f / %.1f / %.2f %% / %.3f' % fm.residual(p))
     img = Image.fromarray(np.clip(np.round(red), 0, 255).astype(np.uint8))
-    els = []
-    if not a.no_elements:
-        for r in elements(name, grey):
-            pe, rese, rese0 = fit_element(orig, bg, red, p, r)
-            uc, vc = (r[0] + r[2]) / 2.0, (r[1] + r[3]) / 2.0
-            du = pe[0] * (uc - p[2]) / p[0] + pe[2] - uc
-            dv = pe[1] * (vc - p[3]) / p[1] + pe[3] - vc
-            print('  element %3d..%3d x %2d..%2d: moved %+.2f, %+.2f px, scaled %.4f; residual %.1f / %.1f / '
-                  '%.1f %% / %.2f (with the whole\'s fit %.1f / %.1f / %.1f %% / %.2f)'
-                  % ((r[0], r[2], r[1], r[3], du, dv, pe[0] / p[0]) + rese + rese0))
-            els.append((r, pe))
-    # Output: the frame at the redraw's own horizontal pixel size.
     k_out = 1.0 / p[0]
     ow, oh = int(round(W * k_out)), int(round(H * SCREEN_ASPECT * k_out))
-    su, sv = W / ow, H / oh
-    out = render(img, (ow, oh), p, (su, sv), fill)
-    for (x0, y0, x1, y1), pe in els:
-        X0, X1 = int(round(x0 / su)), int(round(x1 / su))
-        Y0, Y1 = int(round(y0 / sv)), int(round(y1 / sv))
-        out.paste(render(img, (X1 - X0, Y1 - Y0), pe, (su, sv), fill, (X0 * su, Y0 * sv)), (X0, Y0))
-    if els:
-        whole = Fit(orig, bg, np.asarray(out, np.float64))
-        ps = (su, sv, 0.0, 0.0)
-        whole.prepare(ps[0])
-        print('  written (with the elements): residual %.1f / %.1f / %.2f %% / %.3f' % whole.residual(ps))
-    if s['kind'] == 'glyph':
-        g, al = unmix(np.asarray(out, np.float64))
-        la = np.stack([g, al * 255.0], axis=2)
-        out = Image.fromarray(np.clip(np.round(la), 0, 255).astype(np.uint8), 'LA')
-    else:
-        out = out.convert('L')
+    out = render(img, (ow, oh), p, (W / ow, H / oh), tuple(int(c) for c in bg))
+    if s['key'] is not None:
+        c, al = unmix(np.asarray(out, np.float64))
+        out = Image.fromarray(np.clip(np.round(np.concatenate([c, al[..., None] * 255.0], axis=2)), 0, 255)
+                              .astype(np.uint8), 'RGBA')
     out_path = a.out or os.path.join(ART, name + '.png')
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     out.save(out_path, optimize=True)
@@ -482,35 +480,18 @@ def align(a):
 
 
 def upload(a):
-    """The picture to give the image generator: nearest-neighbour at 4:3 on its canvas."""
     name = a.name
-    grey, alpha = load_original(name)
-    H, W = grey.shape
+    rgb, alpha = load_original(name)
+    H, W = alpha.shape
     CW, CH, cx, cy = canvas(name, W, H)
     c = np.empty((CH, CW, 3))
     c[:] = background(name)
-    c[cy:cy + H, cx:cx + W] = composite(name, grey, alpha)
+    c[cy:cy + H, cx:cx + W] = composite(name, rgb, alpha)
     fx, fy = upload_scale(CW)
     img = Image.fromarray(np.round(c).astype(np.uint8))
-    if spec(name)['kind'] == 'text':
-        img = img.convert('L')
     img.resize((CW * fx, CH * fy), Image.NEAREST).save(a.redraw)
-    print('%s: %dx%d (canvas %dx%d original px, frame at %d, %d; %dx%d per pixel)'
-          % (a.redraw, CW * fx, CH * fy, CW, CH, cx, cy, fx, fy))
-
-
-# ---- comparison sheet
-
-SHEET_BG = (70, 70, 110)  # what the glyphs are shown on (the outline is black)
-
-
-def shown(name, grey, alpha):
-    """RGB uint8 as the sheet shows it: texts on black, glyphs over SHEET_BG."""
-    g = np.repeat(grey[..., None], 3, axis=2)
-    a = alpha[..., None]
-    if spec(name)['kind'] == 'text':
-        a = np.ones_like(a)
-    return Image.fromarray(np.clip(np.round(g * a + np.array(SHEET_BG) * (1 - a)), 0, 255).astype(np.uint8))
+    print('%s: %dx%d (canvas %dx%d original px, picture at %d, %d; %dx%d per pixel); it shows %s'
+          % (a.redraw, CW * fx, CH * fy, CW, CH, cx, cy, fx, fy, spec(name)['what']))
 
 
 def sheet(a):
@@ -519,54 +500,24 @@ def sheet(a):
     except OSError:
         font = ImageFont.load_default()
     WIDTH = 1600
-    rows, pending = [], []
-
-    def flush():
-        if pending:
-            row = Image.new('RGB', (WIDTH, max(p.size[1] for p in pending)), (40, 40, 40))
-            x = 0
-            for p in pending:
-                row.paste(p, (x, 0))
-                x += p.size[0]
-            rows.append(row)
-            pending.clear()
-
+    rows = []
     for name in a.names:
-        grey, alpha = load_original(name)
-        H, W = grey.shape
+        rgb, alpha = load_original(name)
+        H, W = alpha.shape
+        shown = Image.fromarray(np.round(rgb * alpha[..., None] + 60 * (1 - alpha[..., None])).astype(np.uint8))
+        pw = WIDTH // 2
+        ph = int(round(pw * H * SCREEN_ASPECT / W))
+        pair = Image.new('RGB', (WIDTH, ph), (40, 40, 40))
+        pair.paste(shown.resize((pw, ph), Image.NEAREST), (0, 0))
         art = os.path.join(a.art, name + '.png')
         if os.path.exists(art):
-            r = np.asarray(Image.open(art).convert('LA'), np.float64)
-            right_src = shown(name, r[..., 0], r[..., 1] / 255.0)
-            label = '%s: original | redraw' % name
-        else:
-            right_src = None
-            label = '%s: original | none' % name
-        if W / (H * SCREEN_ASPECT) > 2.0:
-            # wide text: original above, redraw below, full width
-            pw = WIDTH
-            ph = int(round(pw * H * SCREEN_ASPECT / W))
-            pair = Image.new('RGB', (pw, 2 * ph + 4), (40, 40, 40))
-            pair.paste(shown(name, grey, alpha).resize((pw, ph), Image.NEAREST), (0, 0))
-            if right_src is not None:
-                pair.paste(right_src.resize((pw, ph), Image.LANCZOS), (0, ph + 4))
-            flush()
-            rows.append(pair)
-        else:
-            pw = WIDTH // 4
-            ph = int(round(pw * H * SCREEN_ASPECT / W))
-            pair = Image.new('RGB', (2 * pw, ph), (40, 40, 40))
-            pair.paste(shown(name, grey, alpha).resize((pw, ph), Image.NEAREST), (0, 0))
-            if right_src is not None:
-                pair.paste(right_src.resize((pw, ph), Image.LANCZOS), (pw, 0))
-            d = ImageDraw.Draw(pair)
-            d.line([(pw, 0), (pw, ph)], fill=(200, 200, 200), width=2)
-            pending.append(pair)
-            if len(pending) == 2:
-                flush()
+            r = Image.open(art).convert('RGBA')
+            bgimg = Image.new('RGBA', r.size, (60, 60, 60, 255))
+            pair.paste(Image.alpha_composite(bgimg, r).convert('RGB').resize((pw, ph), Image.LANCZOS), (pw, 0))
         d = ImageDraw.Draw(pair)
-        d.text((6, 4), label, fill=(255, 255, 0), font=font, stroke_width=2, stroke_fill=(0, 0, 0))
-    flush()
+        d.text((6, 4), '%s: original | redraw' % name, fill=(255, 255, 0), font=font, stroke_width=2,
+               stroke_fill=(0, 0, 0))
+        rows.append(pair)
     out = Image.new('RGB', (WIDTH, sum(r.size[1] + 6 for r in rows)), (40, 40, 40))
     y = 0
     for r in rows:
@@ -585,12 +536,11 @@ def main():
     ap.add_argument('--uniform', action='store_true')
     ap.add_argument('--range', type=float, default=12)
     ap.add_argument('--match', action='store_true')
-    ap.add_argument('--no-elements', action='store_true')
     ap.add_argument('--sheet')
     ap.add_argument('--upload', action='store_true')
     a = ap.parse_args()
     if a.sheet:
-        a.names = [x for x in [a.name] + a.rest if x] or list(SPECS)
+        a.names = [x for x in [a.name] + a.rest if x] or list(PICTURES)
         sheet(a)
     elif a.name and len(a.rest) == 1:
         a.redraw = a.rest[0]
