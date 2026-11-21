@@ -845,7 +845,8 @@ def main():
             frames.write(bytes(mu.mem_read(0xa0000, 64000)) if st['gfx'] else bytes(64000))
             frames.write(bytes(st['dac']))
 
-    next_frame = FRAME                            # frames are recorded at the start of each refresh's line 0
+    # frames are recorded at the start of each refresh's line 0; a resumed run continues at the snapshot's frame
+    next_frame = FRAME * max(1, st['frame'])
     last_fn = None
     while not st['stop'] and st['frame'] < a.frames:
         # the next event: PIT interrupt or the start of a retrace
