@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds one project and packages it as a release download, as the build workflow does for every project it builds.
 #
-#   scripts/ci-build.sh <303|303-v1|paper|jizz|stars|dope|clone> <linux|windows> [OUT_DIR]
+#   scripts/ci-build.sh <303|303-v1|paper|jizz|stars|dope|clone|inside> <linux|windows> [OUT_DIR]
 #
 # Builds in <project folder>/build-ci-<linux|windows> and writes the download to OUT_DIR (default <repo>/out) with
 # scripts/package.sh; 303-v1 (303/remake-v1) is only built, never packaged. Linux builds link SDL3 (and 303's
@@ -12,7 +12,7 @@
 set -euo pipefail
 
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
-usage="usage: $0 <303|303-v1|paper|jizz|stars|dope|clone> <linux|windows> [OUT_DIR]"
+usage="usage: $0 <303|303-v1|paper|jizz|stars|dope|clone|inside> <linux|windows> [OUT_DIR]"
 
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 project=${1:-}
@@ -20,7 +20,7 @@ os=${2:-}
 out=${3:-$repo/out}
 case "$project" in
 303-v1)                               src=303/remake-v1 demo="" ;;
-303 | paper | jizz | stars | dope | clone) src=$project/remake demo=$project ;;
+303 | paper | jizz | stars | dope | clone | inside) src=$project/remake demo=$project ;;
 *) die "$usage" ;;
 esac
 case "$os" in linux | windows) ;; *) die "$usage" ;; esac

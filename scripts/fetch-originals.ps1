@@ -11,9 +11,11 @@ checking every file's SHA-256.
   fetch-originals.ps1 stars    only STARS by NoooN (Assembly '95)
   fetch-originals.ps1 dope     only DOPE by Complex (The Gathering '95)
   fetch-originals.ps1 clone    only clone meets clone by Acme and Fudge (Takeover '98)
+  fetch-originals.ps1 inside   only Inside by CNCD (The Gathering '96)
 
 In the repository the files go into <repo>\<demo>\original\. Anywhere else (next to a released program such
-as acme303.exe, paper-remake.exe, jizz-remake.exe, stars-remake.exe, dope-remake.exe or clone-remake.exe) they go
+as acme303.exe, paper-remake.exe, jizz-remake.exe, stars-remake.exe, dope-remake.exe, clone-remake.exe or
+inside-remake.exe) they go
 into an original\ folder next to this script, and without an argument only the demo whose program is there is
 fetched.
 
@@ -29,7 +31,7 @@ powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 paper
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'clone', 'all')]
+    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'clone', 'inside', 'all')]
     [string]$Demo
 )
 
@@ -105,6 +107,17 @@ $Releases = [ordered]@{
             'CLONE.EXE' = '11ed22222af2cc34dbca2f8c7683354a530d2a062363d7eb298bcaf399942275'
         }
     }
+    'inside' = @{
+        Title   = "Inside by CNCD (The Gathering '96, 1996)"
+        ZipName = 'inside.zip'
+        ZipPath = 'parties/1996/gathering96/demo/inside.zip'
+        Program = 'inside-remake'
+        Files   = [ordered]@{
+            'INSIDE.EXE' = '15ac35f8ea1c4cb32cd70b1fb7ba425af5bb60cb6c81794da26497c8ceeb53ef'
+            'INSIDE.DAT' = '9026946bd6988f3f375559a47982c7483a33817ef89d725f4ea194df84e5a865'
+            'EYE.AMF'    = 'bf6172d3b1728da542b71f355ef4b58f9573a76fec02fd9ea99a801b5886d01f'
+        }
+    }
 }
 
 function Get-Urls([string]$ZipPath) {
@@ -178,6 +191,12 @@ function Get-Original([string]$Name) {
             }
             try {
                 Expand-Archive -LiteralPath $zip -DestinationPath $x -Force
+                # a release split into zips inside the zip (Inside: inside1.zip and inside2.zip): unpack those too
+                $i = 0
+                foreach ($inner in @(Get-ChildItem -LiteralPath $x -Recurse -File -Filter '*.zip')) {
+                    $i++
+                    Expand-Archive -LiteralPath $inner.FullName -DestinationPath (Join-Path $x "inner$i") -Force
+                }
             } catch {
                 Write-Host '              not a zip file, trying the next mirror'
                 continue

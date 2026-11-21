@@ -2,7 +2,8 @@
 # Decides which projects the build workflow builds, and whether it publishes a release. Prints lines for
 # $GITHUB_OUTPUT:
 #
-#   projects=["paper","jizz"]   the projects to build, as JSON (303, 303-v1, paper, jizz, stars, dope, clone)
+#   projects=["paper","jizz"]   the projects to build, as JSON (303, 303-v1, paper, jizz, stars, dope, clone,
+#                               inside)
 #   release=paper               the demo to publish, for a release tag; empty otherwise
 #   version=1.0                 the release's version, from the tag; empty otherwise
 #
@@ -21,8 +22,8 @@ set -euo pipefail
 
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
-all=(303 303-v1 paper jizz stars dope clone)
-demos=" 303 paper jizz stars dope clone "
+all=(303 303-v1 paper jizz stars dope clone inside)
+demos=" 303 paper jizz stars dope clone inside "
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo"
 
