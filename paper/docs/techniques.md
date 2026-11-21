@@ -47,9 +47,15 @@ and its ink colours, two 4-bit bitmaps 224 pixels wide.
 The buffers take more than 1.5 MB, which PMODE's flat 32-bit memory makes possible. The allocator (`0x240`) never
 frees anything. While all this is built, a text-mode progress bar reads "Gosh <…>".
 
-The NFO tells how the release nearly did not happen. Packing the intro crashed a borrowed PC and wiped its hard
-disk, and Statix had to redo the work on another visitor's machine
-([NFO](https://www.pouet.net/prod_nfo.php?which=75)).
+The NFO tells how the release nearly did not happen: packing the intro crashed the borrowed PC it was made on
+([NFO](https://www.pouet.net/prod_nfo.php?which=75)). That PC was mine. Statix had asked in #coders on IRC whether
+someone could lend him a machine at Wired to finish the intro. I was on #coders and #nlcoders a lot in those days,
+and at parties I mostly chatted and socialised, so I said yes. I sat next to Statix for quite some time while he
+coded. At the very end, when he packed the intro, my machine crashed and would not start again. Statix moved to the
+machine of Retrox, the friend I had travelled to Wired with, and finished the intro there. Meanwhile I tried to
+bring my machine back, because my BBS was on it and I could not afford to lose it. Nix of The Black Lotus, who wrote
+JIZZ's vector engine, put the drive in his own machine and repaired it, and before the party was over my machine
+booted again.
 
 ## The sketch is the 3D scene
 
