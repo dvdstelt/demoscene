@@ -57,14 +57,8 @@ void TargetPool::clear() {
 }
 
 // ---------------------------------------------------------------- clocks and the script
-// The frame clock [0x424880]: +1.0 at the timer interrupt of every refresh from the one after the callback was
-// installed (main 0x4009ec, just before the music starts). In the capture it is k - 37 at record k
-// (inside/re/notes-core.md).
-double Ctx::frameClock(double r) const { return r - (music ? music->firstRefresh : 37); }
+double Ctx::partTicks(double m) const { return m - (cue ? cue->mReset : 0.0); }
 int Ctx::position(double r) const { return music ? music->positionAt(r) : -1; }
-double Ctx::positionRefresh(int pos) const {
-    return music ? music->positionRefresh(pos) : std::numeric_limits<double>::infinity();
-}
 
 double Ctx::entryRefresh(uint32_t routine, int n) const {
     for (const ScriptEntry& e : script_)
@@ -113,8 +107,8 @@ void placeholder(Ctx& c, const std::string& name, double r) {
     setBlend(Blend::None);
     char b[128];
     c.text(16, 16, 3, name, Vec3(1, 1, 1));
-    std::snprintf(b, sizeof b, "%s  REFRESH %.1f  PART %.1f  0X%X", posText(c.position(r)).c_str(), r,
-                  c.refreshes(r), c.cue ? c.cue->frameRoutine : 0u);
+    std::snprintf(b, sizeof b, "%s  REFRESH %.1f  STEPS %.1f  M %.0f  0X%X", posText(c.position(r)).c_str(), r,
+                  c.refreshes(r), c.callback(r), c.cue ? c.cue->frameRoutine : 0u);
     c.text(16, 44, 1.5f, b, Vec3(1, 1, 0.6f));
     std::snprintf(b, sizeof b, "RECORD %d", c.captureRecord(r));
     c.text(16, 58, 1.5f, b, Vec3(0.8f, 0.8f, 0.8f));

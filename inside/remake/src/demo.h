@@ -123,11 +123,12 @@ struct PictureDraw {
     float alpha = 1.0f;                       // overall opacity
 };
 
-// One entry of the script table 0x4222e4 (NOTES.md "The script", PARTS.md).
+// One entry of the script table 0x4222e4 (NOTES.md "The script", PARTS.md, notes-core.md 1.4).
 struct ScriptEntry {
     int order = 0, row = 0;    // music position: the entry runs once order * 64 + row is reached
     uint32_t routine = 0;      // the routine it calls (0 = end of the demo)
-    double refresh = 0;        // refresh at which its effect is first visible (timeline.cpp)
+    double callback = 0;       // the callback M in which it runs (its row's start; never before the entry before it)
+    double refresh = 0;        // the first record that shows its effect (first palette step, first tick routine call)
 };
 
 struct Ctx {
@@ -141,16 +142,16 @@ struct Ctx {
     const Cue* cue = nullptr;
     double start = 0, end = 0;             // refreshes: the part's routines are set / the next cue's
 
-    // ---- the original's clocks (see the top of this file)
-    // Refreshes since the part's routines were set: its tick routine has run floor(r - start) times at refresh r
-    // (the first time at refresh start + 1, PORT.md).
+    // ---- the original's clocks (see the top of this file and inside/re/notes-core.md section 1)
+    // Tick steps whose result record r shows: the part's tick routine runs at the retrace callback of records start,
+    // start + 1, ..., and the frame shown at record r was drawn after the one of record r - 1.
     double refreshes(double r) const { return r - start; }
-    // The part tick counter [0x4248c8] at refresh r: 4 per refresh, counted from the part's start.
-    double partTicks(double r) const { return kTicksPerRefresh * (r - start); }
-    // The frame clock [0x424880] (+1.0 per refresh since the timer callback was installed).
-    double frameClock(double r) const;
+    // M = [0x4248c4], callbacks since the music start, at the retrace callback of record r: 4 r - 150.
+    static double callback(double r) { return 4.0 * r - 150.0; }
+    static double refreshOfCallback(double m) { return (m + 150.0) / 4.0; }
+    // P = [0x4248c8], the part tick counter, at callback m: m - the callback in which the part's routines were set.
+    double partTicks(double m) const;
     int position(double r) const;          // music position order * 64 + row as the script sees it (-1 before)
-    double positionRefresh(int pos) const; // first refresh at which position() >= pos
 
     // ---- the script
     const std::vector<ScriptEntry>& script() const { return script_; }
@@ -208,8 +209,9 @@ struct Ctx {
 struct Cue {
     std::string scene;        // the scene name (src/scenes)
     uint32_t frameRoutine;    // the frame routine [0x424888] the original runs (PARTS.md)
-    double start = 0;         // refresh at which the part's routines are set (its first drawn frame shows from here)
-    double end = 0;           // refresh at which the next cue starts (the end of the demo for the last)
+    double start = 0;         // record of the part's first tick routine call (ScriptEntry::refresh)
+    double end = 0;           // the next cue's start (the end of the demo for the last)
+    double mReset = 0;        // the callback in which its routines were set: P = M - mReset
 };
 std::vector<Cue> buildTimeline(Ctx& c);
 // The refresh at which the demo ends (the script's end marker).

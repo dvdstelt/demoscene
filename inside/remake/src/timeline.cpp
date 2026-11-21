@@ -3,9 +3,10 @@
 // "off" routines clear them (the screen then keeps its last frame, which the fades have turned black). A cue runs
 // from the refresh at which its start entry runs to the next start or off entry.
 //
-// The original runs an entry at the end of the first frame the main loop draws after the music reached the position,
-// so up to one drawn frame late; the remake runs it at the refresh at which the position is reached
-// (Soundtrack::positionRefresh).
+// The original runs an entry at the end of the first frame the main loop draws after its row started, 0..8 callbacks
+// late depending on the machine (notes-core.md 1.4); the remake runs it in the callback in which the row starts, as
+// the original would on an infinitely fast machine. Its effect (the first palette step, the first call of a tick
+// routine) shows from the first record whose retrace callback comes after it: record floor((M + 150) / 4) + 1.
 //
 // Scene names are those of src/scenes (inside/re/PORT.md has the porting jobs).
 #include <algorithm>
@@ -44,9 +45,11 @@ std::vector<Cue> buildTimeline(Ctx& c) {
     // 30:48 in the table and runs with it)
     double prev = -std::numeric_limits<double>::infinity();
     for (ScriptEntry& e : c.script_) {
-        e.refresh = e.routine ? std::max(prev, c.positionRefresh(e.order * 64 + e.row))
-                              : std::numeric_limits<double>::infinity();
-        prev = e.refresh;
+        double m = c.music ? c.music->rowCallback(e.order * 64 + e.row) : std::numeric_limits<double>::infinity();
+        if (e.order == 0 && e.row == 0) m = 0;   // the first entry runs at once: at the end of init, M = 0
+        e.callback = e.routine ? std::max(prev, m) : std::numeric_limits<double>::infinity();
+        e.refresh = std::floor((e.callback + 150.0) / 4.0) + 1.0;
+        prev = e.callback;
     }
     std::vector<Cue> cues;
     for (const ScriptEntry& e : c.script_) {
@@ -56,7 +59,7 @@ std::vector<Cue> buildTimeline(Ctx& c) {
         for (const PartStart& p : kStarts)
             if (p.routine == e.routine) s = &p;
         if ((off || s || !e.routine) && !cues.empty() && cues.back().end > e.refresh) cues.back().end = e.refresh;
-        if (s) cues.push_back({s->scene, s->frameRoutine, e.refresh, std::numeric_limits<double>::infinity()});
+        if (s) cues.push_back({s->scene, s->frameRoutine, e.refresh, std::numeric_limits<double>::infinity(), e.callback});
     }
     if (!cues.empty() && !std::isfinite(cues.back().end)) cues.back().end = demoEnd(c);
     return cues;

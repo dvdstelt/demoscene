@@ -44,20 +44,26 @@ as in the capture: refresh k is record k of `inside/re/full.frames`, program tim
 refresh 37 (`Soundtrack::startRefresh`); playback, `--start`, `--shots` and `--video` work in seconds of music time
 and convert (`music.refreshOf(t)`); `--refshots R1,R2` renders refreshes directly, for comparing with the capture.
 
+The master clock of the original is **M** = [0x4248c4], its timer callbacks since the music start, 4 per refresh
+(notes-core.md section 1, which every port should read): record k of the capture follows the retrace callback
+**M = 4k − 150**; the music player runs on DSMI time 35 M; the parts' tick routines and the palette steps run at the
+retrace callbacks; the script runs an entry when its row has started.
+
 | clock | in the remake |
 |---|---|
-| the refresh (70.086 Hz): parts' tick routines, palette fade steps | `r` itself |
-| refreshes since the part's routines were set | `c.refreshes(r)` = r − `c.start`; the state the original shows at refresh r is the one after `floor(r − c.start)` tick steps: evaluate it continuously at n = r − c.start |
-| the part tick counter [0x4248c8] (4 per refresh, reset when the part's routines are set) | `c.partTicks(r)` = 4 (r − c.start) |
-| the frame clock [0x424880] (+1 per refresh) | `c.frameClock(r)` |
-| the music position order · 64 + row as the script sees it | `c.position(r)`; `c.positionRefresh(p)` = first refresh at which it is ≥ p |
-| the script table 0x4222e4 (read from the exe) | `c.script()` with each entry's refresh; `c.entryRefresh(routine, n)` (the n-th entry calling that routine), `c.entryCount(routine, r)`, `c.lastEntry(routine, r)` |
+| tick steps whose result record r shows (the tick routine runs at the retrace callbacks of records start, start + 1, ...; the frame shown at r was drawn after the one of r − 1) | `c.refreshes(r)` = r − `c.start`: evaluate the stepped state continuously at n = r − c.start |
+| M at the retrace callback of record r | `Ctx::callback(r)` = 4 r − 150 (`Ctx::refreshOfCallback(m)` the other way) |
+| what a **tick routine** reads: M and P at its call at record k | M = callback(k), P = `c.partTicks(M)` = M − `c.cue->mReset` (the callback in which the part's routines were set) |
+| what a **frame routine** reads for the frame shown at record r | the parts that wait for the copy (sprites, flower) draw right after the retrace callback of r − 1: M = callback(r) − 4; the others draw as fast as the machine allows (the capture: 4..10 callbacks before the copy, a fast machine 0..1): use M = callback(r) − 1 (notes-core 1.5, 1.7) |
+| the music position order · 64 + row as the script sees it | `c.position(r)`; `c.music->rowCallback(row)` = the callback in which song row R starts |
+| the script table 0x4222e4 (read from the exe) | `c.script()`: each entry's callback (its row's start, never before the entry before it) and refresh (the first record that shows its effect); `c.entryRefresh(routine, n)` (the n-th entry calling that routine), `c.entryCount(routine, r)`, `c.lastEntry(routine, r)` |
 | the capture | `c.captureRecord(r)` = the `full.frames` record shown at r |
 
-**Part starts** (`src/timeline.cpp`, `inside-remake --cues`): a cue runs from the refresh at which the script entry
-that sets the part's routines runs to the next part's, as in PARTS.md. The original runs an entry at the end of the
-first frame drawn after the music reached its position, so its refresh can differ by one from the remake's
-(`positionRefresh`); a one-refresh difference between your part and the capture at an event is expected.
+**Part starts** (`src/timeline.cpp`, `inside-remake --cues`): a cue runs from the first record that shows the script
+entry that sets the part's routines to the next part's. The original runs an entry at the end of the first frame
+drawn after its row started, 0..8 callbacks late depending on the machine (notes-core 1.4); the remake runs it in the
+callback in which the row starts, as an infinitely fast machine would, so a part or an event may start one record
+earlier than in the capture.
 
 **Events inside a part** (script entries that call the part's event routines: the twirl's 0x40a098, the flower's
 0x409358 / 0x4093f0, the credits' 0x405f1c ...): apply them at `e.refresh` from `c.script()`. Their state changes
