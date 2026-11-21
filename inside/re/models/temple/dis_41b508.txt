@@ -1,0 +1,155 @@
+41b508: push   ebx
+41b509: push   ecx
+41b50a: push   esi
+41b50b: push   edi
+41b50c: push   ebp
+41b50d: mov    ebp, esp
+41b50f: sub    esp, 0xcc
+41b515: and    esp, 0xfffffff8
+41b518: mov    ecx, eax
+41b51a: mov    ebx, edx
+41b51c: mov    esi, dword ptr [eax + 0xf8]
+41b522: add    esi, dword ptr [edx + 0xc8]
+41b528: mov    edx, ebx
+41b52a: call   0x41063c   ; "SQVWU"
+41b52f: cmp    eax, esi
+41b531: jg     0x41b749
+41b537: mov    eax, dword ptr [ebx + 0x24]
+41b53a: mov    esi, dword ptr [ecx + 0x24]
+41b53d: sub    eax, esi
+41b53f: mov    dword ptr [esp + 0x98], eax
+41b546: fild   dword ptr [esp + 0x98]
+41b54d: sub    esp, 8
+41b550: fstp   qword ptr [esp]
+41b553: mov    eax, dword ptr [ebx + 0x20]
+41b556: mov    edi, dword ptr [ecx + 0x20]
+41b559: sub    eax, edi
+41b55b: mov    dword ptr [esp + 0xa0], eax
+41b562: fild   dword ptr [esp + 0xa0]
+41b569: sub    esp, 8
+41b56c: fstp   qword ptr [esp]
+41b56f: mov    eax, dword ptr [ebx + 0x1c]
+41b572: mov    edx, dword ptr [ecx + 0x1c]
+41b575: sub    eax, edx
+41b577: mov    dword ptr [esp + 0xa8], eax
+41b57e: fild   dword ptr [esp + 0xa8]
+41b585: sub    esp, 8
+41b588: lea    eax, [esp + 0x60]
+41b58c: fstp   qword ptr [esp]
+41b58f: lea    edx, [ecx + 0x70]
+41b592: call   0x413510
+41b597: mov    eax, esp
+41b599: call   0x413e68   ; "SQVW"
+41b59e: mov    eax, esp
+41b5a0: mov    edx, esp
+41b5a2: call   0x414150
+41b5a7: lea    eax, [esp + 0x48]
+41b5ab: call   0x4144ec
+41b5b0: fild   dword ptr [ebx + 0xc8]
+41b5b6: fild   dword ptr [ebx + 0xcc]
+41b5bc: fstp   qword ptr [esp + 0xb4]
+41b5c3: fstp   qword ptr [esp + 0xa4]
+41b5ca: fld    qword ptr [esp + 0xb4]
+41b5d1: fdiv   qword ptr [esp + 0xa4]
+41b5d8: mov    ebx, dword ptr [ecx + 0xd0]
+41b5de: fstp   qword ptr [esp + 0x9c]
+41b5e5: test   ebx, ebx
+41b5e7: je     0x41b749
+41b5ed: test   byte ptr [ebx + 4], 2
+41b5f1: je     0x41b73f
+41b5f7: fild   dword ptr [ebx + 0x10]
+41b5fa: fsubr  qword ptr [esp + 0x58]
+41b5fe: sub    esp, 8
+41b601: fstp   qword ptr [esp]
+41b604: fild   dword ptr [ebx + 0xc]
+41b607: fsubr  qword ptr [esp + 0x58]
+41b60b: sub    esp, 8
+41b60e: fstp   qword ptr [esp]
+41b611: fild   dword ptr [ebx + 8]
+41b614: fsubr  qword ptr [esp + 0x58]
+41b618: sub    esp, 8
+41b61b: lea    eax, [esp + 0x78]
+41b61f: fstp   qword ptr [esp]
+41b622: call   0x413510
+41b627: fld    qword ptr [esp + 0x68]
+41b62b: fmul   st(0)
+41b62d: fld    qword ptr [esp + 0x60]
+41b631: fmul   st(0)
+41b633: faddp  st(1)
+41b635: fld    qword ptr [esp + 0x70]
+41b639: fmul   st(0)
+41b63b: faddp  st(1)
+41b63d: fsqrt  
+41b63f: fst    qword ptr [esp + 0xc4]
+41b646: fcomp  qword ptr [esp + 0xa4]
+41b64d: fnstsw ax
+41b64f: sahf   
+41b650: ja     0x41b73f
+41b656: sub    esp, 8
+41b659: fild   dword ptr [ebx + 0x3c]
+41b65c: fstp   qword ptr [esp]
+41b65f: sub    esp, 8
+41b662: fild   dword ptr [ebx + 0x38]
+41b665: fstp   qword ptr [esp]
+41b668: lea    eax, [esp + 0x88]
+41b66f: sub    esp, 8
+41b672: fild   dword ptr [ebx + 0x34]
+41b675: fstp   qword ptr [esp]
+41b678: lea    edx, [esp + 0x78]
+41b67c: call   0x413510
+41b681: lea    eax, [esp + 0x78]
+41b685: call   0x413650
+41b68a: fldz   
+41b68c: fxch   st(1)
+41b68e: fstp   qword ptr [esp + 0xac]
+41b695: fcomp  qword ptr [esp + 0xac]
+41b69c: fnstsw ax
+41b69e: sahf   
+41b69f: ja     0x41b73f
+41b6a5: fld    qword ptr [esp + 0xc4]
+41b6ac: fld    st(0)
+41b6ae: fmul   qword ptr [0x421fc0]   ; =512
+41b6b4: fdivr  qword ptr [esp + 0xac]
+41b6bb: fld1   
+41b6bd: fxch   st(1)
+41b6bf: fstp   qword ptr [esp + 0xac]
+41b6c6: fcompp 
+41b6c8: fnstsw ax
+41b6ca: sahf   
+41b6cb: jbe    0x41b6d6
+41b6cd: fld    qword ptr [esp + 0xb4]
+41b6d4: jmp    0x41b6eb
+41b6d6: fld    qword ptr [esp + 0xc4]
+41b6dd: fmul   qword ptr [esp + 0x9c]
+41b6e4: fsubr  qword ptr [esp + 0xb4]
+41b6eb: fmul   qword ptr [esp + 0xac]
+41b6f2: fstp   qword ptr [esp + 0xbc]
+41b6f9: fldz   
+41b6fb: fcomp  qword ptr [esp + 0xbc]
+41b702: fnstsw ax
+41b704: sahf   
+41b705: jae    0x41b72c
+41b707: fild   word ptr [ebx + 0x30]
+41b70a: fld    st(0)
+41b70c: fadd   qword ptr [esp + 0xbc]
+41b713: fstp   st(1)
+41b715: call   0x40ba78
+41b71a: fistp  dword ptr [esp + 0x98]
+41b721: mov    eax, dword ptr [esp + 0x98]
+41b728: mov    word ptr [ebx + 0x30], ax
+41b72c: mov    eax, dword ptr [ebx + 0x2e]
+41b72f: sar    eax, 0x10
+41b732: cmp    eax, 0x3e0
+41b737: jle    0x41b73f
+41b739: mov    word ptr [ebx + 0x30], 0x3e0
+41b73f: mov    ebx, dword ptr [ebx]
+41b741: test   ebx, ebx
+41b743: jne    0x41b5ed
+41b749: xor    eax, eax
+41b74b: mov    esp, ebp
+41b74d: pop    ebp
+41b74e: pop    edi
+41b74f: pop    esi
+41b750: pop    ecx
+41b751: pop    ebx
+41b752: ret    
