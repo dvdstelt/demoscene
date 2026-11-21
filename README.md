@@ -40,16 +40,17 @@ YouTube videos of the remakes (4K, 60 fps) are coming. Until then, build and run
 The remakes need the original release files, which are not included here; they remain the property of their
 authors. The fetch scripts download them from [scene.org](https://www.scene.org/) and check them.
 
-**Windows**: download a remake from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack it, and in that folder run
+**Download**: [Releases](https://github.com/dvdstelt/demoscene/releases) has each remake for Windows (a zip) and for
+Linux (a tar.gz, for 64-bit Linux with glibc 2.34 or newer). Unpack it, and in that folder run
 
 ```
 powershell -ExecutionPolicy Bypass -File fetch-originals.ps1
 ```
 
-then start `acme303.exe`, `paper-remake.exe`, `jizz-remake.exe`, `stars-remake.exe`, `dope-remake.exe` or
-`clone-remake.exe`.
+on Windows, or `./fetch-originals.sh` on Linux. Then start `acme303`, `paper-remake`, `jizz-remake`, `stars-remake`,
+`dope-remake` or `clone-remake` (`.exe` on Windows).
 
-**Linux** (or Windows with CMake and a compiler):
+**Build it yourself** (Linux, or Windows with CMake and a compiler):
 
 ```
 git clone https://github.com/dvdstelt/demoscene && cd demoscene

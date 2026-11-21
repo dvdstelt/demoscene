@@ -45,6 +45,10 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
+Download the "DOPE remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases),
+unpack it, run `fetch-originals.ps1` (Windows) or `./fetch-originals.sh` (Linux) in its folder to get the original
+files, and start `dope-remake`. Or build it yourself:
+
 1. Get the original: `scripts/fetch-originals.sh dope` from the repository root (Windows:
    `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 dope`), or download
    [`clx_dope.zip`](https://files.scene.org/view/demos/groups/complex/clx_dope.zip) from scene.org and unpack

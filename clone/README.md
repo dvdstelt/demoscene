@@ -49,6 +49,11 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
+Download the "clone meets clone remake" for Windows or Linux from
+[Releases](https://github.com/dvdstelt/demoscene/releases), unpack it, run `fetch-originals.ps1` (Windows) or
+`./fetch-originals.sh` (Linux) in its folder to get the original files, and start `clone-remake`. Or build it
+yourself:
+
 1. Get the original: `scripts/fetch-originals.sh clone` from the repository root (Windows:
    `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 clone`), or download
    [`acme_cln.zip`](https://files.scene.org/view/demos/groups/fudge/acme_cln.zip) from scene.org and unpack

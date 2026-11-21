@@ -17,7 +17,7 @@ composition, colours and music, rendered at any resolution in true colour.
   re/              reverse-engineering notes (notes-*.md: pseudo-C with every constant) and helper scripts
   docs/            making-of.md, images/
 docs/              how-it-was-made.md, reverse-engineering.md, videos.md
-scripts/           fetch-originals.(sh|ps1), package.sh, render-videos.sh
+scripts/           fetch-originals.(sh|ps1), package.sh, ci-*.sh (the build workflow's steps), render-videos.sh
 ```
 
 303 also has `remake-v1/`, the first version rebuilt by eye from a video. It is kept as a record: do not develop it
@@ -80,10 +80,20 @@ cmake -S paper/remake -B paper/remake/build -G Ninja && cmake --build paper/rema
 ```
 
 Windows from Linux: `mingw64-cmake -S <dir> -B <dir>/build-win -G Ninja && cmake --build <dir>/build-win`.
+`scripts/ci-build.sh <project> <linux|windows>` builds and packages a project as the build workflow does.
 The maintainer's machine is Fedora Atomic: compilers, Python tools (numpy, PIL, capstone, unicorn) and dosbox live
 in a toolbox container (`toolbox run -c acme303 <cmd>`). Install packages only inside the container, never on the
 host. Use your own build directory (`build-<name>`) when other agents may build at the same time, and delete it
 afterwards.
+
+## Builds and releases
+
+`.github/workflows/build.yml` builds every project for Linux and Windows in a job of its own and packages it with
+`scripts/package.sh`. Linux builds link SDL3 (and libopenmpt) in and are built on AlmaLinux 9, so they run with
+glibc 2.34 or newer; Windows builds are cross-compiled with MinGW. A push or pull request builds only the projects
+whose files changed: `scripts/ci-plan.sh <before> <after>` shows what a push would build. "Run workflow" builds any
+of them. Releases are per demo: the maintainer pushes a tag `<demo>-v<version>` (`paper-v1.0`), and the workflow
+builds that demo and publishes both downloads, with the commits since the demo's previous tag as release notes.
 
 ## Checking your work
 
@@ -117,6 +127,7 @@ constants. Write plainly; describe what is there, not how good it is.
 
 ## Adding a new demo
 
-Create `<demo>/` with the layout above, add the original's files and checksums to `scripts/fetch-originals.*`, a
-row to the table in the root README, a build job to `.github/workflows/build.yml` and a packaging entry to
-`scripts/package.sh`. Start from the Paper remake's framework (`demo.*`, `render.*`, `gl.*`).
+Create `<demo>/` with the layout above, add the original's files and checksums to `scripts/fetch-originals.*`, a row
+to the table in the root README, the demo to the project lists in `scripts/ci-plan.sh`, `scripts/ci-build.sh` and
+`scripts/ci-release.sh`, and a packaging entry to `scripts/package.sh`. Start from the Paper remake's framework
+(`demo.*`, `render.*`, `gl.*`).
