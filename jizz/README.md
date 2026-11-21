@@ -35,10 +35,14 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
+Download the "JIZZ remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases),
+unpack it, run `fetch-originals.ps1` (Windows) or `./fetch-originals.sh` (Linux) in its folder to get the original
+files, and start `jizz-remake`. Or build it yourself:
+
 1. Get the original: `scripts/fetch-originals.sh jizz` from the repository root (Windows:
    `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 jizz`), or copy `JIZZ.EXE` into `jizz/original/`.
 2. Build: `cmake -S jizz/remake -B jizz/remake/build -G Ninja && cmake --build jizz/remake/build`. It needs
-   SDL3, and CMake downloads it if it is missing. On Windows, use the release zip instead.
+   SDL3, and CMake downloads it if it is missing.
 3. Run: `jizz/remake/build/jizz-remake`. It starts fullscreen; add `--window` for a window.
 
 The remake reads everything from `JIZZ.EXE`: the program image (unpacked with its own DOS32 loader), the texture
