@@ -8,7 +8,7 @@ The release's JIZZ.DOC says it took three weeks of "freaking like hell". It need
 throughout), recommends a P166, and plays music only on a Gravis UltraSound with 1 MB.
 
 This page draws on our reverse engineering of the executable ([`../re/`](../re/)) and on what the scene wrote
-about the intro; what we could not confirm is listed at the end.
+about the intro.
 
 ## 63,960 bytes that grow to more than 4 MB
 
@@ -120,18 +120,6 @@ Almost everything moves with MXMPlay's timer, and the parts change when the song
 table (0x6417) checked at every frame start (0x638b), so the intro stays in sync on slow and fast machines alike.
 The DOC teases a way to make the intro write its graphics and music to disk: `JIZZ /pandora` writes the textures
 as TGA files, `JIZZ /mp4` the module as `smokeout.mxm`.
-
-## What stays unverified
-
-- **"The first 64k with synthesised samples."** *Totraum 209* synthesised its music earlier; "first to
-  pre-render samples" has no source.
-- **"The music was part of why it won."** No source states it.
-- **Who wrote the x86 synthesiser.** Probe made the synthesiser (his interview, the DOC's credit); who wrote or
-  ported the code in JIZZ.EXE is unknown, and the Pascal origin is one person's recollection.
-- **"JacePeG"** as a joke name is our reading.
-- **The DOC's "20K".** The stored music part is 32,625 bytes before the executable is compressed; we did not
-  measure what it packs down to.
-- [Demozoo][demozoo] refused automated access, so its entry was not read.
 
 ## Sources
 
