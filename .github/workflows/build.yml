@@ -1,13 +1,23 @@
 name: build
 
-# Builds all projects for Linux and for Windows (MinGW cross-compile) on every push and pull request.
-# A tag v* also packages the current remakes for Windows and publishes them as a GitHub Release.
+# Builds the remakes for Linux and Windows (MinGW cross-compile) and packages them as downloads, one job per project
+# and system:
+#   - a push or pull request builds only the projects whose files changed (scripts/ci-plan.sh decides);
+#   - a tag <demo>-v<version>, such as paper-v1.0, builds that demo and publishes its downloads as a GitHub Release
+#     (scripts/ci-release.sh);
+#   - "Run workflow" in the Actions tab builds the projects you name, or all of them.
+# Every build's downloads are kept with the run as artifacts.
 
 on:
   push:
     branches: ['**']
-    tags: ['v*']
+    tags: ['*-v*']
   pull_request:
+  workflow_dispatch:
+    inputs:
+      projects:
+        description: 'Projects to build: all, or names from 303 303-v1 paper jizz stars dope clone'
+        default: all
 
 permissions:
   contents: read
@@ -17,130 +27,140 @@ defaults:
     shell: bash
 
 jobs:
-  linux:
-    name: Linux (Fedora)
+  plan:
+    name: What to build
     runs-on: ubuntu-latest
-    container: fedora:latest
+    outputs:
+      projects: ${{ steps.plan.outputs.projects }}
+      release: ${{ steps.plan.outputs.release }}
+      version: ${{ steps.plan.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # the commits to compare with
+          filter: blob:none       # but not the pictures: comparing needs only the file lists
+
+      - id: plan
+        env:
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          INPUT_PROJECTS: ${{ inputs.projects }}
+        run: bash scripts/ci-plan.sh | tee -a "$GITHUB_OUTPUT"
+
+  linux:
+    name: Linux ${{ matrix.project }}
+    needs: plan
+    if: needs.plan.outputs.projects != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.plan.outputs.projects) }}
+    runs-on: ubuntu-latest
+    # AlmaLinux 9 has glibc 2.34, so the program runs on the Linux distributions of the last years. gcc-toolset gives
+    # a current compiler; the parts of its C++ library that the system's libstdc++ lacks are linked into the program.
+    # SDL3 is built from source with the X11, Wayland and sound headers below and linked in (ci-build.sh).
+    container: almalinux:9
     timeout-minutes: 60
     steps:
       - name: Install packages
-        run: dnf -y install --setopt=install_weak_deps=False gcc-c++ cmake ninja-build pkgconf-pkg-config SDL3-devel libopenmpt-devel
+        run: |
+          dnf -y install dnf-plugins-core epel-release
+          dnf config-manager --set-enabled crb
+          dnf -y install --setopt=install_weak_deps=False \
+            gcc-toolset-14-gcc-c++ gcc-toolset-14-binutils cmake ninja-build ccache git-core tar gzip zstd \
+            alsa-lib-devel pulseaudio-libs-devel pipewire-devel dbus-devel ibus-devel systemd-devel libusb1-devel \
+            libX11-devel libXext-devel libXrandr-devel libXcursor-devel libXfixes-devel libXi-devel libXScrnSaver-devel \
+            libxkbcommon-devel wayland-devel wayland-protocols-devel libdecor-devel \
+            mesa-libGL-devel mesa-libEGL-devel libdrm-devel mesa-libgbm-devel
 
       - uses: actions/checkout@v4
 
-      - name: Build 303 remake
-        run: |
-          cmake -S 303/remake -B 303/remake/build-ci-linux -G Ninja
-          cmake --build 303/remake/build-ci-linux
+      - uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-linux-${{ matrix.project }}-${{ github.sha }}
+          restore-keys: ccache-linux-${{ matrix.project }}-
 
-      - name: Build 303 remake v1
+      - name: Build and package
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
         run: |
-          cmake -S 303/remake-v1 -B 303/remake-v1/build-ci-linux -G Ninja
-          cmake --build 303/remake-v1/build-ci-linux
+          source /opt/rh/gcc-toolset-14/enable
+          export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache" CCACHE_BASEDIR="$GITHUB_WORKSPACE" CCACHE_NOHASHDIR=true CCACHE_MAXSIZE=500M
+          bash scripts/ci-build.sh "${{ matrix.project }}" linux out
+          ccache -s
 
-      - name: Build Paper remake
-        run: |
-          cmake -S paper/remake -B paper/remake/build-ci-linux -G Ninja
-          cmake --build paper/remake/build-ci-linux
-
-      - name: Build JIZZ remake
-        run: |
-          cmake -S jizz/remake -B jizz/remake/build-ci-linux -G Ninja
-          cmake --build jizz/remake/build-ci-linux
-
-      - name: Build STARS remake
-        run: |
-          cmake -S stars/remake -B stars/remake/build-ci-linux -G Ninja
-          cmake --build stars/remake/build-ci-linux
-
-      - name: Build DOPE remake
-        run: |
-          cmake -S dope/remake -B dope/remake/build-ci-linux -G Ninja
-          cmake --build dope/remake/build-ci-linux
-
-      - name: Build clone meets clone remake
-        run: |
-          cmake -S clone/remake -B clone/remake/build-ci-linux -G Ninja
-          cmake --build clone/remake/build-ci-linux
+      - uses: actions/upload-artifact@v4
+        if: matrix.project != '303-v1'
+        with:
+          name: ${{ matrix.project }}-linux
+          path: out/*.tar.gz
+          if-no-files-found: error
+          retention-days: 30
 
   windows:
-    name: Windows x64 (MinGW)
+    name: Windows ${{ matrix.project }}
+    needs: plan
+    if: needs.plan.outputs.projects != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.plan.outputs.projects) }}
     runs-on: ubuntu-latest
     container: fedora:latest
     timeout-minutes: 60
     steps:
       # Fedora has no MinGW libopenmpt: the 303 builds compile it from its pinned source release (cmake/libopenmpt.cmake).
       - name: Install packages
-        run: dnf -y install --setopt=install_weak_deps=False cmake ninja-build mingw64-gcc-c++ mingw64-binutils mingw64-SDL3 mingw64-winpthreads-static
+        run: |
+          dnf -y install --setopt=install_weak_deps=False cmake ninja-build mingw64-gcc-c++ mingw64-binutils \
+            mingw64-SDL3 mingw64-winpthreads-static ccache tar zstd
 
       - uses: actions/checkout@v4
 
-      - name: Build 303 remake
-        run: |
-          mingw64-cmake -S 303/remake -B 303/remake/build-ci-win -G Ninja
-          cmake --build 303/remake/build-ci-win
+      - uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-windows-${{ matrix.project }}-${{ github.sha }}
+          restore-keys: ccache-windows-${{ matrix.project }}-
 
-      - name: Build 303 remake v1
+      - name: Build and package
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
         run: |
-          mingw64-cmake -S 303/remake-v1 -B 303/remake-v1/build-ci-win -G Ninja
-          cmake --build 303/remake-v1/build-ci-win
-
-      - name: Build Paper remake
-        run: |
-          mingw64-cmake -S paper/remake -B paper/remake/build-ci-win -G Ninja
-          cmake --build paper/remake/build-ci-win
-
-      - name: Build JIZZ remake
-        run: |
-          mingw64-cmake -S jizz/remake -B jizz/remake/build-ci-win -G Ninja
-          cmake --build jizz/remake/build-ci-win
-
-      - name: Build STARS remake
-        run: |
-          mingw64-cmake -S stars/remake -B stars/remake/build-ci-win -G Ninja
-          cmake --build stars/remake/build-ci-win
-
-      - name: Build DOPE remake
-        run: |
-          mingw64-cmake -S dope/remake -B dope/remake/build-ci-win -G Ninja
-          cmake --build dope/remake/build-ci-win
-
-      - name: Build clone meets clone remake
-        run: |
-          mingw64-cmake -S clone/remake -B clone/remake/build-ci-win -G Ninja
-          cmake --build clone/remake/build-ci-win
-
-      - name: Package
-        run: |
-          if [ "$GITHUB_REF_TYPE" = tag ]; then export VERSION="$GITHUB_REF_NAME"; else export VERSION="development build ${GITHUB_SHA::7}"; fi
-          bash scripts/package.sh 303 windows 303/remake/build-ci-win out
-          bash scripts/package.sh paper windows paper/remake/build-ci-win out
-          bash scripts/package.sh jizz windows jizz/remake/build-ci-win out
-          bash scripts/package.sh stars windows stars/remake/build-ci-win out
-          bash scripts/package.sh dope windows dope/remake/build-ci-win out
-          bash scripts/package.sh clone windows clone/remake/build-ci-win out
+          export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache" CCACHE_BASEDIR="$GITHUB_WORKSPACE" CCACHE_NOHASHDIR=true CCACHE_MAXSIZE=500M
+          bash scripts/ci-build.sh "${{ matrix.project }}" windows out
+          ccache -s
 
       - uses: actions/upload-artifact@v4
+        if: matrix.project != '303-v1'
         with:
-          name: windows-x64
+          name: ${{ matrix.project }}-windows
           path: out/*.zip
           if-no-files-found: error
+          retention-days: 30
 
   release:
     name: GitHub Release
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: [linux, windows]
+    needs: [plan, linux, windows]
+    if: needs.plan.outputs.release != ''
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # the tags and commits for the release notes
+          filter: blob:none
+
       - uses: actions/download-artifact@v4
         with:
-          name: windows-x64
+          pattern: ${{ needs.plan.outputs.release }}-*
           path: out
+          merge-multiple: true
 
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: out/*.zip
-          fail_on_unmatched_files: true
-          generate_release_notes: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/ci-release.sh "$GITHUB_REF_NAME" out
