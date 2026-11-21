@@ -16,7 +16,9 @@ Faked hardware:
   PIT      channel 0 in modes 0 (one shot: the demo's retrace timer reprograms it in every interrupt) and 2 / 3
            (periodic; mode 3 counts down by 2), latch reads. IRQ0 runs the handler installed with int 21h AH=25h.
   GUS      at the port SOUND.CFG names (0x220), the register file with 1 MB DRAM, DMA uploads through the 8237
-           and the DMA-complete IRQ, timers (unused). (Gus class: stars/re/run_stars.py.)
+           and the DMA-complete IRQ (register 0x41: bit 6 = 16-bit data, bit 7 = invert the MSB), timers (unused).
+           (Gus class: stars/re/run_stars.py, with the bits 6 and 7 the right way round; the capture made before
+           that fix holds the samples in full.dram with the MSB not inverted.)
 
 The demo's own timer interrupt fires 4 times per screen refresh (280 Hz), locked to the retrace (NOTES.md "Clock").
 
@@ -151,8 +153,8 @@ class Gus:
                 else:
                     dst = r42 << 4
                 data = bytearray(self.dma(ch))
-                if val & 0x40:
-                    for i in range(1 if val & 0x80 else 0, len(data), 2 if val & 0x80 else 1):
+                if val & 0x80:                      # bit 7: invert the MSB (of every byte, or of every second byte
+                    for i in range(1 if val & 0x40 else 0, len(data), 2 if val & 0x40 else 1):   # for 16-bit data)
                         data[i] ^= 0x80
                 for i, b in enumerate(data):
                     self.dram[(dst + i) & 0xfffff] = b

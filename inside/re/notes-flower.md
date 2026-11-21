@@ -131,7 +131,7 @@ motions (2), [0x4b6858] frames in the table (266), [0x4b685c] the current LightW
 
 ```
 tag = 0x40b3c0(); [0x4b6838] = tag; 0x40b4d0(tag)          // memory tag for the part
-0x40c034()                                                  // engine render-list reset (engine scope)
+0x40c034()                                                  // resets engine list pointers (0x4b9408.. buffers; engine scope)
 scene = alloc(0x50, "flower scene"); mat1 = alloc(0x44, "flower tunnel-mat1");
 mat2 = alloc(0x44, "flower tunnel-mat2"); fmat = alloc(0x44, "flower flower-mat"); camera = alloc(0xc8, "flower camera")
 file[1] = "flower/tunneli1.sro"; file[2] = file[3] = "flower/kukka1.sro"; file[4..10] = "kukka1-2".."kukka1-8";
@@ -301,7 +301,7 @@ if (k % 2 == 0) white flash (0x400498) else inverse flash (0x400454)
 ```
 
 A and B change at the next tick, so the first frame after the event morphs the old pair with weight |sin 0| = 0,
-i.e. shows kukka1 (all 111 vertices set to kukka1).
+i.e. sets the vertices both old targets have to kukka1's.
 
 ### 6.2 Hide 0x4093f0 (script, 14:63, 15:48, 16:12, 16:56, 17:12, 17:60, 18:28, 18:63, 19:12)
 
@@ -317,9 +317,10 @@ For the first min(A.faces, B.faces) faces: obj.face.normal = trunc(A.normal + (B
 first min(A.vertices, B.vertices) vertices: obj.v.normal and obj.v.position likewise (integers, x87 trunc). The
 faces, their vertex indices and everything else stay those of kukka1. Targets 1..7 share kukka1's faces, so the morph
 is a per-vertex blend of two shapes of the same flower. kukka2 / kukka2-2 (k = 7, 8) have 109 vertices and other
-faces: kukka1's faces are drawn with kukka2's vertex positions by index (the shapes do not correspond: the flower
-breaks into crossed spikes, records ~6366..6711), and vertices 109, 110 are not morphed: they keep the values the
-first frame after the event gave them, kukka1's (-500, 45, -300) and (-151, 46, -303) and their normals. The vertex
+faces: kukka1's faces are drawn with kukka2's (kukka2-2's) vertices 0..108 by index, whatever those vertices are in
+their own model (at full weight the flower becomes long crossed spikes, record 6600), and vertices 109, 110 are not
+morphed: they keep the values the first frame after the event gave them, kukka1's (-500, 45, -300) and
+(-151, 46, -303) and their normals. The vertex
 normals are blended, not renormalised (shorter between the shapes), and the face normals too (used by the engine's
 back-face test). w = |sin(phase)|, phase += 0.02 per tick: the flower opens and closes with a period of 157 ticks
 (2.24 s), starting from kukka1 at each show.
@@ -404,11 +405,11 @@ draw them far to near (painter's algorithm, no z-buffer), near-clip at camera z 
 
 ## 10. Pictures
 
-- `flower/jeesus2.raw` (256 x 256): a swirling liquid texture in greens, yellows and blues; hand-made (painted)
-  texture. It is read **through the shade table** (index -> shd[level][index]), so a remake must keep its indices:
+- `flower/jeesus2.raw` (256 x 256): a swirling liquid texture in greens, yellows and blues; made by the artists
+  (not by the code). It is read **through the shade table** (index -> shd[level][index]), so a remake must keep its indices:
   no redraw; the remake can shade in true colour with palette[shd[level][index]], interpolating between levels.
 - `flower/jeesus1.raw` (256 x 256): a round red / white swirl on black (indices 0..143), used as the flower's
-  environment map, indices straight to the palette. Hand-made texture; a redraw would be seen only through the
+  environment map, indices straight to the palette. Made by the artists; a redraw would be seen only through the
   environment mapping (and the twirl part shows it as a picture, notes-twirl.md). It is not drawn as it is here.
 - `flower/jeesus.pal` (palette of both), `flower/jeesus.shd` (64 x 256 shade table, level 63 = identity).
 
@@ -422,8 +423,9 @@ draw them far to near (painter's algorithm, no z-buffer), near-clip at camera z 
   part of the content.
 - Integer positions: camera position truncated to integers per frame, flower vertices and normals truncated after the
   morph, vertex normals of length 819 truncated: use floats.
-- Environment-map coordinates truncated and masked to 12 bits per vertex, then interpolated: evaluate per pixel
-  with the same formula (keep the 0xfff wrap of the normal term and the position term).
+- Environment-map coordinates truncated to integers per vertex: compute them as floats per vertex and interpolate
+  them perspective-correct (the 0xfff mask never wraps: with normals of length <= 819, U and V stay in 410..3686;
+  the result wraps through the 256-texel texture as before).
 - Texture reads nearest-neighbour 256 x 256: filter (both textures tile).
 - The near plane at camera z = 64 (faces cut there) and the 1/16 px vertex snapping: render at full precision
   (keep a near plane small enough not to cut the tube walls the original shows).

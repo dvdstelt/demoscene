@@ -43,7 +43,8 @@ everything except your own notes file and your own models directory.
 - **The code is Watcom C** (register calling convention: arguments in EAX, EDX, EBX, ECX, then on the stack, the
   callee pops them with `ret n`; floats and doubles are passed on the stack) plus hand-written assembler (the
   rasterizers, DSMI). Float → int conversions call 0x40ba78 (truncate) before `fistp`, so they **truncate toward
-  zero**; the FPU otherwise rounds to nearest at 64-bit precision. `fsin` / `fcos` in the emulator are computed in
+  zero**; the FPU otherwise rounds to nearest, at 53-bit precision in main-line code and 64-bit inside the timer
+  interrupt (notes-core.md section 10). `fsin` / `fcos` in the emulator are computed in
   double precision on the host, so captured tables can differ from a real Pentium in the last bits.
 - Shared helpers (the core scope describes them; use them by what goes in and out): 0x400614 data file by name
   → pointer; 0x40b4d8 allocate (EAX size, EDX name) → EAX; 0x40ad40 memset; 0x4134cd rand() (Watcom LCG),
@@ -148,7 +149,7 @@ Your final message: summarise the key findings in under 300 words and give the n
 | intro + logo | intro: 0x403770, 0x4038c8, 0x403214, 0x403748, 0x4031a0, 0x403164 (light drops over intro/intro.raw); logo: 0x402f9c, 0x402ca0, 0x402d0c, 0x402e30, 0x402f1c, 0x402f10 (twlogo, the INSIDE text, obuke.sro, the mask) | notes-intro-logo.md |
 | credits | 0x406d10, 0x40684c, 0x406c70, 0x4073c8, 0x405f30, 0x406794, 0x405f1c, 0x405f10, 0x4073e8 (tunnel, spike ball, smoke, the name pictures, the water mask) | notes-credits.md |
 | sprites + shadow scene | 0x404fe8, 0x40506c, 0x405110, 0x4051d4, 0x405298, 0x4057bc, 0x404738, 0x4047a0, 0x404680, 0x404728, 0x405ba0, 0x405f00, 0x40585c, 0x40571c and the routines they call (the four pictures with their sprites and shadows, the shadow map, warp grid, cube) | notes-sprites.md |
-| flower | 0x409730, 0x408030.., 0x4098c4, 0x40940c, 0x4095f8, 0x409358, 0x4093f0, 0x408014 (the tunnel with its LightWave camera, the flower morph, the pictures) | notes-flower.md |
+| flower | 0x409730, 0x408030.., 0x4098c4, 0x40940c, 0x4095f8, 0x409358, 0x4093f0, 0x409e90 (the tunnel with its LightWave camera, the flower morph, the pictures) | notes-flower.md |
 | flight | 0x402948, 0x401330, 0x40136c, 0x401450, 0x4018d0, 0x4023d4, 0x402c28, 0x4021f8, 0x4028e4, 0x402c7c (the landscape, the ship, the sun and lens flares, the river) | notes-flight.md |
 | water | 0x407dec, 0x4079f4, 0x407f90, 0x407c78 and the rest of 0x4074xx..0x408000 (the water surface, the fish, the environment map) | notes-water.md |
 | twirl | 0x409ea0, 0x40a29c, 0x40a408, 0x40a678, 0x40a098, 0x40a738, 0x409e90 (the twirl of flower/jeesus1.raw, its tables) | notes-twirl.md |

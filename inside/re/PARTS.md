@@ -13,7 +13,7 @@ the column "ran at" is the refresh at which its effect is first visible (the rou
 | frame routine | tick routine | refreshes | t (s) | music | frames drawn (fps) | on screen |
 |---|---|---|---|---|---|---|
 | – (precalc) | – | 0..37 | – | – | – | black (mode 13h from refresh 15) |
-| 0x403748 intro | 0x403214 | 38..1445 | 0.01..20.10 | 0:00..3:63 | 974 (48.5) | a picture (intro/intro.raw: a woman's body and a tube of "Amazing Good" glue, digitised) revealed by drifting spots of light ("light drops") that grow; a dark blob stays |
+| 0x403748 intro | 0x403214 | 38..1445 | 0.01..20.10 | 0:00..3:63 | 974 (48.5) | a picture (intro/intro.raw: a digitised photo of a woman's body and a tube of "AMAZING GOOP" glue) revealed by drifting spots of light ("light drops") that grow; a dark blob stays |
 | 0x402f1c logo | 0x402e30 | 1446..2147 | 20.10..30.11 | 3:63..5:63 | 701 (70.0) | the twisted 3D logo object on a red radial background (logo/twlogo.raw), white flashes on the beat; the first refresh shows the intro's pixels through the logo's palette |
 | 0x406794 credits | 0x405f30 | 2148..4254 | 30.12..60.17 | 5:63..11:63 | 1921 (63.9) | a twisting colourful tunnel flown through, smoke, a spiked ball; the names (DESTOP, JOUNI, JULIET, ..., YOLK & LEGEND) with small portraits (credits/kredu*.raw) |
 | 0x4047a0 sprites / shadow scene | 0x404738 | 4255..4961 | 60.18..70.26 | 11:63..14:00 | 706 (70.0) | digitised photos of people (sprites with shadows) over a warping colourful background |

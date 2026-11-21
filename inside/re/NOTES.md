@@ -91,13 +91,16 @@ Files (name, offset, size): see `python3 datfile.py ../original/INSIDE.DAT`. Kin
 - Flat model: CS and DS/SS are 4 GB selectors with base 0. Entry 0x40aa48 is Watcom's start-up (cstart): int 21h
   30h, the DOS/4G check (int 21h AX=FF00 answered with AL ≠ 0, GS = 0: extender type 1), int 31h 0006, heap
   through DPMI 0501 (0x418fa1), clib init, main 0x400010.
-- FPU: the default control word (rounding to nearest); float → int conversions call 0x40ba78 (Watcom's __CHP:
-  `frndint` with rounding = truncate) before `fistp`, so they truncate toward zero.
+- FPU: control word 0x127F in main-line code (round to nearest, **53-bit** precision); inside the timer interrupt
+  (tick routines, palette steps, music) 0x037F (64-bit), because the handler's `fnsave` resets the FPU. Float → int
+  conversions call 0x40ba78 (Watcom's __CHP: `frndint` with rounding = truncate) before `fistp`, so they truncate
+  toward zero (notes-core.md section 10).
 - main 0x400010: 0x4007c0 (init, precalc of every part), 0x400cb4 (the main loop), then the exit (0x400a10..).
 - Memory: 0x40b4d8 (EAX = size, EDX = name) allocates through Watcom's malloc and keeps a named list (tag
   [0x4b6ec8] from 0x40b3c0 / 0x40b4d0, used to free a part's memory: 0x40b6fc frees every block with a tag).
 - Random numbers: 0x4134cd is Watcom's rand(): seed = seed × 0x41c64e6d + 0x3039, returns (seed >> 16) & 0x7fff;
-  0x4134f1 srand(EAX). The seed lives behind 0x4134c7 (thread data).
+  0x4134f1 srand(EAX). The seed is the dword at 0x423818 (initially 1; 0x4134c7 returns its address); srand is called
+  once, srand(0x45eafc) in the flight init. Who draws how many numbers: notes-core.md section 9.
 
 ## Main flow
 
@@ -113,8 +116,8 @@ driver from SOUND.CFG, EYE.AMF, play), 0x401010 tells DSMI's timer the interrupt
 (the timer callback).
 
 0x400cb4 (main loop): until [0x422788] (quit) or Esc ([0x4b9029]): call the part's frame routine [0x424888] (if
-any), then call 0x400b3c until it returns 0 (each call runs at most one script entry), then the screenshot key
-([0x4b9047]: 0x400c40 writes `shot%u.tga`).
+any), then call 0x400b3c until it returns 0 (each call runs at most one script entry, so every due entry runs before
+the next frame), then the screenshot key ([0x4b9047]: 0x400c40 writes `shot%u.tga`).
 
 **The script** (0x400b3c, table 0x4222e4, 12-byte entries {dword order, dword row, dword routine}): the music
 position pos = order × 64 + row (0x40de09 / 0x40de21: DSMI's current order [0x422a5d] and row [0x422a61], −1 when
@@ -140,20 +143,27 @@ first right at the retrace, then every 4,085 PIT clocks; the last interval is th
 [0x4b8f04] (the callback 0x40070c), restores, and chains to the old BIOS handler when its 16-bit sum of periods
 overflows.
 
-The callback 0x40070c (every interrupt, 280 per second):
-- [0x4248c4] += 1, [0x4248c8] += 1 (the part tick counter, reset by 0x400af4 / 0x400b04);
+The callback 0x40070c (every interrupt, 280 per second; skipped entirely while [0x42278c] is set, which the credits'
+frame routine does around 0x4061fc):
+- [0x4248c4] += 1 (**M, the music clock**: callbacks since the music start, never reset; the temple, sprites and water
+  read it), [0x4248c8] += 1 (**P**, the part tick counter, reset by 0x400af4 / 0x400b04; the intro and flight read
+  it);
 - 0x400fcc: the music (DSMI's timer: time += [0x4b9144] = 35 (0x401010: trunc(4,085 × 2,500 × 3.48092453e−6)),
   then AMP's poll 0x40d878 runs the player ticks that are due);
-- only on the retrace interrupt ([0x4b8f10] = 0) and when not reentered: [0x424880] += 1.0 (**the frame clock**,
-  float, 70.086 Hz), 0x400540 (one step of a palette fade), the screen copy if a frame is ready ([0x422984] = 1:
-  0x400694 copies [0x4248cc] to VGA memory, [0x42488c] += 1.0, [0x422984] = 0), then the part's tick routine
-  [0x4248b4].
+- only on the retrace interrupt ([0x4b8f10] = 0), when not reentered and when the busy counter [0x4248c0] is 0:
+  [0x424880] += 1.0 (the frame clock, float, 70.086 Hz; nothing reads it), 0x400540 (one step of a palette fade),
+  the screen copy if a frame is ready ([0x422984] = 1: 0x400694 copies [0x4248cc] to VGA memory, [0x42488c] += 1.0,
+  [0x422984] = 0), then the part's tick routine [0x4248b4].
+
+notes-core.md section 1 has the exact model: record k follows the retrace callback M = 4k − 150; song row R starts in
+callback floor((1200 + 768 R) / 35) + 1 (three times slower in order 36); every script entry with its callback and
+the first record that shows its effect.
 
 So everything in the demo runs on the screen refresh: the parts' tick routines at 70.086 Hz, the music player on
 DSMI time that advances 35 units per interrupt, 140 per refresh. A finished frame is shown at the next refresh. The
 main loop draws as fast as it can into the back buffer and flips with 0x400b14 (swap [0x4248cc] / [0x4248d0], the
-draw target [0x4b6ec0] = the new back buffer, [0x422984] = 1); it never waits, so a frame drawn twice within one
-refresh replaces the first.
+draw target [0x4b6ec0] = the new back buffer, [0x422984] = 1); the flip never waits, so a frame drawn twice within
+one refresh replaces the first, but the sprites' and the flower's frame routines wait for the copy themselves.
 
 ## Palette (0x400364 .. 0x400612)
 
@@ -174,8 +184,8 @@ palette [0x4248b8] and per-entry adders [0x424884]; [0x4248ac] = steps left, [0x
 
 Two 320×200 8-bit buffers; parts draw into [0x4b6ec0]. 0x40a83c(width, height, x0, y0 | x1, y1) sets the screen
 geometry: [0x4b6ec4] = 320 (pitch), [0x4b6eac] = 200, the clip window [0x4b6eb8], [0x4b6ebc], [0x4b6eb0],
-[0x4b6eb4]; 0x400694 copies the clip window's rows to VGA memory [0x42297c] (0xa0000). So a part that narrows the
-window (letterbox) leaves the rest of VGA memory as it was.
+[0x4b6eb4]; 0x400694 copies the clip window's rows to VGA memory [0x42297c] (0xa0000). Init sets the full screen and
+nothing changes it, so every copy is the whole 320 × 200.
 
 ## Running the original headless (run_inside.py)
 
@@ -190,7 +200,8 @@ controllers and a Gravis UltraSound at 0x220 (from SOUND.CFG; registers, 1 MB DR
 Main-line code runs at 150 M instructions per second (a fast Pentium, as the README asks for); interrupt handlers
 run instantly except for their retrace wait.
 
-Outputs: `full.frames` (per refresh, at its first displayed line: VGA memory and the DAC; record k = frame k),
+Outputs: `full.frames` (per refresh, after its retrace callback, at its first displayed line: VGA memory and the
+DAC; record k = frame k, written at program time (k + 1) / 70.086 s),
 `full.ticks` (per refresh: time, music order and row, the frame clock [0x424880], the part tick counter, the script
 index, the frame and tick routines, frames shown, timer interrupts, main EIP), `full.flips` (every copy to the
 screen), `full.gus` (GUS writes stamped with the number of timer interrupts), `full.dram`, `full.log`.
@@ -209,7 +220,7 @@ See PARTS.md for the timeline. Code by part (init routine, then the tick / frame
 | sprite pictures and the shadow scene | 0x404fe8, 0x40506c, 0x405110, 0x4051d4, 0x405298 | 11:63 0x4057bc → tick 0x404738, frame 0x4047a0; 0x404680, 0x405ba0, 0x405f00, 0x404728; 27:48 0x40585c, 29:24 0x40571c | nigga/* |
 | flower | 0x409730 (0x408030) | 14:00 0x4098c4 → tick 0x40940c, frame 0x4095f8; 0x409358, 0x4093f0 | flower/* |
 | flight | 0x402948 (0x401330, 0x40136c, 0x401450, 0x4018d0, 0x4023d4) | 19:63 0x402c28 → tick 0x4021f8, frame 0x4028e4 | flight/* |
-| water | 0x407dec (0x4079f4) | 23:63 0x407f90 → tick 0x407c78 | water/* |
+| water | 0x407dec (0x4079f4) | 23:63 0x407f90 → tick 0x407c78, frame 0x407d78; 27:48 0x408014 ends it | water/* |
 | twirl | 0x409ea0 (0x40a29c, 0x40a408) | 29:63 0x40a678; 0x40a098 | flower/jeesus1.raw, .pal |
 | temple | 0x404464 (0x403900, 0x4039c8) | 31:63 0x40461c → tick 0x40407c, frame 0x404424 | temple/* |
 
