@@ -20,11 +20,12 @@
 #include "render.h"
 
 class InsideDat;
+class InsideExe;
 
 struct PictureInfo {
     const char* name;      // the art file name (art/<name>.png) and the name parts use
-    const char* file;      // INSIDE.DAT file with the 8-bit pixels
-    const char* palette;   // INSIDE.DAT palette (768 bytes, 6 bit)
+    uint32_t file;         // address in INSIDE.EXE of the name of the INSIDE.DAT file with the 8-bit pixels
+    uint32_t palette;      // ... of its palette (768 bytes, 6 bit)
     int w, h;              // size in pixels
     int offset = 0;        // first pixel in the file (after a header)
     int transparent = -1;  // the index that is not drawn (-1: none)
@@ -34,7 +35,7 @@ const std::vector<PictureInfo>& pictureList();
 const PictureInfo* findPicture(const std::string& name);
 
 // The original's picture as RGBA8 with premultiplied alpha.
-Image originalPicture(const InsideDat& dat, const PictureInfo& p);
+Image originalPicture(const InsideExe& exe, const InsideDat& dat, const PictureInfo& p);
 // A 768-byte 6-bit palette from INSIDE.DAT as 256 RGB floats 0..1 (v / 63; values above 63 are clamped, as 0x400364).
 std::array<Vec3, 256> datPalette(const InsideDat& dat, const std::string& file);
 
@@ -48,7 +49,7 @@ struct Picture {
 // Loads and caches the pictures (owned by Demo; parts use ctx.picture()).
 class PictureStore {
 public:
-    void init(const InsideDat* dat, std::string artDir, bool useArt);
+    void init(const InsideExe* exe, const InsideDat* dat, std::string artDir, bool useArt);
     bool useArt() const { return useArt_; }
     const std::string& artDir() const { return artDir_; }
     std::string redrawPath(const std::string& name) const;  // art/<name>.png if it exists, else ""
@@ -58,6 +59,7 @@ public:
     void release();
 
 private:
+    const InsideExe* exe_ = nullptr;
     const InsideDat* dat_ = nullptr;
     std::string artDir_;
     bool useArt_ = true;

@@ -25,9 +25,12 @@
 #endif
 
 const std::vector<PictureInfo>& pictureList() {
-    // The pictures parts draw as they are (inside/re/notes-*.md). Photos are never redrawn.
+    // The pictures parts draw as they are (inside/re/notes-*.md), with the addresses of their file names. Photos are
+    // never redrawn.
     static const std::vector<PictureInfo> list = {
-        {"intro", "intro/intro.raw", "intro/intro.pal", 320, 200, 0, -1, true},
+        // logo: logo/inside.raw, the title "INSIDE", drawn from 4:32 at (34, 13), index 0 transparent
+        // (notes-intro-logo.md; 0x415df0 type 3)
+        {"logo_inside", 0x4208e8, 0x4208d8, 249, 139, 0, 0, false},
     };
     return list;
 }
@@ -48,9 +51,9 @@ std::array<Vec3, 256> datPalette(const InsideDat& dat, const std::string& file) 
     return pal;
 }
 
-Image originalPicture(const InsideDat& dat, const PictureInfo& p) {
-    auto pal = dat.file(p.palette);
-    auto px = dat.file(p.file);
+Image originalPicture(const InsideExe& exe, const InsideDat& dat, const PictureInfo& p) {
+    auto pal = dat.file(exe.cstr(p.palette));
+    auto px = dat.file(exe.cstr(p.file));
     Image im;
     im.w = p.w;
     im.h = p.h;
@@ -101,7 +104,8 @@ Decoded decode(const std::string& path) {
 }
 }  // namespace
 
-void PictureStore::init(const InsideDat* dat, std::string artDir, bool useArt) {
+void PictureStore::init(const InsideExe* exe, const InsideDat* dat, std::string artDir, bool useArt) {
+    exe_ = exe;
     dat_ = dat;
     artDir_ = std::move(artDir);
     useArt_ = useArt && !artDir_.empty();
@@ -126,7 +130,7 @@ const Picture& PictureStore::get(const std::string& name) {
     const PictureInfo* info = findPicture(name);
     auto pic = std::make_unique<Picture>();
     pic->name = name;
-    if (!dat_ || !info) {
+    if (!exe_ || !dat_ || !info) {
         SDL_Log("picture: no picture named '%s'", name.c_str());
         return *cache_.emplace(name, std::move(pic)).first->second;
     }
@@ -153,7 +157,7 @@ const Picture& PictureStore::get(const std::string& name) {
             SDL_Log("picture: cannot read %s (%s): using the original's pixels", path.c_str(), d.err.c_str());
         }
     }
-    if (!pic->redraw) pic->tex.create(originalPicture(*dat_, *info), false, false);
+    if (!pic->redraw) pic->tex.create(originalPicture(*exe_, *dat_, *info), false, false);
     return *cache_.emplace(name, std::move(pic)).first->second;
 }
 

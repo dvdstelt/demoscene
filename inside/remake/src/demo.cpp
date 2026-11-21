@@ -288,7 +288,7 @@ bool Demo::init(const InsideExe& exe, const InsideDat& dat, const Soundtrack& mu
         if (err) *err = "shader build failed";
         return false;
     }
-    pictures_.init(&dat, o.artDir, o.art);
+    pictures_.init(&exe, &dat, o.artDir, o.art);
     cues_ = buildTimeline(ctx);
     length_ = demoEnd(ctx);
     ctx.shared<inside::Fade>();
