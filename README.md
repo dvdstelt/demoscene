@@ -14,6 +14,8 @@ intros and their code.
 I did this simply because I love old skool demos and have so many nostalgic feelings about them. That's all this
 is: having some fun with memories from when I was still young.
 
+If you wish not to download the executables, watch [the demo remakes here on YouTube](https://www.youtube.com/playlist?list=PLU0BCztsFaJk).
+
 ## What this is
 
 High-resolution remakes of classic MS-DOS demoscene productions for Windows and Linux. Each remake was reverse
