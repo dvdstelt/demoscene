@@ -1,24 +1,19 @@
 """Side-by-side check of remake frames against the original's capture.
 
-    python3 tools/compare.py OUT.jpg --shots DIR T1 T2 ...      (run inside the toolbox: numpy + PIL)
+    python3 tools/compare.py OUT.jpg --shots DIR R1 R2 ...      (run inside the toolbox: numpy + PIL)
 
-T are music times in seconds (t = xmpGetTimer / 1,193,182, as in the remake). Left = the record of the original's
-capture (clone/re/full.frames, see clone/re/README.md and NOTES.md: one record per timer tick, the 320x200 picture
-on screen at the end of the tick, RGB) whose picture was drawn with the timer value closest to T: the frame on
-screen at the end of tick k is flip full.ticks[k] column 9, drawn with the timer full.flips column 4 (main reads the
-timer after each frame and the next frame shows the state integrated up to it, notes-core 5.2). The remake draws
-the frame at T with the state at timer T, so equal times compare equal states. Right = DIR/shot_<T>.png from
-`clone-remake --shots T1,T2,... --shotdir DIR`. One row per time; the label gives the capture's tick, flip, the
-music time the frame was drawn with, the music position order:row and main's part number.
+R are refreshes of the capture (inside/re/full.frames record R: the picture on screen from program time R / 70.086 s,
+VGA memory through the DAC palette; see inside/re/NOTES.md). The remake renders refresh R with
+`inside-remake --refshots R1,R2,... --shotdir DIR`, which writes DIR/shot_r<R>.png (R with two decimals). Left = the
+capture, right = the remake; one row per refresh, labelled with the record, the music position and the frame
+routine.
 Options:
-  --frames FILE      capture (default ../../re/full.frames relative to this script; full.ticks, full.flips next to it)
+  --frames FILE      capture (default ../../re/full.frames relative to this script; full.ticks next to it)
   --panel WxH        size of each half (default 480x360)
   --crop X,Y,W,H     zoom both into this rectangle of VGA coordinates (320x200 space)
-  --score            print the mean absolute RGB difference (0..255) per time, remake area-downscaled to 320x200
+  --score            print the mean absolute RGB difference (0..255) per refresh, remake area-downscaled to 320x200
   --smooth           show the original with bilinear instead of nearest-neighbour scaling
-  --offset S         add S seconds to T for the capture (to look for a time offset)
-  --tick             T are capture ticks instead of music times (left = that record; right = the shot of the
-                     music time it was drawn with, rounded to 3 decimals as --shots names it)
+  --offset N         compare the remake's refresh R with the capture's record R + N
 """
 import argparse
 import os
@@ -28,96 +23,74 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PIT_HZ = 1193182.0
 
 ap = argparse.ArgumentParser()
 ap.add_argument('out')
-ap.add_argument('times', nargs='+', type=float)
+ap.add_argument('refreshes', nargs='+', type=float)
 ap.add_argument('--shots', required=True)
 ap.add_argument('--frames', default=os.path.join(HERE, '..', '..', 're', 'full.frames'))
 ap.add_argument('--panel', default='480x360')
 ap.add_argument('--crop')
 ap.add_argument('--score', action='store_true')
 ap.add_argument('--smooth', action='store_true')
-ap.add_argument('--offset', type=float, default=0.0)
-ap.add_argument('--tick', action='store_true')
+ap.add_argument('--offset', type=int, default=0)
 a = ap.parse_args()
 
 pw, ph = map(int, a.panel.split('x'))
 data = np.memmap(a.frames, dtype=np.uint8, mode='r')
-assert bytes(data[:8]) == b'CLONFRM1', 'not a per-tick clone capture'
-W, H, _bits, RECORD, HEADER, _mode = struct.unpack('<IIIIII', bytes(data[8:32]))
+assert bytes(data[:8]) == b'INSDFRM1', 'not an Inside capture'
+W, H, RECORD, HEADER = struct.unpack('<IIII', bytes(data[8:24]))
 nrec = (len(data) - HEADER) // RECORD
-base = os.path.splitext(a.frames)[0]
-# .ticks: tick pit_count time_s order row timer part sync_index flips stage eip
-ticks = np.loadtxt(base + '.ticks', comments='#', usecols=(0, 3, 4, 6, 8), dtype=np.int64)
-tick_row = {int(r[0]): r for r in ticks}
-# .flips: flip tick time_s timer t70 part order row
-flip_timer = {}
-for line in open(base + '.flips'):
+ticks = {}
+for line in open(os.path.splitext(a.frames)[0] + '.ticks'):
     if line.startswith('#'):
         continue
     f = line.split()
-    flip_timer[int(f[0])] = int(f[3])
-NONE = -(1 << 40)
+    ticks[int(f[0])] = (int(f[2]), int(f[3]), f[7])
 
 
-def drawn_time(k):
-    """Music time the picture on screen at the end of tick k was drawn with (None before the first timer read)."""
-    r = tick_row.get(k)
-    if r is None:
-        return None
-    tm = flip_timer.get(int(r[4]))
-    return None if tm is None or tm == NONE else tm / PIT_HZ
+def capture(k):
+    o = HEADER + k * RECORD
+    px = np.asarray(data[o:o + W * H]).reshape(H, W)
+    pal = np.asarray(data[o + W * H:o + W * H + 768]).reshape(256, 3).astype(np.uint32)
+    return ((pal * 255 + 31) // 63).astype(np.uint8)[px]
 
 
-drawn = np.array([np.nan if drawn_time(k) is None else drawn_time(k) for k in range(nrec)])
 crop = tuple(map(float, a.crop.split(','))) if a.crop else (0, 0, 320, 200)
 try:
     font = ImageFont.truetype('DejaVuSans-Bold.ttf', 16)
 except OSError:
     font = ImageFont.load_default()
-
-
-def record(t):
-    return int(np.nanargmin(np.abs(drawn - t)))
-
-
-def original(k):
-    rec = np.asarray(data[HEADER + k * RECORD:HEADER + (k + 1) * RECORD]).reshape(H, W, 3)
-    return Image.fromarray(np.array(rec))
-
-
-def shot(t):
-    return Image.open(os.path.join(a.shots, 'shot_%07.3f.png' % t)).convert('RGB')
-
-
-def cut(im, smooth):
-    sx, sy = im.width / 320.0, im.height / 200.0
-    x, y, w, h = crop
-    box = (x * sx, y * sy, (x + w) * sx, (y + h) * sy)
-    return im.resize((pw, ph), Image.BILINEAR if smooth else Image.NEAREST, box=box) if im.width == 320 else \
-        im.resize((pw, ph), Image.LANCZOS, box=box)
-
-
-sheet = Image.new('RGB', (pw * 2, ph * len(a.times)), (0, 0, 0))
+sheet = Image.new('RGB', (2 * pw, ph * len(a.refreshes)))
 d = ImageDraw.Draw(sheet)
-for i, t in enumerate(a.times):
-    if a.tick:
-        k = int(t)
-        t = round(drawn[k], 3)
+for i, r in enumerate(a.refreshes):
+    k = int(round(r)) + a.offset
+    y = i * ph
+    if 0 <= k < nrec:
+        orig = Image.fromarray(capture(k))
+        cx, cy, cw, chh = crop
+        orig = orig.crop((int(cx), int(cy), int(cx + cw), int(cy + chh)))
+        orig = orig.resize((pw, ph), Image.BILINEAR if a.smooth else Image.NEAREST)
+        sheet.paste(orig, (0, y))
+    path = os.path.join(a.shots, 'shot_r%07.2f.png' % r)
+    score = None
+    if os.path.exists(path):
+        rem = Image.open(path).convert('RGB')
+        rw, rh = rem.size
+        if a.score and 0 <= k < nrec:
+            small = np.asarray(rem.resize((320, 200), Image.BOX), dtype=np.int32)
+            score = np.abs(small - capture(k).astype(np.int32)).mean()
+        cx, cy, cw, chh = crop
+        rem = rem.crop((int(cx * rw / 320), int(cy * rh / 200), int((cx + cw) * rw / 320), int((cy + chh) * rh / 200)))
+        sheet.paste(rem.resize((pw, ph), Image.LANCZOS), (pw, y))
     else:
-        k = record(t + a.offset)
-    o, r = original(k), shot(t)
-    sheet.paste(cut(o, a.smooth), (0, i * ph))
-    sheet.paste(cut(r, True), (pw, i * ph))
-    row = tick_row[k]
-    left = 'tick %d flip %d  %.3f s  %02x:%02x  part %d' % (k, row[4], drawn[k], row[1], row[2], row[3])
-    for x, label in ((0, left), (pw, 'remake %.3f s' % t)):
-        d.text((x + 7, i * ph + 5), label, fill=(0, 0, 0), font=font)
-        d.text((x + 6, i * ph + 4), label, fill=(255, 255, 0), font=font)
-    if a.score:
-        rs = np.asarray(r.resize((320, 200), Image.BOX), dtype=np.float32)
-        print('%.3f s (tick %d)  mean abs diff %.2f' % (t, k, np.abs(rs - np.asarray(o, dtype=np.float32)).mean()))
+        d.text((pw + 10, y + 10), 'missing ' + os.path.basename(path), fill=(255, 80, 80), font=font)
+    t = ticks.get(k)
+    label = 'record %d  %s' % (k, '%d:%02d  frame fn %s' % t if t else '')
+    if score is not None:
+        label += '  diff %.1f' % score
+        print('refresh %.2f record %d: mean abs diff %.2f' % (r, k, score))
+    d.text((6, y + 4), label, fill=(255, 255, 0), font=font)
+    d.text((pw + 6, y + 4), 'remake %.2f' % r, fill=(255, 255, 0), font=font)
 sheet.save(a.out, quality=90)
 print('wrote', a.out)
