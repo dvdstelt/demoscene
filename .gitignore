@@ -4,6 +4,16 @@ build-*/
 out/
 *.o
 *.obj
+# Linux programs have no extension: keep out a build made outside a build*/ folder
+acme303
+paper-remake
+jizz-remake
+stars-remake
+dope-remake
+clone-remake
+test_music
+jizz-texdump
+jizz-textest
 
 # The original productions belong to their authors and are never committed.
 # Put them in <demo>/original/ (scripts/fetch-originals.sh does that).
