@@ -1,0 +1,82 @@
+// The palette fades (fade.h): the script's palette routines replayed as an affine colour transform per refresh.
+#include "inside/fade.h"
+
+#include <algorithm>
+#include <cmath>
+
+#include "music.h"
+
+namespace inside {
+
+const char* kFadeFS = R"(
+in vec2 uv;
+out vec4 o;
+uniform sampler2D frame;
+uniform vec3 mulc;
+uniform vec3 addc;
+void main() { vec4 c = texture(frame, uv); o = vec4(clamp(c.rgb * mulc + addc, 0.0, 1.0), 1.0); }
+)";
+
+namespace {
+// The script's own palette routines (NOTES.md "Palette"): 0x400498 white flash (start min(c + 63, 63), 15 refreshes),
+// 0x400454 inverse flash (start 63 - c, 20), 0x400438 fade to black (40).
+constexpr uint32_t kFlash = 0x400498, kInverse = 0x400454, kBlack = 0x400438;
+}  // namespace
+
+Fade::Fade(Ctx& c) {
+    for (const ScriptEntry& e : c.script()) {
+        if (!e.routine || !std::isfinite(e.refresh)) continue;
+        if (e.routine == kFlash) ops_.push_back({FadeOp::Flash, e.refresh, 1.0f, 15});
+        else if (e.routine == kInverse) ops_.push_back({FadeOp::Inverse, e.refresh, 1.0f, 20});
+        else if (e.routine == kBlack) ops_.push_back({FadeOp::Black, e.refresh, 0.0f, 40});
+    }
+    std::stable_sort(ops_.begin(), ops_.end(), [](const FadeOp& x, const FadeOp& y) { return x.refresh < y.refresh; });
+    // step the state once per refresh, like 0x400540 in the timer callback
+    first_ = ops_.empty() ? 0 : int(std::floor(ops_.front().refresh)) - 1;
+    int last = int(std::ceil(c.music ? c.music->endRefresh : 0)) + 2;
+    double cur_a = 1, cur_b = 0, fa = 1, fb = 0, da = 0, db = 0, level = 1;
+    int left = 0;
+    size_t next = 0;
+    for (int r = first_; r <= last; r++) {
+        // the routines that ran before this refresh's step
+        while (next < ops_.size() && ops_[next].refresh <= r) {
+            const FadeOp& op = ops_[next++];
+            double ta = level, tb = 0;     // target: base x level
+            int n = op.steps;
+            switch (op.kind) {
+                case FadeOp::Flash: cur_a = 0; cur_b = 1; level = 1; ta = 1; break;
+                case FadeOp::Inverse: cur_a = -1; cur_b = 1; level = 1; ta = 1; break;
+                case FadeOp::Black: level = 0; ta = 0; break;
+                case FadeOp::Fade: level = op.level; ta = op.level; break;
+                case FadeOp::SetBase: ta = level; n = std::max(1, left); break;
+            }
+            n = std::max(1, n);
+            fa = cur_a;
+            fb = cur_b;
+            da = (ta - cur_a) / n;
+            db = (tb - cur_b) / n;
+            left = n;
+        }
+        if (left > 0) {
+            fa += da;
+            fb += db;
+            cur_a = fa;
+            cur_b = fb;
+            left--;
+        }
+        states_.push_back({cur_a, cur_b});
+    }
+}
+
+FadeState Fade::at(double r) const {
+    if (states_.empty()) return {};
+    double x = r - first_;
+    int i = int(std::floor(x));
+    double f = x - i;
+    auto get = [&](int k) { return states_[size_t(std::clamp(k, 0, int(states_.size()) - 1))]; };
+    Step s0 = get(i), s1 = get(i + 1);
+    float a = float(s0.a + (s1.a - s0.a) * f), b = float(s0.b + (s1.b - s0.b) * f);
+    return {Vec3(a, a, a), Vec3(b, b, b)};
+}
+
+}  // namespace inside
