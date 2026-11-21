@@ -18,16 +18,26 @@ void main() { vec4 c = texture(frame, uv); o = vec4(clamp(c.rgb * mulc + addc, 0
 )";
 
 namespace {
-// The script's own palette routines (NOTES.md "Palette"): 0x400498 white flash (start min(c + 63, 63), 15 refreshes),
-// 0x400454 inverse flash (start 63 - c, 20), 0x400438 fade to black (40).
+// The palette routines (NOTES.md "Palette"): 0x400498 white flash (start min(c + 63, 63), 15 refreshes), 0x400454
+// inverse flash (start 63 - c, 20), 0x400438 fade to black (40). The script calls them directly, and some part
+// routines call them (notes of the parts): the twirl's start 0x40a678 and event 0x40a098 (white), the flower's show
+// 0x409358 (white when its counter k = (calls + 1) % 9 is even, inverse when odd) and hide 0x4093f0 (white), the
+// credits' next name 0x405f1c (white), the temple's start 0x40461c (white). When two run before the same refresh, the
+// second replaces the first (each sets the start anew).
 constexpr uint32_t kFlash = 0x400498, kInverse = 0x400454, kBlack = 0x400438;
+constexpr uint32_t kWhiteFlashers[] = {0x40a678, 0x40a098, 0x4093f0, 0x405f1c, 0x40461c};
+constexpr uint32_t kFlowerShow = 0x409358;
 }  // namespace
 
 Fade::Fade(Ctx& c) {
-    for (const ScriptEntry& e : c.script()) {
+    int flowerShows = 0;
+    for (const ScriptEntry& e : c.script()) {   // in table order: entries of one refresh run in this order
         if (!e.routine || !std::isfinite(e.refresh)) continue;
-        if (e.routine == kFlash) ops_.push_back({FadeOp::Flash, e.refresh, 1.0f, 15});
-        else if (e.routine == kInverse) ops_.push_back({FadeOp::Inverse, e.refresh, 1.0f, 20});
+        bool white = e.routine == kFlash;
+        for (uint32_t w : kWhiteFlashers) white |= e.routine == w;
+        if (e.routine == kFlowerShow) white = ((flowerShows++ + 1) % 9) % 2 == 0;
+        if (white) ops_.push_back({FadeOp::Flash, e.refresh, 1.0f, 15});
+        else if (e.routine == kInverse || e.routine == kFlowerShow) ops_.push_back({FadeOp::Inverse, e.refresh, 1.0f, 20});
         else if (e.routine == kBlack) ops_.push_back({FadeOp::Black, e.refresh, 0.0f, 40});
     }
     std::stable_sort(ops_.begin(), ops_.end(), [](const FadeOp& x, const FadeOp& y) { return x.refresh < y.refresh; });
