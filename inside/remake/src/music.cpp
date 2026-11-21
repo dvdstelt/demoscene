@@ -1,9 +1,12 @@
 // Inside's soundtrack (music.h). Placeholder until the port of DSMI's AMP 2.00 and the GUS driver is in: silence,
-// and the music position at the song's measured pace (one row per 5.5 refreshes; inside/re/PARTS.md).
+// and the music positions of the capture (inside/re/full.ticks, read at run time when the repository has it;
+// otherwise one row per 5.6 refreshes).
 #include "music.h"
 
 #include <cmath>
+#include <cstdio>
 #include <limits>
+#include <string>
 #include <stdexcept>
 
 #include "demo.h"
@@ -30,8 +33,20 @@ Soundtrack renderSoundtrack(const InsideExe&, std::span<const uint8_t> amf, int 
     s.rate = rate;
     s.startRefresh = 37;
     s.firstRefresh = 37;
-    const double perRow = 5.5;  // placeholder pace
-    for (int k = 0; k < 13100; k++) s.positions.push_back(int(k / perRow));
+#ifdef INSIDE_RE_DIR
+    if (FILE* f = std::fopen(INSIDE_RE_DIR "/full.ticks", "r")) {
+        char line[512];
+        while (std::fgets(line, sizeof line, f)) {
+            int frame, order, row;
+            double t;
+            if (line[0] == '#' || std::sscanf(line, "%d %lf %d %d", &frame, &t, &order, &row) != 4) continue;
+            if (frame >= s.firstRefresh) s.positions.push_back(order < 0 ? -1 : order * 64 + row);
+        }
+        std::fclose(f);
+    }
+#endif
+    if (s.positions.empty())
+        for (int k = 0; k < 13100; k++) s.positions.push_back(int(k / 5.6));
     s.endRefresh = 13081;
     s.pcm.assign(size_t((s.endRefresh - s.startRefresh) / kRefreshHz * rate) * 2, 0);
     return s;
