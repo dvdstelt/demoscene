@@ -1,5 +1,21 @@
 # demoscene remakes
 
+I'm a very nostalgic person. I still listen to music from the 80s, and I still regularly watch demos from the 90s.
+When I heard that people were using AI to reverse engineer PlayStation games, I figured it should be able to do
+demos as well. So one day when I was bored, I took 303 by Acme, coded by Statix, and first tried to rebuild it from a
+video, because Claude offered to do it that way. That version was funny, but bad. So I asked Claude to really
+reverse engineer it, and that became the first remake. Then I did Paper and JIZZ, and more followed. At some point I
+realised I could improve the graphics as well, and in the end I even restored the video clips that 303 plays. The
+result is this repository.
+
+I also included documentation on how each conversion went, and on interesting facts about the original demos and
+intros and their code.
+
+I did this simply because I love old skool demos and have so many nostalgic feelings about them. That's all this
+is: having some fun with memories from when I was still young.
+
+## What this is
+
 High-resolution remakes of classic MS-DOS demoscene productions for Windows and Linux. Each remake was reverse
 engineered from the original executable and plays the original's own effects, timing and music. It renders them at
 any resolution in true colour instead of 320×200 in 256 colours (or, for JIZZ, 320×200 in hicolor, and for clone
