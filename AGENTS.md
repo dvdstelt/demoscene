@@ -17,7 +17,7 @@ composition, colours and music, rendered at any resolution in true colour.
   re/              reverse-engineering notes (notes-*.md: pseudo-C with every constant) and helper scripts
   docs/            making-of.md, images/
 docs/              how-it-was-made.md, reverse-engineering.md, videos.md
-scripts/           fetch-originals.(sh|ps1), package-windows.sh, render-videos.sh
+scripts/           fetch-originals.(sh|ps1), package.sh, render-videos.sh
 ```
 
 303 also has `remake-v1/`, the first version rebuilt by eye from a video. It is kept as a record: do not develop it
@@ -119,4 +119,4 @@ constants. Write plainly; describe what is there, not how good it is.
 
 Create `<demo>/` with the layout above, add the original's files and checksums to `scripts/fetch-originals.*`, a
 row to the table in the root README, a build job to `.github/workflows/build.yml` and a packaging entry to
-`scripts/package-windows.sh`. Start from the Paper remake's framework (`demo.*`, `render.*`, `gl.*`).
+`scripts/package.sh`. Start from the Paper remake's framework (`demo.*`, `render.*`, `gl.*`).

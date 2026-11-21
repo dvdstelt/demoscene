@@ -113,12 +113,12 @@ jobs:
       - name: Package
         run: |
           if [ "$GITHUB_REF_TYPE" = tag ]; then export VERSION="$GITHUB_REF_NAME"; else export VERSION="development build ${GITHUB_SHA::7}"; fi
-          bash scripts/package-windows.sh 303 303/remake/build-ci-win out
-          bash scripts/package-windows.sh paper paper/remake/build-ci-win out
-          bash scripts/package-windows.sh jizz jizz/remake/build-ci-win out
-          bash scripts/package-windows.sh stars stars/remake/build-ci-win out
-          bash scripts/package-windows.sh dope dope/remake/build-ci-win out
-          bash scripts/package-windows.sh clone clone/remake/build-ci-win out
+          bash scripts/package.sh 303 windows 303/remake/build-ci-win out
+          bash scripts/package.sh paper windows paper/remake/build-ci-win out
+          bash scripts/package.sh jizz windows jizz/remake/build-ci-win out
+          bash scripts/package.sh stars windows stars/remake/build-ci-win out
+          bash scripts/package.sh dope windows dope/remake/build-ci-win out
+          bash scripts/package.sh clone windows clone/remake/build-ci-win out
 
       - uses: actions/upload-artifact@v4
         with:
