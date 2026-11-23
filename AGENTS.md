@@ -134,4 +134,8 @@ constants. Write plainly; describe what is there, not how good it is.
 Create `<demo>/` with the layout above, add the original's files and checksums to `scripts/fetch-originals.*`, a row
 to the table in the root README, the demo to the project lists in `scripts/ci-plan.sh`, `scripts/ci-build.sh` and
 `scripts/ci-release.sh`, and a packaging entry to `scripts/package.sh`. Start from the Paper remake's framework
-(`demo.*`, `render.*`, `gl.*`).
+(`demo.*`, `render.*`, `gl.*`). `scripts/render-videos.sh` finds the new demo by itself if the program is
+`<demo>/remake/build/<demo>-remake`, its `--video` renders the whole production by default, and
+`<demo>/re/frames2mp4.py full.frames OUT --size WxH --vcodec "..."` turns the emulator capture into a video that starts
+at the remake's time 0 (then `<demo>-compare` puts the original next to the remake); otherwise add the exception to
+its tables (docs/videos.md).
