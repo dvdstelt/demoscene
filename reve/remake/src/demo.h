@@ -199,6 +199,8 @@ struct Cue {
     double hold = 0;          // the original draws no frame of this entry after this refresh (the next entry's init
                               // runs): Demo::render asks the part for min(r, hold), so the screen holds that frame
     double black = 0;         // ... unless the next init clears the screen: black from this refresh on
+    double shown = 0;         // the refresh from which the entry's first frame (at start) is on screen: start, or
+                              // earlier where its init draws that frame before the first retrace call
 };
 std::vector<Cue> buildTimeline(Ctx& c);
 // The refresh at which the demo ends.

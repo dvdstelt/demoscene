@@ -57,6 +57,9 @@ constexpr int kEndInitRefreshes = 1;
 // The record, after P, from which the screen is black until the entry's first frame (0: the last frame holds).
 constexpr int kGapBlack[] = {0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
                              1, 1, 0, 0, 0, 1, 0, 2, 1, 0, 1, 1, 1, 0, 1};
+// The records before the first retrace call from which the entry's first frame is on screen (its init draws it).
+constexpr int kShownEarly[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0,
+                               0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 // clang-format on
 
 std::string sceneOf(int entry) {
@@ -78,12 +81,14 @@ std::vector<Cue> buildTimeline(Ctx& c) {
         pos = c.music ? std::max(e.start, c.music->refreshOfPosition(e.endPos)) : inf;
         const int next = e.index + 1;
         const int gap = next < int(sizeof kGapBlack / sizeof kGapBlack[0]) ? kGapBlack[next] : 1;
-        cues.push_back({sceneOf(e.index), e.index, e.start, inf, pos + 1, gap ? pos + gap : inf});
+        const int early = e.index < int(sizeof kShownEarly / sizeof kShownEarly[0]) ? kShownEarly[e.index] : 0;
+        cues.push_back({sceneOf(e.index), e.index, e.start, inf, pos + 1, gap ? pos + gap : inf, e.start - early});
     }
     // the closing title after the last entry, up to the end of the demo
     const double end = demoEnd(c);
     if (!cues.empty() && std::isfinite(pos) && end > pos)
-        cues.push_back({kEndScene, int(c.script_.size()) - 1, pos + kEndInitRefreshes, end, inf, inf});
+        cues.push_back({kEndScene, int(c.script_.size()) - 1, pos + kEndInitRefreshes, end, inf, inf,
+                        pos + kEndInitRefreshes});
     for (size_t k = 0; k < cues.size(); k++) {
         double next = k + 1 < cues.size() ? cues[k + 1].start : end;
         cues[k].end = std::max(cues[k].start, next);

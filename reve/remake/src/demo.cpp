@@ -232,8 +232,11 @@ void Ctx::text(float x, float y, float size, const std::string& s, Vec3 color) {
 
 // ---------------------------------------------------------------- demo
 const Cue* Demo::cueAt(double r) const {
-    for (const Cue& c : cues_)
-        if (r >= c.start && r < c.end) return &c;
+    for (size_t k = 0; k < cues_.size(); k++) {
+        const Cue& c = cues_[k];
+        const double until = k + 1 < cues_.size() ? cues_[k + 1].shown : c.end;
+        if (r >= c.shown && r < until) return &c;
+    }
     return nullptr;
 }
 
@@ -314,7 +317,7 @@ const Target& Demo::render(double r) {
         ctx.cue = c;
         ctx.start = c->start;
         ctx.end = c->end;
-        ctx.renderPart(c->scene, std::min(r, c->hold), frame_);
+        ctx.renderPart(c->scene, std::max(c->start, std::min(r, c->hold)), frame_);
     }
     ctx.out = &frame_;
     return frame_;

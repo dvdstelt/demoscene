@@ -53,8 +53,9 @@ capture's own first retrace call S of the entry ("retrace routine set at frame S
 init runs 1 to 12 refreshes after the music reaches the previous entry's end position P (it unpacks files), and
 the remake takes the capture's time for it, so **record r shows the state after r − S retrace calls**, in every entry
 (the decompiling agents verified this rule). Between P + 1 and S the framework shows the previous entry's frame of
-refresh P + 1 (`Cue::hold`), or black where the next init clears the screen first (`Cue::black`); a part never
-needs to handle that gap. `c.end` is the next entry's S.
+refresh P + 1 (`Cue::hold`), or black where the next init clears the screen first (`Cue::black`); the inits of entries 9 and 17 draw the
+entry's first frame 2 and 1 refreshes before S, and the framework shows the part at S there (`Cue::shown`). A part
+never needs to handle that gap. `c.end` is the next entry's S.
 
 **Stepped state.** Replay what the original steps per refresh from the entry start on every frame with closed forms
 or `TickStepper`, and blend continuous quantities between step n and n + 1 by the fraction, so motion is smooth at
