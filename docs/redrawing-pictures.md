@@ -34,7 +34,12 @@ redraw keeps what the effect needs; the decompiling notes say how each picture i
 - a grey picture that a script multiplies with a generated texture (JIZZ's logo and end picture, times blurred
   clouds): redraw the grey picture as a coverage mask, keep the generated texture computed (the remake keeps the
   script's input to the multiply as its own texture) and do the multiply in the shader, so the picture's edges are
-  anti-aliased at the output resolution.
+  anti-aliased at the output resolution;
+- a level map that an effect adds through a shade table, with a photo of a person in it (the names in Inside's
+  credits: a flat star, the name and a scanned face): redraw only the drawn parts. Cover the photo in the upload
+  with explicit shapes measured on the picture (fill it with the level around it), look at every upload before it
+  goes out to make sure no part of the face is left, map the redraw's flat areas exactly onto the original's levels,
+  and draw the original's photo pixels over the redraw.
 
 ## 2. Prepare the upload
 
