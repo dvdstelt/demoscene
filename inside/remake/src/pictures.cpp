@@ -25,15 +25,20 @@
 #endif
 
 const std::vector<PictureInfo>& pictureList() {
-    // The pictures parts draw as they are (inside/re/notes-*.md), with the addresses of their file names. Photos are
-    // never redrawn.
+    // The pictures parts draw as they are (inside/re/notes-*.md), with the addresses of their file names.
     static const std::vector<PictureInfo> list = {
         // logo: logo/inside.raw, the title "INSIDE", drawn from 4:32 at (34, 13), index 0 transparent
         // (notes-intro-logo.md; 0x415df0 type 3)
-        {"logo_inside", 0x4208e8, 0x4208d8, 249, 139, 0, 0, false},
+        {"logo_inside", 0x4208e8, 0x4208d8, 249, 139, 0, 0},
         // water: water/water.raw, the background seen through the water (a digitised photo of a room, no people),
         // full screen, shifted per pixel by the ripple (notes-water.md)
-        {"water", 0x4213d4, 0x4213c4, 320, 200, 0, -1, false},
+        {"water", 0x4213d4, 0x4213c4, 320, 200, 0, -1},
+        // the sprites parts' photos nigga/spriteK.raw with their pictures' palettes, unscaled, index 0 transparent
+        // (notes-sprites.md 1; 0x415df0 type 3); the part asks for them by file name
+        {"sprite1", 0x420ce8, 0x420cac, 164, 156, 0, 0},
+        {"sprite2", 0x420d48, 0x420d0c, 172, 200, 0, 0},
+        {"sprite9", 0x420da8, 0x420d6c, 274, 147, 0, 0},
+        {"sprite4", 0x420e30, 0x420df4, 170, 168, 0, 0},
     };
     return list;
 }
@@ -115,7 +120,7 @@ void PictureStore::init(const InsideExe* exe, const InsideDat* dat, std::string 
     if (!useArt_) return;
     std::lock_guard<std::mutex> g(g_pendingLock);
     for (const PictureInfo& p : pictureList()) {
-        std::string path = p.photo ? "" : redrawPath(p.name);
+        std::string path = redrawPath(p.name);
         if (!path.empty()) g_pending[p.name] = std::async(std::launch::async, decode, path).share();
     }
 }
@@ -139,7 +144,7 @@ const Picture& PictureStore::get(const std::string& name) {
     }
     pic->srcW = info->w;
     pic->srcH = info->h;
-    std::string path = useArt_ && !info->photo ? redrawPath(name) : "";
+    std::string path = useArt_ ? redrawPath(name) : "";
     if (!path.empty()) {
         std::shared_future<Decoded> fut;
         {

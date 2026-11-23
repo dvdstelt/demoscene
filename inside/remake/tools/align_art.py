@@ -52,6 +52,19 @@ PICTURES = {
                         what='the title INSIDE in twisted 3D letters with a painted texture'),
     'water': dict(file='water/water.raw', pal='water/water.pal', w=320, h=200, key=None, margin=0.0,
                   what='a blurred blue view of an interior seen through water'),
+    # the sprites parts' photos (notes-sprites.md 1), cut out on index 0; key_t: the photo's own colours reach up to
+    # this far along the key's direction (B - (R + G) / 2 up to 79 in sprite 1), so the redraw counts as opaque up to it
+    'sprite1': dict(file='nigga/sprite1.raw', pal='nigga/nigga1.pal', w=164, h=156, key=0, margin=0.08, key_t=100,
+                    what='two men, one in a patterned hat looking up, one in a green jacket'),
+    'sprite2': dict(file='nigga/sprite2.raw', pal='nigga/nigga2.pal', w=172, h=200, key=0, margin=0.08, key_t=100,
+                    what='a man in white reaching his open hand towards the camera'),
+    'sprite4': dict(file='nigga/sprite4.raw', pal='nigga/nigga4.pal', w=170, h=168, key=0, margin=0.08, key_t=100,
+                    what='a man with an afro and white sunglasses in a white T-shirt'),
+    'sprite9': dict(file='nigga/sprite9.raw', pal='nigga/nigga9.pal', w=274, h=147, key=0, margin=0.08, key_t=100,
+                    what='a man lying on his side in an orange shirt and sunglasses'),
+    # the intro's photo collage (notes-intro-logo.md 2), shown through the shade table intro/intro.shd
+    'intro': dict(file='intro/intro.raw', pal='intro/intro.pal', w=320, h=200, key=None, margin=0.0,
+                  what="a woman's body and a tube of Amazing GOOP glue on a swirled background"),
 }
 # The credits' name pictures (notes-credits.md 4.2): level maps 0..31 (shown here as grey 255 * L / 31 on black) of a
 # flat star (level 10), a scanned face (a photo of a real person: never uploaded, never redrawn) and the name. The
@@ -155,25 +168,34 @@ def composite(name, rgb, alpha):
     return rgb * alpha[..., None] + background(name) * (1 - alpha[..., None])
 
 
-def unmix(img, key=KEY):
+def unmix(img, key=KEY, t=0.0):
     """Keyed redraw (h, w, 3) -> colour (h, w, 3) and alpha (h, w): the distance from the key along the key's
-    direction (for blue: B - (R + G) / 2) is (1 - a) times the key's own."""
+    direction (for blue: B - (R + G) / 2) is (1 - a) times the key's own. With t > 0 the picture has colours of its
+    own along that direction (up to t): those pixels are opaque, and an edge pixel is a mix of the key and the colour
+    of the opaque pixels around it (their mean distance, a Gaussian of 4 pixels), so no key is left in its colour."""
     kd = key[2] - (key[0] + key[1]) / 2.0
     d = img[..., 2] - (img[..., 0] + img[..., 1]) / 2.0
-    a = np.clip(1.0 - d / kd, 0.0, 1.0)
+    if t > 0:
+        solid = (d < t).astype(np.float64)
+        w = blur(solid[..., None], 4.0)[..., 0]
+        dc = np.where(w > 1e-3, blur((d * solid)[..., None], 4.0)[..., 0] / np.maximum(w, 1e-3), 0.0)
+        dc = np.minimum(dc, t)
+        a = np.where(solid > 0, 1.0, np.clip((kd - d) / (kd - dc), 0.0, 1.0))
+    else:
+        a = np.clip(1.0 - d / kd, 0.0, 1.0)
     a = np.clip((a - 0.03) / 0.94, 0.0, 1.0)
     c = np.where(a[..., None] > 1e-3, (img - (1 - a[..., None]) * key) / np.maximum(a[..., None], 1e-3), 0.0)
     return np.clip(c, 0, 255), a
 
 
-def normalise_key(red):
+def normalise_key(red, t=0.0):
     """Measure the generator's key on the redraw's border and put the picture on the exact KEY."""
     h, w = red.shape[:2]
     b = max(2, min(h, w) // 50)
     border = np.concatenate([red[:b].reshape(-1, 3), red[-b:].reshape(-1, 3), red[:, :b].reshape(-1, 3),
                              red[:, -b:].reshape(-1, 3)])
     key = np.median(border, axis=0)
-    c, a = unmix(red, key)
+    c, a = unmix(red, key, t)
     return c * a[..., None] + KEY * (1 - a[..., None]), key
 
 
@@ -443,7 +465,7 @@ def align(a):
     H, W = alpha.shape
     red = np.asarray(Image.open(a.redraw).convert('RGB'), np.float64)
     if s['key'] is not None:
-        red, key = normalise_key(red)
+        red, key = normalise_key(red, s.get('key_t', 0.0))
         print('%s: the redraw\'s key colour %.1f, %.1f, %.1f' % ((name,) + tuple(key)))
     rw, rh = red.shape[1], red.shape[0]
     CW, CH, cx, cy = canvas(name, W, H)
@@ -455,7 +477,7 @@ def align(a):
     report(p, res, res0, p0)
     if a.match:
         if s['key'] is not None:
-            c, al = unmix(red)
+            c, al = unmix(red, KEY, s.get('key_t', 0.0))
             c = colour_match(orig, alpha, c, p)
             red = c * al[..., None] + KEY * (1 - al[..., None])
         elif s.get('levels'):
@@ -470,7 +492,7 @@ def align(a):
     ow, oh = int(round(W * k_out)), int(round(H * SCREEN_ASPECT * k_out))
     out = render(img, (ow, oh), p, (W / ow, H / oh), tuple(int(c) for c in bg))
     if s['key'] is not None:
-        c, al = unmix(np.asarray(out, np.float64))
+        c, al = unmix(np.asarray(out, np.float64), KEY, s.get('key_t', 0.0))
         out = Image.fromarray(np.clip(np.round(np.concatenate([c, al[..., None] * 255.0], axis=2)), 0, 255)
                               .astype(np.uint8), 'RGBA')
     if s.get('levels'):

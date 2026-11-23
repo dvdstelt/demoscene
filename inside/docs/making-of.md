@@ -94,8 +94,16 @@ are not redrawn: the uploads have them replaced by the star, and the remake draw
 the redrawn star and letters. The fit maps each redraw exactly onto the original's three levels (black, star,
 letters). The water part's background, a blurred photo of a room, was tried twice: one redraw was softer than the
 original and the other moved its shapes, and both darkened one side, so it keeps its original pixels.
+
+The photos of people in the sprites parts were first kept as they are. When I watched the remake, they stood out as
+the only low-resolution pictures left, so I asked for them to be redrawn as well. They went up on a flat blue key in
+one conversation, and each came back right at the first attempt; the fits are not colour matched, because matching
+to the original's 256 colours made the white clothes blotchy. The faces, hair and prints in them are ChatGPT's
+reading of a few pixels each. The intro's photo collage has a nude in it, so it was not sent to ChatGPT; it keeps
+its original pixels until it can go through an open model.
+
 [`remake/art/README.md`](../remake/art/README.md) has the prompts, the attempts and the fits. ChatGPT refused
-nothing. `--original-art` shows the original pixels.
+nothing it was given. `--original-art` shows the original pixels.
 
 ## Decisions
 

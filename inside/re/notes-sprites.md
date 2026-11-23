@@ -92,8 +92,9 @@ are the strings at 0x420cac..0x420f18.
 
 ### 2.3 What the pictures are
 
-- **sprite1/2/9/4.raw are digitised photographs of real people** (cut out on index 0): they are not redrawn. The
-  remake shows the original pixels, filtered, with index 0 as transparent.
+- **sprite1/2/9/4.raw are digitised photographs of real people** (cut out on index 0). They were first kept as
+  they are; at the maintainer's request (23 November 2026) the remake shows high-resolution redraws
+  (`remake/art/spriteN.png`), and with `--original-art` the original pixels, filtered, with index 0 as transparent.
 - **nigga1/2/4/9.raw** are hand-made swirl textures (a paint program's smudge / twirl look; nigga9.raw also holds
   two cartoon elephants like a fabric print). No people. They are read through palette-index tables (the .shd
   blend, the .qnt light), so they stay as they are (no redraw): the remake samples them filtered and does the

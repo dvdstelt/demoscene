@@ -1,9 +1,10 @@
 # Redrawn pictures
 
 High-resolution redraws of the pictures of *Inside* (CNCD, The Gathering 1996) that are drawn as they are. The
-graphics are Destop's (additional graphics Santtu). The remake shows these redraws by default; `--original-art`
-shows the original pixels, which it reads from `INSIDE.DAT`. Photos of real people (the intro's picture, the
-sprites, the faces in the credits) are never redrawn.
+graphics are Destop's (additional graphics Santtu); Hybrid's page about the demo credits the photography to Michael
+Schwartz. The remake shows these redraws by default; `--original-art` shows the original pixels, which it reads from
+`INSIDE.DAT`. The four photos of people in the sprites parts are redrawn too, at my request (see "The photos"
+below); the faces in the credits keep their original pixels.
 
 These are fan redraws made for this non-commercial tribute and under the same non-commercial terms as the rest of
 the repository (see [NOTICE.md](../../../NOTICE.md)). They are not CNCD's work and not endorsed by them.
@@ -16,6 +17,10 @@ the repository (see [NOTICE.md](../../../NOTICE.md)). They are not CNCD's work a
 | `credits_jouni.png` | a star and JOUNI (`credits/kredu2.raw`, 146 × 75) | as WILI | RMS 7.9, detail correlation 0.992 |
 | `credits_juliet.png` | a star and JULIET (`credits/kredu8.raw`, 154 × 70) | as WILI | RMS 14.0, detail correlation 0.972 |
 | `credits_yolk_legend.png` | two stars and YOLK & LEGEND (`credits/kredu3.raw`, 318 × 82) | as WILI | RMS 14.5, detail correlation 0.962 |
+| `sprite2.png` | a man in white reaching his open hand towards the camera, his face and a white and green cap to the right (`nigga/sprite2.raw`, 172 × 200, index 0 transparent, cut off at the left and bottom) | ChatGPT, 23 November 2026, first attempt, from the upload on a flat blue key (`tools/align_art.py --upload sprite2`); fitted with `tools/align_art.py sprite2 RAW` | RMS 31.5, detail correlation 0.723 |
+| `sprite9.png` | a man with dreadlocks and dark glasses lying on his side in an orange shirt and purple trousers (`nigga/sprite9.raw`, 274 × 147, cut off at the right and bottom) | ChatGPT, 23 November 2026, first attempt, in the same conversation | RMS 15.3, detail correlation 0.922 |
+| `sprite4.png` | a man with an afro and white sunglasses in a white T-shirt with a red and black print, seen from above (`nigga/sprite4.raw`, 170 × 168) | as `sprite9.png` | RMS 16.4, detail correlation 0.944 |
+| `sprite1.png` | a collage: a man with an afro and dark glasses looking up, a black-and-white face under a flowered bucket hat, and a man with an afro in a green jacket over a T-shirt printed with a face (`nigga/sprite1.raw`, 164 × 156, cut off at the left and bottom) | as `sprite9.png` | RMS 20.7, detail correlation 0.961 |
 
 ### The names in the credits
 
@@ -41,10 +46,38 @@ nothing on it, the background pure black, with no shading, texture, gradient, gl
 resolution changes. Do not add, remove or move anything, do not crop or zoom. A landscape image of the same shape as
 the upload, as large as you can make it."
 
+### The photos
+
+The sprites parts draw four digitised photos of people over their backgrounds, unscaled and cut out on index 0. They
+were first kept as the original pixels, as photos of real people; at my request they are redrawn as photos. Each
+upload has the photo on a flat blue key (none of the four uses pure blue; their own colours reach at most 79 along
+the key's direction, so `align_art.py` counts everything up to 100 as opaque, and takes an edge pixel as a mix of the
+key and the colour of the opaque pixels around it, which leaves no blue fringe). The four went up in one
+conversation, each with the prompt below adapted to its size, contents and cut edges. The fits are not colour
+matched: matching the redraw's colours to the original's 256 made the white clothes blotchy, and the redraws' own
+colours are close. A photo redraw has more detail than the original can show, so the faces, the hair and the prints
+are the generator's reading of a few pixels: the T-shirt print in `sprite4` reads "05" over the lettering, where the
+original has an orange and black patch. The original's cut-outs have a dark one-pixel edge; the redraws have clean
+edges. The room parts' shadows stay computed from the original's shadow maps and still fall where the redrawn people
+are.
+
+Prompt for `sprite2`: "This is a 172x200 pixel digitised photograph from a 1996 MS-DOS demo, Inside by CNCD, in 256
+colours, cut out along the person's outline and shown on a flat pure blue background, scaled up with
+nearest-neighbour and shown at 4:3 (every pixel 1.2 times as tall as wide). It shows a man in a white shirt reaching
+his open hand towards the camera, seen from below, with his bearded face and a white and green cap to the right.
+Make a faithful high-resolution version as an image: a sharp, detailed photograph of exactly this picture, with the
+same composition and framing, every part at the same position and size in the frame, the same pose, proportions,
+hand and fingers, the same face and expression, the same clothes, colours and lighting, and the same cut-out
+outline. The photo is cut off by straight edges at the left and at the bottom: keep those straight edges exactly
+where they are, with the blue beyond them, and do not complete the body. Only the resolution and the detail change:
+no pixels, no colour bands. Do not add, remove or move anything, do not crop or zoom. Keep the flat pure blue
+background around the cut-out. An image of the same shape as the upload, as large as you can make it."
+
 ## Kept as the original
 
 | picture | why |
 |---|---|
-| the intro's picture (`intro/intro.raw`), the four photos of the sprites parts, the faces in the credits' names | photos of real people: never redrawn |
+| the faces in the credits' names | photos of real people in drawn pictures: only the drawn star and name are redrawn |
+| the intro's picture (`intro/intro.raw`) | a photo collage with a nude, so it was not sent to ChatGPT; it waits for an open model (Comfy Cloud's free runs are used up) |
 | the water part's background (`water/water.raw`, 320 × 200) | a blurred, blue-tinted photo of an interior (no people), drawn as it is and shifted by the ripple. Two ChatGPT attempts on 23 November 2026, from the nearest-neighbour upload with a prompt that asked for the same picture with the same soft blur, without the pixels and the 143-colour bands: the first fitted well (RMS 7.1, detail correlation 0.930) but came out softer than the original, the second (asked to keep every edge as defined as the original's) fitted worse (RMS 8.2, 0.909); both darkened the left side. Neither is faithful enough, and the original pixels read filtered already look as soft as the photo is |
 | the textures (the tunnel, flower, twirl, flight, water, temple and sprites textures, the sun and the lens flares) | read by the effects through texture mapping, shade, fog and blend tables, or warped (the twirl): not drawn as they are, so the remake reads them filtered from the original |

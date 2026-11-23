@@ -17,7 +17,8 @@
 // evaluated from the music clock as floats instead of truncated integers. The room, the light and the shadow quad
 // go through the engine (inside/engine.h: perspective-correct, filtered, continuous light levels, the .sdw rows as
 // fitted blends, the sort bias that draws the shadow over the floor, picture 4's mirrored cell halves). The photos
-// are the original pixels, filtered, index 0 transparent (photos of real people: never redrawn).
+// are high-resolution redraws (art/spriteK.png) where they exist, at the original's position and size; with
+// --original-art the original pixels, filtered, index 0 transparent.
 //
 // With INSIDE_ENGINE=original (Fidelity::exact) the warp goes through the engine's 0x4172e0 on the 8 x 8 grid with
 // the original's truncated words and float32 phase sums, for pixel checks at 320 x 200.
@@ -579,13 +580,18 @@ public:
         if (s.k >= 3) drawRoom(c, s, r);
         else if (exact) drawWarpEngine(c, s, r);
         else drawWarp(c, s, r);
-        eng_.drawBitmap(c, p.bmp, p.x, p.y, p.pal);   // 0x415df0: type 3, index 0 transparent
+        const Picture& art = c.picture(p.art);
+        if (art.redraw && !exact)
+            c.drawPicture(art, {.x = p.x, .y = p.y, .w = float(p.bmp.w), .h = float(p.bmp.h)});
+        else
+            eng_.drawBitmap(c, p.bmp, p.x, p.y, p.pal);   // 0x415df0: type 3, index 0 transparent
     }
 
 private:
     struct Pic {
         int pal = 0, tex = -1, table = -1, shadow = -1, sdw = -1;
         sr::Bitmap bmp;
+        std::string art;   // the photo's name in the picture list (pictures.cpp): its file name, spriteN
         float x = 0, y = 0;
         Texture idx, palTex;   // the warp shader's copies
     };
@@ -665,7 +671,10 @@ private:
         const Call* m = t.call(kMakeBitmap);
         if (!m) throw std::runtime_error("sprites: no bitmap");
         int pitch = int(m->reg[2].c), w = int(m->reg[3].c), h = int(m->reg[1].c);
-        p.bmp = eng_.bitmap(d.file(t.file(x, kSprSlots + 4 * ku)), pitch, w, h);
+        std::string file = t.file(x, kSprSlots + 4 * ku);
+        p.bmp = eng_.bitmap(d.file(file), pitch, w, h);
+        p.art = file.substr(file.find('/') + 1, file.rfind('.') - file.find('/') - 1);
+        c.picture(p.art);   // load it in the init
         p.bmp.type = int(t.value({kBitmapSlots + 4 * ku, 0}).value());
         p.bmp.key = 0;   // the bitmap's transparent index [0x24] (0x415e50)
         if (t.stores.count({kShadowSlots + 4 * ku})) {

@@ -29,7 +29,6 @@ struct PictureInfo {
     int w, h;              // size in pixels
     int offset = 0;        // first pixel in the file (after a header)
     int transparent = -1;  // the index that is not drawn (-1: none)
-    bool photo = false;    // a digitised photo: never redrawn
 };
 const std::vector<PictureInfo>& pictureList();
 const PictureInfo* findPicture(const std::string& name);

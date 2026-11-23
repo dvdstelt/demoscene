@@ -3,8 +3,8 @@
 A C++/OpenGL re-implementation of *Inside*, the PC demo by CNCD (code Wili, Jouni and Juliet, graphics Destop,
 music Yolk and Legend, additional graphics Santtu) that won the PC demo competition at The Gathering 1996. It runs on
 Linux and Windows at any resolution in true colour, instead of 320×200 in 256 colours, with the original's motion,
-timing and music, and with high-resolution redraws of its title and of the names in the credits (or the original
-pixels, `--original-art`).
+timing and music, and with high-resolution redraws of its title, the names in the credits and the photos of people
+(or the original pixels, `--original-art`).
 
 The remake reads everything from the original files. They are not included: get them with
 `scripts/fetch-originals.sh inside` (or `.ps1` on Windows) from the repository root, which puts them in
@@ -35,7 +35,7 @@ inside-remake [--window] [--size 1280x960] [--start SECONDS] [--ss 2] [--loop] [
 
 Keys: `Esc` quit, `Space` pause, `←/→` seek ±5 s, `↓/↑` seek ±30 s, `F`/`F11` toggle fullscreen.
 `--ss 2` renders at twice the resolution and downsamples. `--info` shows the time, music position and part in the
-title bar. `--original-art` shows the original pixels of the title and the names instead of the redraws.
+title bar. `--original-art` shows the original pixels of the title, the names and the photos instead of the redraws.
 
 Offline: `--wav out.wav` writes the soundtrack; `--shots 10,62.5 --shotdir DIR --shotsize WxH` writes the frames
 at those music times (seconds) to PNG; `--video out.mp4 --from T0 --to T1 [--fps 60] [--shotsize WxH]` renders a
@@ -125,8 +125,9 @@ refreshes.
   pixels.
 - **Randomness.** Watcom's `rand()` is replayed from the original's seeds, so the flight path of the credits, the
   flares of the temple and the light levels of the flower tube are the original's.
-- **Pictures.** The title and the five names in the credits are shown as faithful high-resolution redraws by
-  default (see below); `--original-art` shows the original pixels, filtered. Photos of people are never redrawn.
+- **Pictures.** The title, the five names in the credits and the four photos of people in the sprites parts are
+  shown as faithful high-resolution redraws by default (see below); `--original-art` shows the original pixels,
+  filtered. The faces in the credits keep their original pixels.
 
 Known differences:
 
@@ -171,15 +172,18 @@ Known differences:
 ## The redrawn pictures
 
 Inside draws two kinds of hand-drawn picture as they are: the title "INSIDE" in the logo part (`logo/inside.raw`)
-and the five name pictures of the credits (`credits/kredu*.raw`). They are AI redraws made with ChatGPT's image
-generation from the original pixels and fitted onto them ([`art/README.md`](art/README.md) has the prompts, the
-attempts and the fit):
+and the five name pictures of the credits (`credits/kredu*.raw`). It also draws four photos of people as they are,
+in the sprites parts (`nigga/sprite*.raw`). They are AI redraws made with ChatGPT's image generation from the
+original pixels and fitted onto them ([`art/README.md`](art/README.md) has the prompts, the attempts and the fit):
 
 - `art/logo_inside.png` is the title, drawn where the original draws it, with the logo part's dark mask
   (`logo/inmask.raw`) still the original's.
 - `art/credits_*.png` are the names. Each is a level map that the credits add to the tunnel through a shade table: a
   flat star, the name, and a scanned face of the group member. The redraws hold the star and the letters; the remake
   draws the original's face pixels on top of them.
+- `art/sprite*.png` are the photos, redrawn as photos at my request, with transparent backgrounds, drawn unscaled
+  where the original draws them. Their faces, hair and prints are the generator's reading of a few pixels each.
 
-The water background was tried as well and keeps its original pixels (`art/README.md` says why). The textures stay
+The water background was tried as well and keeps its original pixels, and so does the intro's photo collage for
+now (`art/README.md` says why). The textures stay
 the original's: they are read through shade, fog and blend tables or warped by the effects.
