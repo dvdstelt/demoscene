@@ -3,6 +3,7 @@
     python3 tools/align_art.py --upload NAME OUT.png         the nearest-neighbour picture to give the image generator
     python3 tools/align_art.py NAME REDRAW.png [--match]      fit the redraw and write art/NAME.png
     python3 tools/align_art.py --sheet OUT.jpg NAME [NAME ..] comparison sheet: original | redraw
+    python3 tools/align_art.py --derive NAME                  a picture made of another one's pixels (TOM: MRTOMMY)
 (inside the toolbox: numpy + PIL). From inside/remake/tools/align_art.py (itself from clone's and DOPE's).
 
 NAME is a picture of PICTURES below (the remake's src/pictures.cpp has the same list): a RAW file of REVE.EXE's
@@ -28,6 +29,8 @@ Options:
   --range R         search offsets up to R original pixels and scales up to 1 +- R/100 (default 12)
   --uniform         one scale for x and y
   --match           match the colours to the original's
+  --segments        then fit every letter (column group of the original) on its own (for lettering, as clone's
+                    align_art fits the words of a caption)
   --out FILE        output (default ../art/NAME.png next to this script)
 """
 import argparse
@@ -71,6 +74,18 @@ PICTURES = {
                       'GENERATION in white below'),
     'bouge': dict(file='GFX\\BOUGE.RAW', pal=None, rect=None, key=None, margin=0.0,
                   what='a toy puppet: a mouse head with big ears, orange arms and green legs on a striped pole'),
+    # textures of the perspective planes (notes-parts2d-b.md 4, 7): square texels, the 256 x 256 frame and the black
+    # border kept (the planes tile them)
+    'dada': dict(file='GFX\\DADA.RAW', pal=None, rect=None, key=None, margin=0.0, aspect=1.0,
+                 what='a winged pony in pink and brown with dark spots and a pink mane, rearing, on black'),
+    # TOM.RAW is MRTOMMY.RAW's 200 x 200 pixels at (53, 2) in a black 256 x 256 frame (same colours): its texture is
+    # made from the mrtommy redraw (--derive tom), squeezed to square texels
+    'tom': dict(file='GFX\\TOM.RAW', pal=None, rect=None, key=None, margin=0.0, aspect=1.0,
+                derive=dict(source='mrtommy', at=(53, 2)),
+                what='a cartoon head of a man with a long brown face, round grey glasses and a dark red cap, on a '
+                     'purple glow'),
+    'boz': dict(file='GFX\\BOZ.RAW', pal=None, rect=None, key=None, margin=0.0, aspect=1.0,
+                what='a grey clown face with big eyes, red lips, a purple hat and red bows, on a dark speckled cloud'),
     'pulse': dict(file='GFX\\PULSE.RAW', pal=None, rect=None, key=None, margin=0.0,
                   what='a creature\'s head with goggles and teeth on a brown background with rings, the word Pulse '
                        'in white letters below'),
@@ -159,7 +174,10 @@ def canvas(name, w, h):
     return w + 2 * m, h + 2 * m, m, m
 
 
-def upload_scale(cw):
+def upload_scale(cw, aspect=SCREEN_ASPECT):
+    if aspect == 1.0:                       # square texels
+        k = max(1, int(round(2000.0 / cw)))
+        return k, k
     k = max(1, int(round(2000.0 / (5 * cw))))
     return 5 * k, 6 * k
 
@@ -411,7 +429,9 @@ def align(a):
         print('  after the colour match: residual %.1f / %.1f / %.2f %% / %.3f' % fm.residual(p))
     img = Image.fromarray(np.clip(np.round(red), 0, 255).astype(np.uint8))
     k_out = 1.0 / p[0]
-    ow, oh = int(round(W * k_out)), int(round(H * SCREEN_ASPECT * k_out))
+    if a.segments:
+        img, p = place_segments(orig, bg, img, p, s.get('aspect', SCREEN_ASPECT))
+    ow, oh = int(round(W * k_out)), int(round(H * s.get('aspect', SCREEN_ASPECT) * k_out))
     out = render(img, (ow, oh), p, (W / ow, H / oh), tuple(int(c) for c in bg))
     if s['key'] is not None:
         c, al = unmix(np.asarray(out, np.float64), KEY, s.get('key_t', 0.0))
@@ -432,11 +452,85 @@ def upload(a):
     c = np.empty((CH, CW, 3))
     c[:] = background(name)
     c[cy:cy + H, cx:cx + W] = composite(name, rgb, alpha)
-    fx, fy = upload_scale(CW)
+    fx, fy = upload_scale(CW, spec(name).get('aspect', SCREEN_ASPECT))
     img = Image.fromarray(np.round(c).astype(np.uint8))
     img.resize((CW * fx, CH * fy), Image.NEAREST).save(a.redraw)
     print('%s: %dx%d (canvas %dx%d original px, picture at %d, %d; %dx%d per pixel); it shows %s'
           % (a.redraw, CW * fx, CH * fy, CW, CH, cx, cy, fx, fy, spec(name)['what']))
+
+
+def place_segments(orig, bg, img, p, aspect):
+    """Fits every column group of the original (letters separated by background columns) on its own: the part of the
+    redraw over each group is moved by the shift (in the original's pixels, searched in quarter pixels) that matches
+    the original there best. Returns the redraw rebuilt from the moved parts, in the frame of p."""
+    H, W = orig.shape[:2]
+    used = np.abs(orig - bg).max(axis=(0, 2)) > 24
+    groups, x = [], 0
+    while x < W:
+        if used[x]:
+            x0 = x
+            while x < W and (used[x:x + 3].any()):
+                x += 1
+            groups.append((x0, x))
+        x += 1
+    sx, sy, tx, ty = p
+    red = np.asarray(img, np.float64)
+    fit = Fit(orig, bg, red)
+    fit.prepare(sx)
+    out = np.empty_like(red)
+    out[:] = bg
+    rh, rw = red.shape[:2]
+    for x0, x1 in groups:
+        best = (np.inf, 0.0, 0.0)
+        u = (np.arange((x1 - x0 + 8) * 4) + 0.5) / 4 + x0 - 4
+        v = (np.arange(H * 4) + 0.5) / 4
+        target = np.zeros((H, x1 - x0 + 8, 3))
+        lo, hi = max(0, x0 - 4), min(W, x1 + 4)
+        target[:] = bg
+        target[:, lo - (x0 - 4):hi - (x0 - 4)] = orig[:, lo:hi]
+        for dx in np.arange(-6, 6.01, 0.25):
+            for dy in np.arange(-3, 3.01, 0.25):
+                w_ = box_down(fit.sample(sx, sy, tx + dx, ty + dy, u, v), 4)
+                c = np.mean((blur(w_, 0.6) - blur(target, 0.6)) ** 2)
+                if c < best[0]:
+                    best = (c, dx, dy)
+        _, dx, dy = best
+        print('  letters %d..%d: moved by %+.2f, %+.2f original px' % (x0, x1, dx, dy))
+        # redraw columns over the group (a margin of 3 original pixels each side), shifted by (dx, dy)
+        c0, c1 = int(np.floor((x0 - 3 - tx) / sx)), int(np.ceil((x1 + 3 - tx) / sx))
+        sh_x, sh_y = int(round(dx / sx)), int(round(dy / sy))
+        for cx in range(max(0, c0), min(rw, c1)):
+            ox = cx + sh_x
+            if 0 <= ox < rw:
+                if sh_y >= 0:
+                    out[sh_y:, ox] = red[:rh - sh_y, cx]
+                else:
+                    out[:rh + sh_y, ox] = red[-sh_y:, cx]
+    fm = Fit(orig, bg, out)
+    fm.prepare(sx)
+    print('  after fitting the letters: residual %.1f / %.1f / %.2f %% / %.3f' % fm.residual(p))
+    return Image.fromarray(np.clip(np.round(out), 0, 255).astype(np.uint8)), p
+
+
+def derive(a):
+    """A picture that holds another picture's pixels unchanged (spec 'derive'): the source's redraw, resampled to
+    this picture's texel aspect and placed at the same offset in a black frame."""
+    s = spec(a.name)
+    src_name, (ox, oy) = s['derive']['source'], s['derive']['at']
+    src = Image.open(os.path.join(a.art, src_name + '.png')).convert('RGB')
+    _, salpha = load_original(src_name)
+    sh, sw = salpha.shape
+    _, alpha = load_original(a.name)
+    H, W = alpha.shape
+    k = src.size[0] / sw                                   # redraw pixels per original pixel, horizontally
+    aspect = s.get('aspect', SCREEN_ASPECT)
+    piece = src.resize((int(round(sw * k)), int(round(sh * k * aspect))), Image.LANCZOS)
+    out = Image.new('RGB', (int(round(W * k)), int(round(H * k * aspect))), (0, 0, 0))
+    out.paste(piece, (int(round(ox * k)), int(round(oy * k * aspect))))
+    out_path = a.out or os.path.join(ART, a.name + '.png')
+    out.save(out_path, optimize=True)
+    print('%s: %s placed at (%d, %d) -> %s %dx%d' % (a.name, src_name, ox, oy, os.path.relpath(out_path), out.size[0],
+                                                    out.size[1]))
 
 
 def sheet(a):
@@ -451,7 +545,7 @@ def sheet(a):
         H, W = alpha.shape
         shown = Image.fromarray(np.round(rgb * alpha[..., None] + 60 * (1 - alpha[..., None])).astype(np.uint8))
         pw = WIDTH // 2
-        ph = int(round(pw * H * SCREEN_ASPECT / W))
+        ph = int(round(pw * H * spec(name).get('aspect', SCREEN_ASPECT) / W))
         pair = Image.new('RGB', (WIDTH, ph), (40, 40, 40))
         pair.paste(shown.resize((pw, ph), Image.NEAREST), (0, 0))
         art = os.path.join(a.art, name + '.png')
@@ -481,10 +575,14 @@ def main():
     ap.add_argument('--uniform', action='store_true')
     ap.add_argument('--range', type=float, default=12)
     ap.add_argument('--match', action='store_true')
+    ap.add_argument('--segments', action='store_true', help='fit every letter (column group) on its own')
     ap.add_argument('--sheet')
     ap.add_argument('--upload', action='store_true')
+    ap.add_argument('--derive', action='store_true', help='make NAME from the redraw of the picture it contains')
     a = ap.parse_args()
-    if a.sheet:
+    if a.derive and a.name:
+        derive(a)
+    elif a.sheet:
         a.names = [x for x in [a.name] + a.rest if x] or list(PICTURES)
         sheet(a)
     elif a.name and len(a.rest) == 1:
