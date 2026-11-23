@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       projects:
-        description: 'Projects to build: all, or names from 303 303-v1 paper jizz stars dope clone'
+        description: 'Projects to build: all, or names from 303 303-v1 paper jizz stars dope clone inside'
         default: all
 
 permissions:

@@ -28,6 +28,8 @@ meets clone, 320×200 in true colour).
 | ![303 remake](docs/images/303.jpg) | ![Paper remake](docs/images/paper.jpg) | ![JIZZ remake](docs/images/jizz.jpg) |
 | **[STARS](stars/) by NoooN** | **[DOPE](dope/) by Complex** | **[clone meets clone](clone/) by Acme and Fudge** |
 | ![STARS remake](docs/images/stars.jpg) | ![DOPE remake](docs/images/dope.jpg) | ![clone meets clone remake](docs/images/clone.jpg) |
+| **[Inside](inside/) by CNCD** | | |
+| ![Inside remake](docs/images/inside.jpg) | | |
 
 ## The demos
 
@@ -39,13 +41,15 @@ meets clone, 320×200 in true colour).
 | [**STARS**](stars/) | NoooN | Assembly '95, August 1995 | PC demo, winner of the PC demo competition | [remake](stars/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures |
 | [**DOPE**](dope/) | Complex | The Gathering '95, April 1995 | PC demo, winner of the PC demo competition | [remake](dope/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures |
 | [**clone meets clone**](clone/) | Acme and Fudge | Takeover '98, May 1998 | 64k intro, winner of the PC 64k intro competition | [remake](clone/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures |
+| [**Inside**](inside/) | CNCD | The Gathering '96, April 1996 | PC demo, winner of the PC demo competition | [remake](inside/remake/), ported from the executable routine by routine and checked against an emulator capture, with a redrawn title, names and photos and upscaled textures |
 
 303 and Paper were coded by Statix, with music by Vic of Acme. JIZZ was coded by Jace, with music by Probe and a
 vector engine by Nix. STARS was coded by KARL and BARTi, with pictures by RA and music by Groo. DOPE was coded by
 jmagic, with graphics and music by jugi. clone meets clone was coded by Echo, with graphics by Aap (who also drew
-303's) and music by Simon.
+303's) and music by Simon. Inside was coded by Wili, Jouni and Juliet, with graphics by Destop and music by Yolk and
+Legend.
 
-All six remakes show high-resolution redraws of the originals' hand-drawn pictures: AI redraws made from the original
+All the remakes show high-resolution redraws of the originals' hand-drawn pictures: AI redraws made from the original
 pictures and faithful to them (303 also shows its video clips restored with a video model). Start them with
 `--original-art` to see the original pixels instead.
 
@@ -65,8 +69,8 @@ Linux (a tar.gz, for 64-bit Linux with glibc 2.34 or newer). Unpack it, and in t
 powershell -ExecutionPolicy Bypass -File fetch-originals.ps1
 ```
 
-on Windows, or `./fetch-originals.sh` on Linux. Then start `acme303`, `paper-remake`, `jizz-remake`, `stars-remake`,
-`dope-remake` or `clone-remake` (`.exe` on Windows).
+on Windows, or `./fetch-originals.sh` on Linux. Then start the remake: `<demo>-remake` (for example
+`paper-remake`; 303's is `acme303`), with `.exe` on Windows.
 
 **Build it yourself** (Linux, or Windows with CMake and a compiler):
 
@@ -77,10 +81,9 @@ cmake -S paper/remake -B paper/remake/build -G Ninja && cmake --build paper/rema
 paper/remake/build/paper-remake
 ```
 
-Use `303/remake` (program `acme303`) for 303, `jizz/remake` (program `jizz-remake`) for JIZZ, `stars/remake`
-(program `stars-remake`) for STARS, `dope/remake` (program `dope-remake`) for DOPE and `clone/remake` (program
-`clone-remake`) for clone meets clone. CMake needs SDL3 (and libopenmpt for 303). If they are not installed, it
-downloads and builds them. Each remake's README lists the packages per platform and all options.
+For another demo, use its folder's `remake/`; the program is `<folder>-remake` (303's is `acme303`). CMake needs SDL3
+(and libopenmpt for 303). If they are not installed, it downloads and builds them. Each remake's README lists the
+packages per platform and all options.
 
 Keys: `Esc` quit, `Space` pause, `←/→` seek 5 s, `↑/↓` seek 30 s, `F`/`F11` fullscreen. Add `--window` to start in
 a window.
@@ -100,32 +103,30 @@ parallel, each on one part of a demo:
    behind an encrypting loader and PKLITE, with its data in 58 DIET-compressed files appended to the executable.
    DOPE is a chain of executables in one file, packed with ProPack: a PMODE loader with the music player, then
    seven real-mode parts. clone meets clone is a Watcom C program packed behind a small loader under PMODE/W that
-   synthesises most of its music samples at start-up. Agents rewrote every effect routine as pseudo-C with all its
+   synthesises most of its music samples at start-up. Inside is a Watcom C program in PMODE/W's own compressed
+   format that draws its 3D with Hybrid's SurRender engine. Agents rewrote every effect routine as pseudo-C with all its
    constants, in notes such as [paper/re/notes-sketch.md](paper/re/notes-sketch.md).
-3. **Emulate.** Paper, JIZZ, STARS, DOPE and clone meets clone run headless in a small emulator built on unicorn,
+3. **Emulate.** All of them except 303 run headless in a small emulator built on unicorn,
    with fake VGA or VESA, timer and Gravis UltraSound hardware. That gives the exact screen, palette and sound-card
    state for every timer tick or displayed frame, which was used to check every routine.
 4. **Port and compare.** Each part was rewritten for the GPU and compared frame by frame with the original.
-5. **Redraw.** For all six, the hand-drawn pictures were redrawn at high resolution with ChatGPT's image
+5. **Redraw.** For each remake, the hand-drawn pictures were redrawn at high resolution with ChatGPT's image
    generation from the original pixels (one that ChatGPT refused with Qwen-Image-Edit on Comfy Cloud), then fitted
    onto the originals and measured against them; 303's video clips were restored with SeedVR2.
    [docs/redrawing-pictures.md](docs/redrawing-pictures.md) is the recipe.
 
-[docs/how-it-was-made.md](docs/how-it-was-made.md) has the whole story. Each demo also has a making-of:
-[303](303/docs/making-of.md), [Paper](paper/docs/making-of.md), [JIZZ](jizz/docs/making-of.md),
-[STARS](stars/docs/making-of.md), [DOPE](dope/docs/making-of.md), [clone meets clone](clone/docs/making-of.md).
-The tools are described in [docs/reverse-engineering.md](docs/reverse-engineering.md).
+[docs/how-it-was-made.md](docs/how-it-was-made.md) has the whole story. Each demo also has a making-of in its folder,
+`<demo>/docs/making-of.md` (for example [JIZZ's](jizz/docs/making-of.md)). The tools are described in
+[docs/reverse-engineering.md](docs/reverse-engineering.md).
 
-What the original coders did in their time, and how, is on a page per demo: [303](303/docs/techniques.md),
-[Paper](paper/docs/techniques.md), [JIZZ](jizz/docs/techniques.md), [STARS](stars/docs/techniques.md),
-[DOPE](dope/docs/techniques.md), [clone meets clone](clone/docs/techniques.md). It comes from the decompiled code
-and the scene's own record of the time.
+What the original coders did in their time, and how, is on a page per demo, `<demo>/docs/techniques.md` (for
+example [Paper's](paper/docs/techniques.md)). It comes from the decompiled code and the scene's own record of the
+time.
 
 ## Repository layout
 
 ```
-303/  paper/  jizz/  stars/  dope/  clone/
-                      one folder per production
+303/  paper/  ...      one folder per production (the table above lists them)
   README.md           about the original, versions, how to run
   original/           put the original files here (not in Git)
   remake/             the current remake (CMake project)
@@ -149,7 +150,9 @@ and music by jugi, the routine boxes sketched by jugi and pixelled by Reward, th
 music replay routine by Phantom of Sonic PC (GUS part adapted by jmagic), 3D objects by jugi and M. Hakulinen.
 *clone meets clone* is by Acme and Fudge: design by Aap and Echo, effects by Echo, music by Simon, graphics by Aap,
 texture mapper and grid filler by Craft, the original radial blur by Dune, graphics help by Assa, the VESA library by
-Submissive, MXMPlay by Pascal (Niklas Beisert), PMODE/W by Daredevil and Tran. The originals and everything in them
+Submissive, MXMPlay by Pascal (Niklas Beisert), PMODE/W by Daredevil and Tran. *Inside* is by CNCD: code by Wili,
+Jouni and Juliet, graphics by Destop, music by Yolk and Legend, additional graphics by Santtu, DSMI by Otto Chrons
+(Virtual Visions), PMODE/W by Thomas Pytel, the SurRender 3D engine by Hybrid. The originals and everything in them
 remain theirs; the redrawn pictures are derived from their artists' work and stay under the same non-commercial
 terms. This project is a non-commercial tribute, not affiliated with them. See
 [NOTICE.md](NOTICE.md).

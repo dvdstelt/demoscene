@@ -1,0 +1,387 @@
+415878: push   ebx
+415879: push   ecx
+41587a: push   esi
+41587b: push   edi
+41587c: push   ebp
+41587d: mov    ebp, esp
+41587f: sub    esp, 0xb4
+415885: and    esp, 0xfffffff8
+415888: mov    dword ptr [esp + 0x34], eax
+41588c: mov    edi, edx
+41588e: fld    dword ptr [eax + 0x38]
+415891: mov    eax, dword ptr [0x4b9020]   ; bss
+415896: mov    edx, eax
+415898: sar    edx, 0x1f
+41589b: shl    edx, 7
+41589e: sbb    eax, edx
+4158a0: sar    eax, 7
+4158a3: fmul   qword ptr [0x421f20]   ; =0.0078125
+4158a9: mov    dword ptr [esp + 0xc], eax
+4158ad: fstp   qword ptr [esp + 0x94]
+4158b4: fild   dword ptr [esp + 0xc]
+4158b8: fcomp  qword ptr [esp + 0x94]
+4158bf: fnstsw ax
+4158c1: sahf   
+4158c2: ja     0x415db3
+4158c8: fild   dword ptr [0x4b9018]   ; bss
+4158ce: fcomp  qword ptr [esp + 0x94]
+4158d5: fnstsw ax
+4158d7: sahf   
+4158d8: jb     0x415db3
+4158de: mov    eax, dword ptr [esp + 0x34]
+4158e2: fld    dword ptr [eax + 0x24]
+4158e5: fld    dword ptr [eax + 0x30]
+4158e8: fmul   st(1)
+4158ea: fild   dword ptr [0x4b9014]   ; bss
+4158f0: fmul   qword ptr [0x421f28]   ; =0.0009765625
+4158f6: fxch   st(1)
+4158f8: fmul   st(1)
+4158fa: fld1   
+4158fc: fdiv   qword ptr [esp + 0x94]
+415903: fild   dword ptr [eax + 0x1c]
+415906: fmul   dword ptr [eax + 0x28]
+415909: fild   dword ptr [eax + 0x20]
+41590c: fmul   dword ptr [eax + 0x28]
+41590f: fld    dword ptr [eax + 0x34]
+415912: fmulp  st(6)
+415914: fild   dword ptr [0x4b9014]   ; bss
+41591a: fmulp  st(2)
+41591c: fild   dword ptr [0x4b8fec]   ; bss
+415922: fmulp  st(1)
+415924: fxch   st(5)
+415926: fmulp  st(4)
+415928: fxch   st(2)
+41592a: fmul   st(1)
+41592c: fxch   st(3)
+41592e: fmul   st(1)
+415930: fxch   st(2)
+415932: fmul   st(1)
+415934: fxch   st(4)
+415936: fmulp  st(1)
+415938: fldz   
+41593a: fxch   st(3)
+41593c: fstp   qword ptr [esp + 0x5c]
+415940: fxch   st(1)
+415942: fstp   qword ptr [esp + 0xac]
+415949: fxch   st(2)
+41594b: fstp   qword ptr [esp + 0x84]
+415952: fxch   st(1)
+415954: fstp   qword ptr [esp + 0x8c]
+41595b: fcomp  qword ptr [esp + 0x84]
+415962: fnstsw ax
+415964: sahf   
+415965: jae    0x415db3
+41596b: fldz   
+41596d: fcomp  qword ptr [esp + 0x8c]
+415974: fnstsw ax
+415976: sahf   
+415977: jae    0x415db3
+41597d: mov    eax, dword ptr [0x4b8ffc]   ; bss
+415982: shl    eax, 4
+415985: mov    dword ptr [esp + 8], eax
+415989: mov    eax, dword ptr [0x4b9004]   ; bss
+41598e: shl    eax, 4
+415991: mov    dword ptr [esp + 0xc], eax
+415995: fild   dword ptr [esp + 0xc]
+415999: fadd   qword ptr [esp + 0xac]
+4159a0: fld    qword ptr [esp + 0x8c]
+4159a7: fld    st(0)
+4159a9: fld    qword ptr [0x421f30]   ; =0.5
+4159af: fxch   st(1)
+4159b1: fmul   st(1)
+4159b3: fxch   st(2)
+4159b5: call   0x40ba78
+4159ba: fistp  dword ptr [esp + 0xc]
+4159be: fxch   st(1)
+4159c0: fsubp  st(2)
+4159c2: mov    ebx, dword ptr [esp + 0xc]
+4159c6: fxch   st(1)
+4159c8: call   0x40ba78
+4159cd: fistp  dword ptr [esp + 0x14]
+4159d1: mov    eax, dword ptr [esp + 0x14]
+4159d5: add    eax, ebx
+4159d7: mov    dword ptr [esp + 0x24], eax
+4159db: mov    eax, dword ptr [esp + 0x34]
+4159df: fld    qword ptr [0x421f38]   ; =16
+4159e5: fild   dword ptr [eax + 0x1c]
+4159e8: fmul   st(1)
+4159ea: fld    qword ptr [esp + 0x84]
+4159f1: fld    st(0)
+4159f3: call   0x40ba78
+4159f8: fist   dword ptr [esp + 0x10]
+4159fc: fdivp  st(2)
+4159fe: fild   dword ptr [eax + 0x20]
+415a01: fmulp  st(3)
+415a03: fild   dword ptr [esp + 0xc]
+415a07: fdivp  st(3)
+415a09: fild   dword ptr [esp + 8]
+415a0d: fadd   qword ptr [esp + 0x5c]
+415a11: xor    ecx, ecx
+415a13: fxch   st(1)
+415a15: fmulp  st(4)
+415a17: mov    dword ptr [esp + 0x3c], ecx
+415a1b: mov    dword ptr [esp + 0x40], ecx
+415a1f: mov    dword ptr [esp + 0xa4], ecx
+415a26: mov    dword ptr [esp + 0xa8], ecx
+415a2d: fsubrp st(3)
+415a2f: mov    edx, dword ptr [esp + 0x10]
+415a33: fxch   st(2)
+415a35: call   0x40ba78
+415a3a: fistp  dword ptr [esp + 0x28]
+415a3e: mov    esi, dword ptr [esp + 0x28]
+415a42: mov    ecx, dword ptr [0x4b8fe0]   ; bss
+415a48: add    esi, edx
+415a4a: mov    eax, dword ptr [esp + 0x14]
+415a4e: fxch   st(1)
+415a50: fstp   qword ptr [esp + 0x9c]
+415a57: fstp   qword ptr [esp + 0x64]
+415a5b: cmp    eax, ecx
+415a5d: jge    0x415a7f
+415a5f: sub    eax, ecx
+415a61: mov    dword ptr [esp + 0xc], eax
+415a65: fild   dword ptr [esp + 0xc]
+415a69: fmul   qword ptr [esp + 0x64]
+415a6d: fmul   qword ptr [0x421f40]   ; =0.0625
+415a73: fldz   
+415a75: fsubrp st(1)
+415a77: mov    dword ptr [esp + 0x14], ecx
+415a7b: fstp   qword ptr [esp + 0x3c]
+415a7f: mov    eax, dword ptr [esp + 0x28]
+415a83: mov    ebx, dword ptr [0x4b9010]   ; bss
+415a89: cmp    eax, ebx
+415a8b: jge    0x415ab6
+415a8d: sub    eax, ebx
+415a8f: mov    dword ptr [esp + 0xc], eax
+415a93: fild   dword ptr [esp + 0xc]
+415a97: fmul   qword ptr [esp + 0x9c]
+415a9e: fmul   qword ptr [0x421f40]   ; =0.0625
+415aa4: fsubr  qword ptr [esp + 0xa4]
+415aab: mov    dword ptr [esp + 0x28], ebx
+415aaf: fstp   qword ptr [esp + 0xa4]
+415ab6: mov    eax, dword ptr [esp + 0x14]
+415aba: mov    edx, eax
+415abc: sar    edx, 0x1f
+415abf: shl    edx, 4
+415ac2: sbb    eax, edx
+415ac4: sar    eax, 4
+415ac7: mov    ecx, dword ptr [esp + 0x14]
+415acb: mov    dword ptr [esp + 0x14], eax
+415acf: mov    eax, dword ptr [esp + 0x24]
+415ad3: mov    edx, eax
+415ad5: sar    edx, 0x1f
+415ad8: shl    edx, 4
+415adb: sbb    eax, edx
+415add: sar    eax, 4
+415ae0: mov    dword ptr [esp + 0x24], eax
+415ae4: mov    eax, dword ptr [esp + 0x28]
+415ae8: mov    edx, eax
+415aea: sar    edx, 0x1f
+415aed: shl    edx, 4
+415af0: sbb    eax, edx
+415af2: sar    eax, 4
+415af5: mov    ebx, dword ptr [esp + 0x28]
+415af9: mov    dword ptr [esp + 0x28], eax
+415afd: mov    edx, esi
+415aff: mov    eax, esi
+415b01: sar    edx, 0x1f
+415b04: shl    edx, 4
+415b07: sbb    eax, edx
+415b09: sar    eax, 4
+415b0c: and    ecx, 0xf
+415b0f: mov    esi, eax
+415b11: mov    eax, dword ptr [0x4b9000]   ; bss
+415b16: and    ebx, 0xf
+415b19: cmp    esi, eax
+415b1b: jle    0x415b1f
+415b1d: mov    esi, eax
+415b1f: mov    eax, dword ptr [esp + 0x24]
+415b23: mov    edx, dword ptr [0x4b8ff4]   ; bss
+415b29: cmp    eax, edx
+415b2b: jle    0x415b31   ; ";t$("
+415b2d: mov    dword ptr [esp + 0x24], edx
+415b31: cmp    esi, dword ptr [esp + 0x28]
+415b35: jle    0x415db3
+415b3b: mov    eax, dword ptr [esp + 0x14]
+415b3f: cmp    eax, dword ptr [esp + 0x24]
+415b43: jge    0x415db3
+415b49: mov    eax, 0xf
+415b4e: sub    eax, ebx
+415b50: mov    dword ptr [esp + 0x10], eax
+415b54: mov    eax, 0xf
+415b59: sub    eax, ecx
+415b5b: mov    ebx, dword ptr [0x4b900c]   ; bss
+415b61: mov    dword ptr [esp + 0xc], eax
+415b65: mov    eax, dword ptr [esp + 0x14]
+415b69: imul   eax, ebx
+415b6c: fld    qword ptr [esp + 0x9c]
+415b73: fild   dword ptr [esp + 0x10]
+415b77: fmul   st(1)
+415b79: fxch   st(1)
+415b7b: fld    qword ptr [0x421f48]   ; =65536
+415b81: fxch   st(1)
+415b83: fmul   st(1)
+415b85: fxch   st(2)
+415b87: fld    qword ptr [0x421f40]   ; =0.0625
+415b8d: fxch   st(1)
+415b8f: fmul   st(1)
+415b91: fild   dword ptr [esp + 0xc]
+415b95: fmul   qword ptr [esp + 0x64]
+415b99: fxch   st(1)
+415b9b: fadd   qword ptr [esp + 0xa4]
+415ba2: fxch   st(1)
+415ba4: fmulp  st(2)
+415ba6: fst    qword ptr [esp + 0xa4]
+415bad: fmulp  st(2)
+415baf: mov    edx, dword ptr [0x4b8ff0]   ; bss
+415bb5: fxch   st(2)
+415bb7: fstp   qword ptr [esp + 0x74]
+415bbb: mov    ecx, dword ptr [esp + 0x28]
+415bbf: fxch   st(1)
+415bc1: fadd   qword ptr [esp + 0x3c]
+415bc5: add    edx, eax
+415bc7: mov    eax, dword ptr [esp + 0x34]
+415bcb: fxch   st(1)
+415bcd: fstp   qword ptr [esp + 0x7c]
+415bd1: mov    eax, dword ptr [eax + 0x18]
+415bd4: fstp   qword ptr [esp + 0x3c]
+415bd8: mov    dword ptr [esp + 0x20], eax
+415bdc: mov    eax, esi
+415bde: mov    dword ptr [esp + 0x38], edx
+415be2: sub    eax, ecx
+415be4: test   edi, edi
+415be6: jne    0x415cc5
+415bec: mov    edx, dword ptr [esp + 0x14]
+415bf0: mov    edi, dword ptr [esp + 0x24]
+415bf4: mov    dword ptr [esp + 0x30], edx
+415bf8: cmp    edx, edi
+415bfa: jge    0x415db3
+415c00: mov    edx, dword ptr [esp + 0x74]
+415c04: mov    dword ptr [esp + 0x6c], edx
+415c08: mov    edx, dword ptr [esp + 0x78]
+415c0c: mov    dword ptr [esp + 0x70], edx
+415c10: mov    edx, dword ptr [esp + 0x7c]
+415c14: mov    dword ptr [esp + 0x54], edx
+415c18: mov    edx, dword ptr [esp + 0x80]
+415c1f: mov    dword ptr [esp + 0x18], eax
+415c23: mov    dword ptr [esp + 0x58], edx
+415c27: fld    qword ptr [esp + 0x3c]
+415c2b: mov    eax, dword ptr [esp + 0x20]
+415c2f: call   0x40ba78
+415c34: fistp  dword ptr [esp + 0xc]
+415c38: mov    esi, dword ptr [esp + 0xc]
+415c3c: imul   esi, eax
+415c3f: fld    qword ptr [esp + 0x6c]
+415c43: fld    qword ptr [esp + 0x54]
+415c47: mov    edi, dword ptr [esp + 0x38]
+415c4b: mov    edx, dword ptr [esp + 0x28]
+415c4f: mov    ecx, dword ptr [esp + 0x18]
+415c53: fxch   st(1)
+415c55: call   0x40ba78
+415c5a: fxch   st(1)
+415c5c: call   0x40ba78
+415c61: fxch   st(1)
+415c63: fistp  dword ptr [esp + 0x10]
+415c67: fistp  dword ptr [esp + 0xc]
+415c6b: mov    eax, dword ptr [esp + 0x34]
+415c6f: add    edi, edx
+415c71: mov    ebx, dword ptr [esp + 0xc]
+415c75: mov    eax, dword ptr [eax + 0x10]
+415c78: mov    edx, dword ptr [esp + 0x10]
+415c7c: add    esi, eax
+415c7e: mov    eax, ebx
+415c80: sar    eax, 0x10
+415c83: add    ebx, edx
+415c85: mov    al, byte ptr [esi + eax]
+415c88: dec    ecx
+415c89: mov    byte ptr [edi], al
+415c8b: lea    edi, [edi + 1]
+415c8e: jne    0x415c7e
+415c90: fld    qword ptr [esp + 0x3c]
+415c94: mov    ebx, dword ptr [esp + 0x30]
+415c98: mov    ecx, dword ptr [esp + 0x38]
+415c9c: mov    esi, dword ptr [esp + 0x24]
+415ca0: mov    eax, dword ptr [0x4b900c]   ; bss
+415ca5: inc    ebx
+415ca6: fadd   qword ptr [esp + 0x64]
+415caa: add    ecx, eax
+415cac: fstp   qword ptr [esp + 0x3c]
+415cb0: mov    dword ptr [esp + 0x30], ebx
+415cb4: mov    dword ptr [esp + 0x38], ecx
+415cb8: cmp    ebx, esi
+415cba: jge    0x415db3
+415cc0: jmp    0x415c27
+415cc5: cmp    edi, 1
+415cc8: jne    0x415db3
+415cce: mov    edx, dword ptr [esp + 0x14]
+415cd2: mov    esi, dword ptr [esp + 0x24]
+415cd6: mov    dword ptr [esp + 0x2c], edx
+415cda: cmp    edx, esi
+415cdc: jge    0x415db3
+415ce2: mov    edx, dword ptr [esp + 0x74]
+415ce6: mov    dword ptr [esp + 0x44], edx
+415cea: mov    edx, dword ptr [esp + 0x78]
+415cee: mov    dword ptr [esp + 0x48], edx
+415cf2: mov    edx, dword ptr [esp + 0x7c]
+415cf6: mov    dword ptr [esp + 0x4c], edx
+415cfa: mov    edx, dword ptr [esp + 0x80]
+415d01: mov    dword ptr [esp + 0x1c], eax
+415d05: mov    dword ptr [esp + 0x50], edx
+415d09: fld    qword ptr [esp + 0x3c]
+415d0d: mov    edx, dword ptr [esp + 0x20]
+415d11: call   0x40ba78
+415d16: fistp  dword ptr [esp + 0xc]
+415d1a: mov    esi, dword ptr [esp + 0xc]
+415d1e: imul   esi, edx
+415d21: fld    qword ptr [esp + 0x44]
+415d25: fld    qword ptr [esp + 0x4c]
+415d29: mov    eax, dword ptr [esp + 0x34]
+415d2d: mov    edi, dword ptr [esp + 0x34]
+415d31: mov    ebx, dword ptr [esp + 0x28]
+415d35: mov    ecx, dword ptr [esp + 0x1c]
+415d39: fxch   st(1)
+415d3b: call   0x40ba78
+415d40: fxch   st(1)
+415d42: call   0x40ba78
+415d47: fxch   st(1)
+415d49: fistp  dword ptr [esp + 0xc]
+415d4d: fistp  dword ptr [esp + 0x10]
+415d51: mov    edi, dword ptr [edi + 0x10]
+415d54: mov    eax, dword ptr [eax + 0x14]
+415d57: add    esi, edi
+415d59: mov    edi, dword ptr [esp + 0x38]
+415d5d: mov    edx, dword ptr [esp + 0xc]
+415d61: add    edi, ebx
+415d63: mov    ebx, dword ptr [esp + 0x10]
+415d67: push   ebp
+415d68: mov    ebp, eax
+415d6a: mov    eax, ebx
+415d6c: sar    eax, 0x10
+415d6f: add    ebx, edx
+415d71: mov    ah, byte ptr [esi + eax]
+415d74: mov    al, byte ptr [edi]
+415d76: mov    al, byte ptr [ebp + eax]
+415d7a: dec    ecx
+415d7b: mov    byte ptr [edi], al
+415d7d: lea    edi, [edi + 1]
+415d80: jne    0x415d6a
+415d82: pop    ebp
+415d83: fld    qword ptr [esp + 0x3c]
+415d87: mov    ecx, dword ptr [esp + 0x2c]
+415d8b: mov    esi, dword ptr [esp + 0x38]
+415d8f: mov    edi, dword ptr [esp + 0x24]
+415d93: mov    eax, dword ptr [0x4b900c]   ; bss
+415d98: inc    ecx
+415d99: fadd   qword ptr [esp + 0x64]
+415d9d: add    esi, eax
+415d9f: fstp   qword ptr [esp + 0x3c]
+415da3: mov    dword ptr [esp + 0x2c], ecx
+415da7: mov    dword ptr [esp + 0x38], esi
+415dab: cmp    ecx, edi
+415dad: jl     0x415d09
+415db3: mov    esp, ebp
+415db5: pop    ebp
+415db6: pop    edi
+415db7: pop    esi
+415db8: pop    ecx
+415db9: pop    ebx
+415dba: ret    

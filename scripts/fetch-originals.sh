@@ -9,6 +9,7 @@
 #   scripts/fetch-originals.sh stars    only STARS by NoooN (Assembly '95)
 #   scripts/fetch-originals.sh dope     only DOPE by Complex (The Gathering '95)
 #   scripts/fetch-originals.sh clone    only clone meets clone by Acme and Fudge (Takeover '98)
+#   scripts/fetch-originals.sh inside   only Inside by CNCD (The Gathering '96)
 #
 # In the repository the files go into <repo>/<demo>/original/. Anywhere else (next to
 # a released program) they go into an original/ folder next to this script, and without an argument only the
@@ -85,6 +86,18 @@ demo_info() {
             "CLONE.EXE    11ed22222af2cc34dbca2f8c7683354a530d2a062363d7eb298bcaf399942275"
         )
         ;;
+    inside)
+        title="Inside by CNCD (The Gathering '96, 1996)"
+        zip_name=inside.zip
+        zip_path=parties/1996/gathering96/demo/inside.zip
+        program=inside-remake
+        files=(
+            "INSIDE.EXE   15ac35f8ea1c4cb32cd70b1fb7ba425af5bb60cb6c81794da26497c8ceeb53ef"
+            "INSIDE.DAT   9026946bd6988f3f375559a47982c7483a33817ef89d725f4ea194df84e5a865"
+            "EYE.AMF      bf6172d3b1728da542b71f355ef4b58f9573a76fec02fd9ea99a801b5886d01f"
+            "SDIGUS.DSD   9eebd39b89135d55039cd7b8de33a032555c0c6859a26efe2ecc07e36737eef1"
+        )
+        ;;
     *) return 1 ;;
     esac
     # scene.org itself, two https mirrors, then the scene.org redirector (picks any mirror)
@@ -96,7 +109,7 @@ demo_info() {
     )
 }
 
-all_demos=(303 paper jizz stars dope clone)
+all_demos=(303 paper jizz stars dope clone inside)
 
 # ---------------------------------------------------------------- tools
 usage() {  # the comment at the top of this file
@@ -182,9 +195,17 @@ fetch_demo() {  # demo
             say "              failed, trying the next mirror"; continue
         fi
         mkdir -p "$x"
-        if ! unzip -qq -o -j -C "$zip" "${need[@]}" -d "$x" >/dev/null 2>&1; then
-            say "              not a zip with the expected files, trying the next mirror"; continue
+        if ! unzip -tqq "$zip" >/dev/null 2>&1; then
+            say "              not a zip file, trying the next mirror"; continue
         fi
+        unzip -qq -o -j -C "$zip" "${need[@]}" -d "$x" >/dev/null 2>&1
+        # a release split into zips inside the zip (Inside: inside1.zip and inside2.zip): look in those too
+        for inner in $(unzip -Z1 "$zip" 2>/dev/null | grep -i '\.zip$'); do
+            mkdir -p "$x/inner"
+            if unzip -qq -o -j "$zip" "$inner" -d "$x/inner" >/dev/null 2>&1; then
+                unzip -qq -o -j -C "$x/inner/$(basename "$inner")" "${need[@]}" -d "$x" >/dev/null 2>&1
+            fi
+        done
         ok=1
         for entry in "${files[@]}"; do
             read -r name want <<<"$entry"
@@ -227,7 +248,7 @@ fetch_demo() {  # demo
 demos=()
 for arg in "$@"; do
     case "$arg" in
-    303 | paper | jizz | stars | dope | clone) demos+=("$arg") ;;
+    303 | paper | jizz | stars | dope | clone | inside) demos+=("$arg") ;;
     all) demos+=("${all_demos[@]}") ;;
     -h | --help) usage; exit 0 ;;
     *) fail "unknown argument '$arg'"; usage >&2; exit 2 ;;

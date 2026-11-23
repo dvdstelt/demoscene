@@ -14,7 +14,8 @@ composition, pose, proportions, framing, colours and text; only resolution and d
 
 Only pictures that are drawn as they are: title cards, backgrounds, labels, logos, sprites, and textures whose
 pixels are shown. Generated textures and maps stay computed from the original, and so does anything an effect
-reads through palette indices (colour cycling, index arithmetic). Some pictures can still be redrawn if the
+reads through palette indices (colour cycling, index arithmetic); hand-made textures and level maps that an effect
+reads through tables can get an upscale instead ([section 8](#8-textures-read-through-tables-upscale-them)). Some pictures can still be redrawn if the
 redraw keeps what the effect needs; the decompiling notes say how each picture is used:
 
 - a shade map coloured through palette ramps (DOPE's logo) or shaded with a paper grain (Paper's sketch): redraw it
@@ -34,7 +35,17 @@ redraw keeps what the effect needs; the decompiling notes say how each picture i
 - a grey picture that a script multiplies with a generated texture (JIZZ's logo and end picture, times blurred
   clouds): redraw the grey picture as a coverage mask, keep the generated texture computed (the remake keeps the
   script's input to the multiply as its own texture) and do the multiply in the shader, so the picture's edges are
-  anti-aliased at the output resolution.
+  anti-aliased at the output resolution;
+- a level map that an effect adds through a shade table, with a photo of a person in it (the names in Inside's
+  credits: a flat star, the name and a scanned face): redraw only the drawn parts. Cover the photo in the upload
+  with explicit shapes measured on the picture (fill it with the level around it), look at every upload before it
+  goes out to make sure no part of the face is left, map the redraw's flat areas exactly onto the original's levels,
+  and draw the original's photo pixels over the redraw;
+- a photo of people, drawn as it is, only when I ask for that picture (Inside's sprites: four cut-out photos):
+  upload it on a key colour it does not use and ask for "a sharp, detailed photograph of exactly this picture",
+  naming the straight edges where the photo is cut off so that the generator does not complete the bodies. Do not
+  colour-match the result to a 256-colour photo (it makes flat light areas blotchy). The faces come back as the
+  generator's reading of a few pixels; say so in the art README.
 
 ## 2. Prepare the upload
 
@@ -224,3 +235,25 @@ faces, eyes and hands at 160×96 come out as the model imagines them, so the REA
    slowest frames, to see that no frame waits for its decode when a clip starts.
 8. **Record it** in the art folder's README: the footage's makers, the model and settings, the run, the frames
    included, the sizes, and what the model invented.
+
+## 8. Textures read through tables: upscale them
+
+Inside's textures are hand-made, but its parts read them by palette index through shade, fog and blend tables, map
+them on objects, wrap and mirror them, and the twirl and the environment maps depend on their exact layout. A redraw
+moves pixels; an upscaler keeps every pixel where it is. They were upscaled 4× with Real-ESRGAN
+([Inside's art README](../inside/remake/art/README.md), `inside/remake/tools/upscale_art.py`):
+
+- decode the texture in the palette the demo shows it with (with the entries the part changes, such as entry 0 set
+  to black), level maps as grey;
+- pad it with its own wrapped edges if it tiles, mirrored ones if not, so the borders upscale like the inside, and
+  crop the padding off afterwards;
+- use `realesr-general-x4v3`: of the models tried on Inside, `RealESRGAN_x4plus` came out smoother and
+  `RealESRGAN_x4plus_anime_6B` drew outlines that the originals do not have. It runs on the CPU in about a second
+  per 256 × 256 texture, in a Python virtual environment with PyTorch and spandrel inside the toolbox;
+- in the remake, keep computing every colour from the original's indices and tables, and add the upscale's detail:
+  colour + g × (upscale − the original's texels through the palette, with the same taps), where g is how much of a
+  change in a texel's colour the table passes on (1 for a plain texture, the least-squares gain of a shade or fog
+  row, or of a fitted blend). Read a level map at the upscale's continuous level instead;
+- look at the result next to the original: photos (Inside's aerial landscape) can come out looking painted, and
+  then the original pixels are better.
+

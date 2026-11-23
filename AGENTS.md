@@ -42,14 +42,17 @@ further unless asked; fixes there should stay minimal.
 
 ### Redrawn pictures
 
-STARS, DOPE, clone meets clone, Paper, 303 and JIZZ show high-resolution redraws of their hand-drawn pictures by
-default, and the original pixels with `--original-art`; 303 also shows its video clips restored with SeedVR2
+Every remake shows high-resolution redraws of its hand-drawn pictures by default, and the original pixels with
+`--original-art`; 303 also shows its video clips restored with SeedVR2
 (`303/remake/art/video/`).
-Photos of real people are not redrawn. The redraws are AI redraws made from the original pictures, at the maintainer's request, and
+Photos of real people are not redrawn unless the maintainer asks for a specific picture (Inside's photos of people
+in its sprites parts were, as photos). The redraws are AI redraws made from the original pictures, at the maintainer's request, and
 stay faithful to them: the same composition, pose, proportions, framing, colours and text; only resolution and detail
 change. They live in `<demo>/remake/art/` with a README that names the original artist, how each picture was made
 and how it was aligned. Only pictures that are drawn as they are get a redraw; generated textures, maps and anything
-an effect reads through palette indices stay computed from the original. When ChatGPT refuses a picture or does not
+an effect reads through palette indices stay computed from the original. Hand-made textures and level maps that an
+effect reads through tables may get a 4× upscale instead, whose detail the remake adds to what it computes from the
+original's indices (Inside's). When ChatGPT refuses a picture or does not
 redraw it faithfully, try the Comfy Cloud route instead; a picture no tool redraws faithfully keeps the original
 pixels. Never reword a prompt to get past a refusal. [docs/redrawing-pictures.md](docs/redrawing-pictures.md) is the
 recipe.
@@ -116,7 +119,8 @@ builds that demo and publishes both downloads, with the commits since the demo's
   adding helpers; parts share code through the demo's core library (`paper/remake/src/paper/`, `jizz/remake/src/jizz/`,
   `303/remake/src/exefx.*`).
 - Paper and 303 count time in their original's timer ticks; JIZZ counts seconds of music time and gets the
-  original's timer from `ctx.timer(t)`, because its parts animate from MXMPlay's timer.
+  original's timer from `ctx.timer(t)`, because its parts animate from MXMPlay's timer; Inside counts screen
+  refreshes (70.086 Hz), on which its timer interrupt, music and parts all run.
 - Colours are display-space floats (a 6-bit VGA value v is v/63). The original 320x200 screen is shown at 4:3.
 
 ## Documentation
@@ -130,4 +134,8 @@ constants. Write plainly; describe what is there, not how good it is.
 Create `<demo>/` with the layout above, add the original's files and checksums to `scripts/fetch-originals.*`, a row
 to the table in the root README, the demo to the project lists in `scripts/ci-plan.sh`, `scripts/ci-build.sh` and
 `scripts/ci-release.sh`, and a packaging entry to `scripts/package.sh`. Start from the Paper remake's framework
-(`demo.*`, `render.*`, `gl.*`).
+(`demo.*`, `render.*`, `gl.*`). `scripts/render-videos.sh` finds the new demo by itself if the program is
+`<demo>/remake/build/<demo>-remake`, its `--video` renders the whole production by default, and
+`<demo>/re/frames2mp4.py full.frames OUT --size WxH --vcodec "..."` turns the emulator capture into a video that starts
+at the remake's time 0 (then `<demo>-compare` puts the original next to the remake); otherwise add the exception to
+its tables (docs/videos.md).
