@@ -12,6 +12,7 @@ stars-remake
 dope-remake
 clone-remake
 inside-remake
+reve-remake
 test_music
 jizz-texdump
 jizz-textest
@@ -74,6 +75,12 @@ inside/re/*.jpg
 inside/re/dump/
 inside/re/snaps/
 inside/re/unpacked/
+reve/re/*.bin
+reve/re/*.log
+reve/re/*.jpg
+reve/re/dump/
+reve/re/snaps/
+reve/re/unpacked/
 
 # Media: videos go to YouTube, audio renders stay local
 *.mp4
