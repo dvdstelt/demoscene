@@ -6,7 +6,7 @@ every constant, so that the parts' notes can refer to it and the remake can rend
 
 Verified: a Python model of the whole render path (`models/engine/`) reproduces the original's frames **pixel for
 pixel**: the logo part over 327 consecutive rendered frames (refreshes 1446..1728) including its 2D bitmaps, and
-sampled frames of the flower (15), flight (42), credits (20), shadow scene (12), temple (25) and water parts — every
+sampled frames of the flower (15), flight (42), credits (20), shadow scene (12), temple (25) and water (15) parts — every
 rasterizer, the billboards, hierarchies (objects parented to the camera, a camera with a parent), the 0x1000
 texture stage, lighting, back-face and bounding-box culling, near clipping and the sort, 0 pixels different.
 The model takes from the original only what the parts set (object rotations / positions / flags, vertex data the
@@ -42,6 +42,13 @@ start-up 0x41d4b8 from AX), not 64 bits as NOTES.md says: every x87 add, multipl
 double. The model reproduces the integer results only with double arithmetic in the original operation order
 (with 64-bit precision the projection scale comes out 4479 instead of 4480). Float → int conversions truncate toward
 zero (0x40ba78). All engine maths is in doubles; the LWS reader stores floats (float32).
+
+**Time, randomness, pictures.** The engine has no clock and draws nothing on its own: everything animates through
+what the parts set before each render (positions, rotations, vertex data, flags), once per drawn frame; the LWS
+evaluator reads the frame number from the float [0x4b685c] that the flower part advances. It calls no random
+numbers. It does not clear the frame: the parts clear the viewport (0x41127c) or draw a background first, and the
+render only writes the pixels its triangles, billboards and bitmaps cover. Its textures, tables and bitmaps are
+the parts' (their notes say what they are).
 
 ## Units and conventions
 
@@ -221,7 +228,7 @@ Flags [0xc4]:
 | 0x4145ac / 0x4145c4 / 0x4145dc | rotate_y / rotate_x / rotate_z(EAX M, stack: double a) | M = M·Ry(a) / M·Rx(a) / M·Rz(a) |
 | 0x414418 | rotate_z (the routine behind 0x4145dc; flight calls it directly) | |
 | 0x4145f4 | mat_euler(EAX M, stack: double a, b, c) | M = Rx(a)·Ry(b)·Rz(c) |
-| 0x414cec | mat_look(EAX M, EDX direction double[3]) | d = dir/|dir|; r0 = normalize(−d.z, 0, d.x); r1 = normalize(d × r0) (cross 0x4135c4: (a.y b.z − a.z b.y, a.z b.x − a.x b.z, a.x b.y − a.y b.x)); M rows = r0, r1, d. Note: as an object's rotation this maps local (0,0,1) to the third column, not to d, and a camera with this rotation looks along (r0.z, r1.z, d.z) — it is the transpose of a look-at rotation; the credits use it (0x406385) |
+| 0x414cec | mat_look(EAX M, EDX direction double[3]) | d = dir/|dir|; r0 = normalize(−d.z, 0, d.x); r1 = normalize(d × r0) (cross 0x4135c4: (a.y b.z − a.z b.y, a.z b.x − a.x b.z, a.x b.y − a.y b.x)); M rows = r0, r1, d. Note: as an object's rotation this maps local (0,0,1) to the third column, not to d, and a camera with this rotation looks along (r0.z, r1.z, d.z) — it is the transpose of a look-at rotation; the credits use it (0x406385). Checked by calling the original routine in unicorn for 200 random directions (`call_engine.py`): equal to 1e−12 |
 | 0x417e28 | pow(st1 = x, st0 = y) | x^y (LWS exponents) |
 
 ## The render: 0x40c6ac(scene)
@@ -257,7 +264,7 @@ M = Ct · obj.world_rot                                     → [0x4b8f78] (9 do
 ```
 
 **0x41a5b8 bounding box** — unless flag 0x2000 (then [0xc6] |= 0x10, continue). The 8 corners of the box
-(0xe0..0xf4) are transformed: `p = 128·(M·corner) + T` (with M·corner by 0x4137b4 / 0x4144ec); z ≤ 16384 → flag
+(0xe0..0xf4) are transformed: `p = M·(128·corner) + T` (0x4137b4, ×128, 0x4144ec); p.z ≤ 16384 → flag
 0x100000; else projected `x = XS·p.x/(128·p.z) + cx`, `y = YS·p.y/(128·p.z) + cy` (pixels) and flagged 0x10000
 x < x0, 0x20000 x ≥ x1, 0x40000 y < y0, 0x80000 y ≥ y1; the screen box 0xfc..0x108 is the min / max (truncated).
 If every corner shares a flag the object is culled (return 1). The flags are added into [0xc4] bits 16..20.
@@ -584,7 +591,7 @@ the original's render call. Commands in `models/engine/README.md`.
    | credits (2150..2684) | 20 | 0x414e5c (flag 0x100), blended billboards (smoke), a camera turned by 0x41077c |
    | shadow scene (4256..4586) | 12 | 0x4172e0 (two textures), 0x41669c, 0x412db0 lit by a light (0x40), hidden objects |
    | temple (11290..11691) | 25 | 0x416dc8, 0x41669c, 0x414e5c lit, 0x412db0, 0x1000, flare billboards, a camera with a parent |
-   | water | WATER_RESULT | 0x41669c, 0x412db0, 0x1000, flag 0x100 |
+   | water (8470..8787) | 15 | 0x412db0 + 0x1000 (water/obuke.sro), fish with 0x41669c + 0x1000 and bias −256000 |
 3. **LightWave reader**: `lws.py ../../snaps/f38.snap`: the sampled motion table of flower/tunnel1.lws (2 motions,
    N = 266) equals 0x426618 in memory, all 538 rows bit for bit; `lws_check.py`: the camera's and the tunnel's
    positions and rotation matrices evaluated at the part's frame variable [0x4b685c] equal the original's (30 object
@@ -604,8 +611,9 @@ the original's render call. Commands in `models/engine/README.md`.
 
 - The perspective-correct path of the rasterizers (face bits 10..12) is decoded only in outline: INSIDE never
   enables it.
-- 0x41077c / 0x414cec were not checked on their own (the credits' camera rotation was taken from the dump); the
-  formula above is read from the code.
+- 0x41077c itself was not run against the capture (the credits' camera rotation was taken from the dump; the
+  matrix routine 0x414cec it uses was checked by calling it). The credits' camera rotation in the dumps has a
+  non-zero r0.y, so the credits part changes the rotation after 0x41077c (credits scope).
 - Unused by INSIDE and only outlined: stages 0x41ac04, 0x41ae9c, 0x41adcc (flags 0x200, 0x400, 0x800), the
   non-clipping face list 0x41aacc, 0x4111e0 (removing an object with its children), 0x410714 / 0x410800 (flatten a
   transform, look at an object), 0x411f68 (a line between two projected points), 0x4120a0 (vertex lerp), 0x411764 /

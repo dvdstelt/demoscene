@@ -15,6 +15,7 @@ Python models and tools behind `inside/re/notes-engine.md`. Run everything insid
 | `hooks_logo.py` | hooks for the logo part: state before / after each render and the finished frame (`LOGO_DUMP`, `LOGO_FROM`) |
 | `hooks_scene.py` | generic hooks: the scene's objects, vertices, faces, materials, textures, the buffer before and after a render call (`SCENE_PTR`, `CALL_AT`, `AFTER_AT`, `FROM`, `TO`, `EVERY`, `EXTRA`, `DUMP`) |
 | `dump_summary.py` | lists what a scene dump contains (objects, flags, parents, rasterizers) |
+| `call_engine.py` | calls one routine of the original in unicorn from a snapshot's memory (FPU control word 0x127f); checks the look-at matrix 0x414cec against the model for 200 random directions |
 | `cmp_raster.py` | compares the six rasterizers instruction by instruction with 0x414e5c |
 | `calls.py`, `sites.py`, `dump.py` | call graph of the engine range, the instructions before each call site, linear disassembly of a range |
 
@@ -32,5 +33,6 @@ env DUMP=out/flight_dump.pkl SCENE_PTR=425008 CALL_AT=402936 AFTER_AT=40293b FRO
 env DUMP=out/credits_dump.pkl SCENE_PTR=426460 CALL_AT=4067f7 AFTER_AT=4067fc FROM=2150 TO=2700 EVERY=25 ...  (f2148)
 env DUMP=out/sprites_dump.pkl SCENE_PTR=425fc4 CALL_AT=404bc0 AFTER_AT=404bc5 FROM=4256 TO=4960 EVERY=30 ... (f4255)
 env DUMP=out/temple_dump.pkl SCENE_PTR=425eb4 CALL_AT=404453 AFTER_AT=404458 FROM=11290 TO=11700 EVERY=12 ... (f7063)
+env DUMP=out/water_dump.pkl SCENE_PTR=4265ec CALL_AT=407dd9 AFTER_AT=407dde FROM=8470 TO=8800 EVERY=20 ...  (f7063)
 ```
 (`env` variables must be passed inside the toolbox: `toolbox run -c acme303 env NAME=value python3 ...`.)
