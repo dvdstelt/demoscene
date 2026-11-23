@@ -42,8 +42,11 @@ import os
 import struct
 import sys
 
-from unicorn import Uc, UC_ARCH_X86, UC_MODE_16, UC_MODE_32, UC_HOOK_INTR, UC_HOOK_CODE, UcError
-from unicorn.x86_const import *
+try:  # only run_loader needs the emulator: the archive readers (parse_archive, lzw) work without unicorn
+    from unicorn import Uc, UC_ARCH_X86, UC_MODE_16, UC_MODE_32, UC_HOOK_INTR, UC_HOOK_CODE, UcError
+    from unicorn.x86_const import *
+except ImportError:
+    pass
 
 LOAD = 0x1000
 IMG_BASE = 0x20427c          # where run_reve.py's extender loads the demo's image

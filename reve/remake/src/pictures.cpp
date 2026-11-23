@@ -61,7 +61,9 @@ const std::vector<PictureInfo>& pictureList() {
 }
 
 const std::vector<std::string>& detailList() {
-    static const std::vector<std::string> list = {};
+    // 4x upscales (art/tex_<name>.jpg, tools/upscale_art.py) of the hand-drawn textures the parts read through tables:
+    // GFX\TEXTURE.RAW's tiles
+    static const std::vector<std::string> list = {"texture"};
     return list;
 }
 
