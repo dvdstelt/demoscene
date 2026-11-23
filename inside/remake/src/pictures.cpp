@@ -31,6 +31,9 @@ const std::vector<PictureInfo>& pictureList() {
         // logo: logo/inside.raw, the title "INSIDE", drawn from 4:32 at (34, 13), index 0 transparent
         // (notes-intro-logo.md; 0x415df0 type 3)
         {"logo_inside", 0x4208e8, 0x4208d8, 249, 139, 0, 0, false},
+        // water: water/water.raw, the background seen through the water (a digitised photo of a room, no people),
+        // full screen, shifted per pixel by the ripple (notes-water.md)
+        {"water", 0x4213d4, 0x4213c4, 320, 200, 0, -1, false},
     };
     return list;
 }
