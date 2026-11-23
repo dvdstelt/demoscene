@@ -310,11 +310,11 @@ const Target& Demo::render(double r) {
     gl::Disable(GL_SCISSOR_TEST);
     gl::Disable(GL_STENCIL_TEST);
     ctx.clear();
-    if (const Cue* c = cueAt(r)) {
+    if (const Cue* c = cueAt(r); c && r < c->black) {
         ctx.cue = c;
         ctx.start = c->start;
         ctx.end = c->end;
-        ctx.renderPart(c->scene, r, frame_);
+        ctx.renderPart(c->scene, std::min(r, c->hold), frame_);
     }
     ctx.out = &frame_;
     return frame_;

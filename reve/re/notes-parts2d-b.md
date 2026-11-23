@@ -360,6 +360,11 @@ shown in record s + F − 1 (s = 14027 for entry 20, 16722 for entry 27): the fl
 picture), and likewise at 16737, 16753, .. in entry 27 (25 flashes). Entry 21 shows GENE from record 14426, entry 28
 BOUGE from 17113 (the first frame of an entry whose init is empty is drawn after the next retrace).
 
+Entries 5 / 6 (scope 2D-A; GFX\PULSE.RAW, init 0x204aef, frames 0x204b2c / 0x204bd8, variables 0x204bcc..0x204bd4)
+run the same strobe with the table loaded from `GFX\NEGATIF.PAL` (256 bytes) instead of 0x25a5ff: it equals the
+0x25a5ff table of PULSE's palette for every index PULSE uses, and the model gives all 400 records 2737..3136 (flashes
+from 2752 on).
+
 **Remake:** step the counter once per refresh (as the capture does) from the entry's start: frame F at refresh
 start + F − 1, a flash lasting exactly one refresh (1/70 s). A display running slower than 70 Hz can miss a
 one-refresh flash entirely (at 60 Hz about one in seven); to keep every flash visible, show a flash in any displayed

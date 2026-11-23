@@ -125,7 +125,7 @@ struct ScriptEntry {
     uint32_t retrace = 0;          // the routine the timer interrupt calls once per refresh during the entry
     uint32_t frame = 0;            // the routine main calls once per drawn frame
     int endPos = 0;                // music position order << 8 | row at which the entry ends
-    double start = 0, end = 0;     // refreshes: the first retrace of the entry, the first of the next one
+    double start = 0, end = 0;     // refreshes: the entry's first retrace call, the next entry's (the cue's)
 };
 
 struct Ctx {
@@ -194,8 +194,11 @@ struct Ctx {
 struct Cue {
     std::string scene;        // the scene name (src/scenes)
     int entry = 0;            // index into the script
-    double start = 0;         // refresh of the entry's first retrace
+    double start = 0;         // refresh S of the entry's first retrace call: record r shows the state after r - S calls
     double end = 0;           // the next entry's start (the end of the demo for the last)
+    double hold = 0;          // the original draws no frame of this entry after this refresh (the next entry's init
+                              // runs): Demo::render asks the part for min(r, hold), so the screen holds that frame
+    double black = 0;         // ... unless the next init clears the screen: black from this refresh on
 };
 std::vector<Cue> buildTimeline(Ctx& c);
 // The refresh at which the demo ends.
