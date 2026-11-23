@@ -21,6 +21,8 @@ the repository except `pictures.py` (into `../../dump/pictures/`, ignored by Git
 | `twirl_continuous.py` | the continuous form of the twirl (notes 5.5) against the exact model | same shapes; per-pixel agreement about 50 % (the original tears along the rings) |
 | `spiral.py` | entries 12, 13: layer 1, the feedback zoom through SPIRBLUR.PAL, the 30 dots (`--start`: from the image's state and entry 7's end) | records 8123..9910: all exact |
 | `inplace.py` | the feedback blend in place (as the original) against double-buffered | after 120 frames 9 % of the pixels differ, not visibly |
+| `wizmix.py` | entry 7: the age-weighted layer mix (notes 3.3) against a single-time 1/4 + 3/4 blend | box-filtered difference to the capture 5.1 vs 11.6 (record 3500) |
+| `feedback_avg.py` | entries 12/13: colour models of the feedback (one averaged field, or one field per pixel class, with the truncation bias) against the exact model and the capture | four classes + bias: mean luminance within 1.3 of the capture; one field: 7 too bright |
 | `blendtables.py` | SPIRBLUR.PAL = 0x25a275's table for TEXTURE.RAW's palette | 65,536 of 65,536 entries |
 | `pictures.py` | writes the pictures drawn as they are to `../../dump/pictures/` | REVE, PULSE, WIZ, PLAYMO, BOUCHE, SPIRALE-dot, TEXTURE-tile5, TEXTURE-6010, TEXTURE-5010 |
 

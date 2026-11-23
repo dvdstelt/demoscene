@@ -278,7 +278,12 @@ the capture).
 Shortcuts for the remake to evaluate exactly: 160 x 100 texture samples per layer (one per 2 x 2 block) →
 per-pixel mapping; nearest texel reads → filtered reads in colour (tiling); the sine table and the even angle index
 → sin/cos of a continuous angle a(n)/2 (interpolate a between refreshes); the pixel interleave of the layers → a
-**colour blend 1/4 layer 1 + 3/4 layer 2** (what the 70 Hz checker averages to); WIZ's carry-based nearest
+**colour blend** of what the 70 Hz checker averages to. The classes on screen were drawn at different frames: over
+two frames, layer 1 drawn 0 and 1 frames ago (1/8 each) and layer 2 drawn 0, 1, 2, 3 frames ago (1/4, 1/4, 1/8,
+1/8), so the average is `1/8 (L1(n) + L1(n−1)) + 1/4 (L2(n) + L2(n−1)) + 1/8 (L2(n−2) + L2(n−3))` with each layer at
+the angle of its frame (at fast turns the textures trail towards the edges). Against the capture (4 x 4 box-filtered,
+record 3500) this averages to a mean absolute difference of 5.1, a single-time 1/4 + 3/4 blend to 11.6; the port
+(`reve/remake/src/scenes/wiz.cpp`) uses the former. WIZ's carry-based nearest
 downscale → a filtered scaled draw at continuous z (z/4 for the corner); the ghosts and the four-frame fill-in at
 the start may be dropped (or the ghosts approximated by the previous three sizes at 62.5 / 25 / 12.5 % opacity).
 
@@ -556,13 +561,23 @@ the capture draws one frame per refresh).
 
 ### 5.4 Remake
 
-Keep a feedback buffer (in colour, double-buffered) stepped once per original refresh: B ← (3/4 B + 1/4 T) with T
-the rotozoom texture at that refresh (the average of rewriting a quarter of the pixels; filtered, continuous angle),
-then B ← 3/4 B + 1/4 B(c + (x − c) s), then the 30 dots (smooth discs) on top; show B, interpolating between steps if
-the display rate differs. For seeking, replay the last ~40 refreshes from black (or from the entry start): an echo
-keeps 3/4 per step, so 0.75^40 ≈ 1e-5 is left. The original quantises every blend to the palette (colours can stick
-instead of decaying): an 8-bit artefact to drop. The exact pixel-class cycle of the texture writes may be emulated
-instead of the average if the dither texture of the background matters.
+Keep the feedback in colour, double-buffered, stepped once per original frame. A single averaged field
+(B ← 3/4 B + 1/4 T, then the zoom blend) is **not** enough: the texture rewrites cycle through four pixel classes,
+so a pixel is rewritten every fourth frame and a dot's echo leaves it after at most four frames, while a single
+field lets echoes decay as (9/16)^k and shows them far too long and bright (mean luminance 35 against the capture's
+28). Keep one field per class c = 0..3 and show their mean:
+
+    step g:  M_c = T_g if c = g mod 4 (the class rewritten, T_g = layer 1 at a_g) else B_c;   M = mean of the M_c
+             B_c ← 3/4 M_c + 1/4 M(zoom(x)) − bias;   then the dots into every B_c
+
+with zoom(x) = imm + frac + (x − ½) s per axis (the mean source of 0x25eaec's carry steps) and bias = 3/8 / 63 per
+channel, the mean loss of the table's truncation `(a + 3b) >> 2` (without it the background and echoes are about 15 %
+brighter than the capture's; with it the mean luminance is within 1.5 of the capture at records 8600..9700). The
+in-place order is not visible. The fields forget their start fast (the old buffer's weight is 1.2e-3 after 12 steps,
+8e-5 after 16): replay the last 14 steps from black (from the entry start when nearer). The quantisation of every
+blend to the palette (colours that stick instead of decaying) is an 8-bit artefact to drop. The dots' motion is
+stroboscopic (up to 28° per refresh, 26° apart): the port shows the frames as they are, one per refresh. All this was
+modelled in Python against the exact model and the capture, then ported (`reve/remake/src/scenes/dots.cpp`).
 
 ---------------------------------------------------------------------------------------------------------------
 
@@ -650,9 +665,10 @@ as a file. Also unused: 0x2056b4, an earlier version of the retrace routine 0x20
 
 - Whether the first frame of an entry whose init takes more than a refresh appears in record S depends on how long
   the frame routine takes (entries 0, 5, 9: yes; 12, 15: no). The remake switches at its cue anyway.
-- The continuous twirl (4.5) and the 1/4 + 3/4 layer blend (3.3) are my reading of what the pixel effects show;
-  both are checked only visually against the exact models, not pixel for pixel (the originals tear and dither).
-- The feedback average (5.4) replaces a per-pixel-class rewrite by its mean; not checked against the capture beyond
-  a visual comparison of the exact model's frames.
+- The continuous twirl (4.5) and the layer blend (3.3) are my reading of what the pixel effects show; both are
+  checked visually and by box-filtered differences against the exact models, not pixel for pixel (the originals tear
+  and dither).
+- The four-class feedback (5.4) replaces a per-pixel-class rewrite by the classes' mean and the zoom's carry steps
+  by their mean position; checked by mean luminance and visually against the capture.
 - The music positions in the timing table are the capture's; the remake's cues derive from the music and may start
   a few refreshes earlier (inits are instant there).
