@@ -59,7 +59,17 @@ VGA_HZ = 25175000 / (800 * 449)
 FRAME = PIT_HZ / VGA_HZ
 LINES = 449
 LINE = FRAME / LINES
-RAM = 0x1000000                 # 16 MB
+RAM = 0x2000000                 # 32 MB: 16 MB as the machine has it, then the moved interrupt stacks
+XMS_END = 0x1000000             # HIMEM hands out 0x110000..16 MB
+IRQ_STACKS = 0x1800000          # the extender's four interrupt stacks, moved here (see "set_irq_stacks")
+K_STACK_SLOTS = 0x10c60 + 0xd4  # kernel 0xd4..0xe0: the stack tops its IRQ entry 0xf8e takes, first free first
+K_SLOTS_SET = 0x10c60 + 0x1d3   # right after the kernel set them (0x1b0..0x1ce) to 0x140c8 + 0x200 i
+SORT = 0x21e6ec                 # the 3D engine's recursive face sort (its stack depth is logged)
+# main 0x204770 (NOTES.md "The script table"): the loop over the script table 0x205ed0
+MAIN_ENTRY = 0x204787           # push esi: an entry begins (ESI = its address); init follows
+MAIN_SET = 0x20479c             # its retrace routine has just been set ([0x205e9c])
+MAIN_FRAME = 0x2047b1           # call [esi + 0xc]: one drawn frame
+SCRIPT = 0x205ed0
 LOAD = 0x1000                   # load segment of REVE.EXE (PSP at 0x0ff0)
 ENVSEG = 0x0800
 BIOS = 0xF000                   # every BIOS / DOS vector points to an iret at F000:n
@@ -303,7 +313,8 @@ def main():
           'next_vs': FRAME * 412 / LINES, 'pending': set(), 'stop': False, 'text': '', 'files': {}, 'nextfh': 5,
           'dac_w': 0, 'dac_r': 0, 'dac_c': 0, 'dac': bytearray(768), 'spin': None, 'skip': False, 'mode': 3,
           'pit_irqs': 0, 'gus_irqs': 0, 'dos_next': 0, 'xms': {}, 'xms_next': XMS_BASE, 'pm': False,
-          'seq': {}, 'crtc': {}, 'gc': {}, 'seq_i': 0, 'crtc_i': 0, 'gc_i': 0, 'vga_log': 0, 'main_pc': 0}
+          'seq': {}, 'crtc': {}, 'gc': {}, 'seq_i': 0, 'crtc_i': 0, 'gc_i': 0, 'vga_log': 0, 'main_pc': 0, 'entry': -1,
+          'drawn': 0}
     outs, ins, services = {}, {}, {}
 
     def R(r): return mu.reg_read(r)
@@ -614,7 +625,7 @@ def main():
             set16('ax', 1)
             set16('bx', 0)
         elif ah == 8:
-            free = (RAM - st['xms_next']) // 1024
+            free = (XMS_END - st['xms_next']) // 1024
             set16('ax', free)
             set16('dx', free)
             set16('bx', 0)
@@ -689,6 +700,8 @@ def main():
                 return
             if intno not in (0x21, 0xff, 0x10, 0x31) and intno < 0x20:
                 print('exception %#x in protected mode: %s' % (intno, regs()), flush=True)
+                for h in st.get('hist', [])[-a.history:]:
+                    print('  %x -> %x  %04x:%08x esp=%x' % h)
                 st['stop'] = True
                 mu.emu_stop()
                 return
@@ -873,7 +886,7 @@ def main():
                 st['pit_start'] = st['now']
                 st['next_pit'] = st['now'] + st['pit_count']
                 st['pit_w'] = 0
-                print('PIT mode %d count %#x (%.3f Hz) at frame %d' % (st['pit_mode'], st['pit_count'],
+                if st['frame'] < 20: print('PIT mode %d count %#x (%.3f Hz) at frame %d' % (st['pit_mode'], st['pit_count'],
                                                                      PIT_HZ / st['pit_count'], st['frame']),
                       flush=True)
         elif port == 0x3c8:
@@ -928,7 +941,43 @@ def main():
             print('trace %x frame %d time %.3f' % (addr, st['frame'], st['now'] / PIT_HZ), flush=True)
 
     mu.hook_add(UC_HOOK_CODE, on_code_xms, None, XMS_ENTRY, XMS_ENTRY)
+
+    def set_irq_stacks(mu, addr, size, _):
+        # The extender keeps four 512-byte interrupt stacks at 0x140c8..0x148c8, right below the stack the demo
+        # runs on (from about 0x148c8 down). The 3D engine's recursive face sort (0x21e6ec) can go deeper than
+        # 0x800 bytes; an interrupt during such a sort then overwrites the sort's return addresses, and the demo
+        # crashes (on a real PC as here: it depends on when the interrupt comes). The stacks are moved out of the
+        # way, which changes nothing else the demo computes.
+        if pm():
+            for i in range(4):
+                mu.mem_write(K_STACK_SLOTS + 4 * i, struct.pack('<I', IRQ_STACKS + 0x1000 * (i + 1)))
+            print('interrupt stacks moved to %#x..%#x' % (IRQ_STACKS, IRQ_STACKS + 0x4000), flush=True)
+    mu.hook_add(UC_HOOK_CODE, set_irq_stacks, None, K_SLOTS_SET, K_SLOTS_SET)
+
+    def on_sort(mu, addr, size, _):
+        e = R(UC_X86_REG_ESP)
+        if e < st.get('sort_min', 0x14000 + 0x800):
+            st['sort_min'] = e
+            print('face sort stack down to %#x (frame %d)' % (e, st['frame']), flush=True)
+    mu.hook_add(UC_HOOK_CODE, on_sort, None, SORT, SORT)
+
+    def on_main(mu, addr, size, _):
+        if addr == MAIN_FRAME:
+            st['drawn'] += 1
+            return
+        n = (R(UC_X86_REG_ESI) - SCRIPT) // 0x14
+        o, r = mu.mem_read(MUS_ORDER, 1)[0], mu.mem_read(MUS_ROW, 1)[0]
+        if addr == MAIN_ENTRY:
+            print('entry %d: init at frame %d (time %.4f s, music %d:%02d, drawn %d)' % (
+                n, st['frame'], st['now'] / PIT_HZ, o, r, st['drawn']), flush=True)
+        else:
+            st['entry'] = n
+            print('entry %d: retrace routine set at frame %d (time %.4f s, music %d:%02d)' % (
+                n, st['frame'], st['now'] / PIT_HZ, o, r), flush=True)
+    for x in (MAIN_ENTRY, MAIN_SET, MAIN_FRAME):
+        mu.hook_add(UC_HOOK_CODE, on_main, None, x, x)
     hist = []
+    st['hist'] = hist
 
     last = [0, 0]
 
@@ -949,8 +998,11 @@ def main():
     if a.load:
         snap = pickle.load(open(a.snap, 'rb'))
         mu.mem_write(0, snap['mem'])
+        if 'irqstacks' in snap:
+            mu.mem_write(IRQ_STACKS, snap['irqstacks'])
         mu.context_restore(snap['ctx'])
         st.update(snap['st'])
+        st['hist'] = hist
         gus.__dict__.update(snap['gus'])
         gus.log = glog
         gus.dma = dma_read
@@ -965,14 +1017,15 @@ def main():
     if frames is not None:
         frames.write(b'REVEFRM1' + struct.pack('<IIII', 320, 200, 64768, 24))
     ticks = open(a.out + '.ticks', 'w')
-    ticks.write('# frame time_s pit_irqs gus_irqs order row main_pc\n')
+    ticks.write('# frame time_s pit_irqs gus_irqs order row main_pc entry drawn\n')
     snap_frames = {int(x) for x in a.snap_at.split(',') if x}
 
     def save_snap(name):
         os.makedirs(a.snapdir, exist_ok=True)
         g = {k: v for k, v in gus.__dict__.items() if k not in ('log', 'dma', 'raise_irq')}
         path = os.path.join(a.snapdir, name)
-        pickle.dump({'mem': bytes(mu.mem_read(0, RAM)), 'ctx': mu.context_save(), 'st': dict(st), 'gus': g,
+        pickle.dump({'mem': bytes(mu.mem_read(0, XMS_END)), 'irqstacks': bytes(mu.mem_read(IRQ_STACKS, 0x4000)),
+                     'ctx': mu.context_save(), 'st': {k: v for k, v in st.items() if k != 'hist'}, 'gus': g,
                      'dma': dma, 'pic1': dict(pic1.__dict__), 'pic2': dict(pic2.__dict__), 'pc': pc},
                     open(path, 'wb'))
         print('snapshot %s at frame %d' % (path, st['frame']), flush=True)
@@ -1008,8 +1061,8 @@ def main():
                 if f in snap_frames:
                     save_snap('f%d.snap' % f)
                 order, row = mu.mem_read(MUS_ORDER, 1)[0], mu.mem_read(MUS_ROW, 1)[0]
-                ticks.write('%d %.5f %d %d %d %d %x\n' % (f, st['now'] / PIT_HZ, st['pit_irqs'], st['gus_irqs'],
-                                                          order, row, st['main_pc']))
+                ticks.write('%d %.5f %d %d %d %d %x %d %d\n' % (f, st['now'] / PIT_HZ, st['pit_irqs'], st['gus_irqs'],
+                                                                order, row, st['main_pc'], st['entry'], st['drawn']))
                 if frames is not None:
                     frames.write(bytes(mu.mem_read(0xa0000, 64000)) if st['mode'] == 0x13 else bytes(64000))
                     frames.write(bytes(st['dac']))
@@ -1068,7 +1121,7 @@ def main():
             print('error at %x: %s; %s cr0=%x' % (cur_pc(), e, regs(), R(UC_X86_REG_CR0)), flush=True)
             for h in hist[-a.history:]:
                 print('  %x -> %x  %04x:%08x esp=%x' % h)
-            open(a.out + '.mem', 'wb').write(bytes(mu.mem_read(0, RAM)))
+            open(a.out + '.mem', 'wb').write(bytes(mu.mem_read(0, XMS_END)))
             break
         pc = cur_pc()
         if not pic1.isr:
