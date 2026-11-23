@@ -131,12 +131,14 @@ time.
   README.md           about the original, versions, how to run
   original/           put the original files here (not in Git)
   remake/             the current remake (CMake project)
+  remake/build/       your build of it (not in Git); scripts/render-videos.sh uses it
   remake/art/         the redrawn pictures
   remake-v1/          303 only: the first version, rebuilt from a video
   re/                 reverse-engineering notes and scripts
   docs/               making-of, the original's techniques, images
 docs/                 how it was made, tools, redrawing pictures, rendering the videos
 scripts/              fetch the originals, package releases, render videos
+out/  videos/         release downloads and rendered videos, made by those scripts (not in Git)
 AGENTS.md             instructions for AI coding agents working on this repository
 ```
 
