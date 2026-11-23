@@ -86,6 +86,24 @@ PICTURES = {
                      'purple glow'),
     'boz': dict(file='GFX\\BOZ.RAW', pal=None, rect=None, key=None, margin=0.0, aspect=1.0,
                 what='a grey clown face with big eyes, red lips, a purple hat and red bows, on a dark speckled cloud'),
+    # the twirls' pictures (resampled by the rings, never recoloured: notes-parts2d-a.md)
+    'playmo': dict(file='GFX\\PLAYMO.RAW', pal=None, rect=None, key=None, margin=0.0,
+                   what='a toy figure in a blue jumpsuit lying on its back, seen from the side, with an orange '
+                        'helmet of hair, on black'),
+    'bouche': dict(file='GFX\\BOUCHE.RAW', pal=None, rect=None, key=None, margin=0.0,
+                   what='a grey metallic open mouth with white teeth and a red tongue, on a dark red stem, on black'),
+    # sprites drawn over effects, index 0 transparent: uploaded on the magenta key
+    'wiz': dict(file='GFX\\WIZ.RAW', pal=None, rect=None, key=0, margin=0.10,
+                what='a small cartoon character: a big grey speckled head with goggle eyes and two spikes, a tiny '
+                     'body in a red jacket and white trousers'),
+    'credits_antony': dict(file='GFX\\CREDITS.RAW', pal='GFX\\TEXTURE.RAW', rect=(0, 0, 231, 64), key=0,
+                           margin=0.06, what='the name ANTONY'),
+    'credits_shad': dict(file='GFX\\CREDITS.RAW', pal='GFX\\TEXTURE.RAW', rect=(0, 64, 151, 64), key=0,
+                         margin=0.06, what='the name SHAD'),
+    'credits_lca': dict(file='GFX\\CREDITS.RAW', pal='GFX\\TEXTURE.RAW', rect=(0, 128, 120, 64), key=0,
+                        margin=0.06, what='the name LCA'),
+    'credits_ajt': dict(file='GFX\\CREDITS.RAW', pal='GFX\\TEXTURE.RAW', rect=(0, 192, 130, 64), key=0,
+                        margin=0.06, what='the name AJT'),
     'pulse': dict(file='GFX\\PULSE.RAW', pal=None, rect=None, key=None, margin=0.0,
                   what='a creature\'s head with goggles and teeth on a brown background with rings, the word Pulse '
                        'in white letters below'),

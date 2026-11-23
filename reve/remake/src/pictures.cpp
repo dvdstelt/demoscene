@@ -46,6 +46,12 @@ const std::vector<PictureInfo>& pictureList() {
         {"credits_shad", 0x205d08, 0x205ceb, 0, 64, 151, 64, 0},
         {"credits_lca", 0x205d08, 0x205ceb, 0, 128, 120, 64, 0},
         {"credits_ajt", 0x205d08, 0x205ceb, 0, 192, 130, 64, 0},
+        // entry 7: GFX\WIZ.RAW (0x205d64), its own palette (= TEXTURE.RAW's), scaled, index 0 not drawn
+        {"wiz", 0x205d64, 0, 0, 0, -1, -1, 0},
+        // the twirls (entries 9, 10, 15): GFX\PLAYMO.RAW (0x205d7c) and GFX\BOUCHE.RAW (0x205df7), their own
+        // palettes, resampled by the rings
+        {"playmo", 0x205d7c, 0, 0, 0, -1, -1, -1},
+        {"bouche", 0x205df7, 0, 0, 0, -1, -1, -1},
         // the strobes (scenes/strobe.cpp): whole-screen pictures with their own palettes, shown with their negative
         {"pulse", 0x205d46, 0, 0, 0, -1, -1, -1},     // GFX\PULSE.RAW, entries 5 and 6
         {"gene", 0x205dea, 0, 0, 0, -1, -1, -1},      // GFX\GENE.RAW, entries 20 and 21
