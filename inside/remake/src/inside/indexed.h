@@ -23,4 +23,11 @@ std::array<Vec3, 256> palette(const InsideDat& dat, const std::string& file, boo
 // GLSL: vec3 palColor(sampler2D pal, uint index) and uint idxAt(usampler2D tex, ivec2 texel) (wrapping).
 extern const char* kIndexedGLSL;
 
+// How much of a change in a texel's colour a table passes on, per channel: the weighted least-squares gain of
+// y[j] ~ g * pal[j] + c over the 256 indices (weights use[j] + 1e-3 of their mean, so mostly the colours a picture
+// uses), clamped to 0..2; 1 where those colours do not vary in a channel. y is what the table makes of index j (the
+// palette colour of a shade row's entry, a fitted blend's offset). The upscales' detail is added through it
+// (pictures.h, inside/engine_gl.cpp).
+Vec3 colourGain(const std::array<Vec3, 256>& pal, const std::array<Vec3, 256>& y, const std::array<double, 256>& use);
+
 }  // namespace inside

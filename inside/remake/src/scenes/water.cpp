@@ -292,7 +292,7 @@ public:
         // 0x407dec: data, scene, materials
         pal_ = eng_.palette(inside::palette(d, x.cstr(kPalName)));
         int size = 1 << pushImm(x, kTexLog);
-        int env = eng_.texture(d.file(x.cstr(kEnvName)), size, size);
+        int env = eng_.textureFile(x.cstr(kEnvName), size, size);
         int matObuke = eng_.material({.texture = env, .table1 = eng_.table(d.file(x.cstr(kShdName)))});
         int matFish = eng_.material({.texture = env, .table1 = eng_.table(d.file(x.cstr(kIntName)))});
         scene_.width = int(movRegImm(x, kViewW));
@@ -353,6 +353,7 @@ public:
         band_[1] = float(aluImm(x, kBandBottom) / kW);
         shader_.build(kFullscreenVS, kFS, "water");
         c.picture("water");   // load it in the init
+        eng_.prepare();   // the textures, tables and upscales now, not at the first frame
     }
 
     void render(Ctx& c, double r) override {

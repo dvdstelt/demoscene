@@ -29,8 +29,9 @@
 // dual-source blend into the 16-bit normalised frame cannot write: the mask and the names are drawn here (kLevelFS),
 // not with the engine's bitmaps.
 //
-// The redraws: the names' star and letters may be redrawn (art/credits_<name>.png: grey 255 x level / 31, the face
-// area filled with the star or black). With the art on, the redraw is the level map and the original's face pixels
+// The redraws: the water mask has a 4x upscale (art/tex_wtrmask.jpg, a level map like the original), and the names'
+// star and letters may be redrawn (art/credits_<name>.png: grey 255 x level / 31, the face area filled with the star
+// or black). With the art on, the redraw is the level map and the original's face pixels
 // (the scanned photos: always the original's, filtered) are drawn over it: the pixels inside our measured face shapes
 // (tools/align_art.py FACES) that are not at the star's level.
 #include <algorithm>
@@ -349,13 +350,13 @@ public:
         scene_.add(camera_);
         scene_.camera = &camera_;
 
-        int tunTex = eng_.texture(d.file(x.cstr(kTexName)), movMemImm(x, kTunnelUMask) + 1,
+        int tunTex = eng_.textureFile(x.cstr(kTexName), movMemImm(x, kTunnelUMask) + 1,
                                   movMemImm(x, kTunnelVMask) + 1);
         int tunMat = eng_.material({.texture = tunTex, .table1 = eng_.table(d.file(x.cstr(kShdName)))});
         tunnel_.loadSro(d.file(x.cstr(kTunnelSroName)), int32_t(movRegImm(x, kTunnelScale)), tunMat);
         tunnel_.setRaster(sr::rasterAt(movRegImm(x, kTunnelRaster)));
         scene_.add(tunnel_);
-        int ballTex = eng_.texture(d.file(x.cstr(kBallTexName)), movMemImm(x, kBallUMask) + 1,
+        int ballTex = eng_.textureFile(x.cstr(kBallTexName), movMemImm(x, kBallUMask) + 1,
                                    movMemImm(x, kBallVMask) + 1);
         int ballMat = eng_.material({.texture = ballTex});
         ball_.loadSro(d.file(x.cstr(kBallSroName)), int32_t(movRegImm(x, kBallScale)), ballMat);
@@ -387,6 +388,7 @@ public:
         nameTable_ = eng_.table(d.file(x.cstr(kNameIntName)));
         loadLevels(mask_, d.file(x.cstr(kMaskName)), int(movRegImm(x, kMaskW)), int(movRegImm(x, kMaskH)),
                    movMemImm(x, kMaskType), maskTable, nullptr);
+        if (c.art()) loadArt(mask_, c.pictures->detail(detailName(x.cstr(kMaskName))));   // the mask's upscale
         for (size_t i = 0; i < names_.size(); i++) {
             const NameSpec& s = kNames[i];
             loadLevels(names_[i], d.file(x.cstr(s.file)), int(movRegImm(x, s.w)), int(movRegImm(x, s.h)),
@@ -395,6 +397,7 @@ public:
         }
         buildFits(maskTable);
         levelShader_.build(kLevelVS, kLevelFS, "credits level maps");
+        eng_.prepare();   // the textures, tables and upscales now, not at the first frame
     }
 
     void render(Ctx& c, double r) override {
@@ -512,6 +515,15 @@ private:
                 lv[o] = v;
             }
         m.levels = inside::uploadIndices(lv, w, h);
+    }
+
+    // The mask's upscale (art/tex_wtrmask.jpg, pictures.h: grey 255 x level / 31, 4 x the bitmap's size): drawn as the
+    // names' redraws are, its continuous level through the table's rows.
+    static void loadArt(LevelMap& m, const Image* im) {
+        if (!im || im->w != 4 * m.w || im->h != 4 * m.h) return;
+        std::vector<uint8_t> g(size_t(im->w) * size_t(im->h));
+        for (size_t i = 0; i < g.size(); i++) g[i] = im->rgba[i * 4];
+        m.art.createRaw(im->w, im->h, GL_R8, GL_RED, GL_UNSIGNED_BYTE, g.data(), true, false, true);
     }
 
     // A redraw of a name's star and letters (grey 255 x level / 31, at its own resolution over the bitmap's area).

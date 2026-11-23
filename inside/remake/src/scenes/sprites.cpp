@@ -20,6 +20,10 @@
 // are high-resolution redraws (art/spriteK.png) where they exist, at the original's position and size; with
 // --original-art the original pixels, filtered, index 0 transparent.
 //
+// With the art on, the warp reads the swirl texture's upscale (art/tex_<name>.jpg, pictures.h) in place of its
+// palette colours (the .shd is a 50 % blend of the two reads), and the room's walls get the upscale's detail in the
+// engine (inside/engine.h, Renderer::textureFile).
+//
 // With INSIDE_ENGINE=original (Fidelity::exact) the warp goes through the engine's 0x4172e0 on the 8 x 8 grid with
 // the original's truncated words and float32 phase sums, for pixel checks at 320 x 200.
 //
@@ -502,6 +506,8 @@ in vec2 uv;
 out vec4 o;
 uniform usampler2D tex;   // the swirl texture, 256 x 256 indices
 uniform sampler2D pal;
+uniform sampler2D det;    // its upscale (useDet: read instead of the palette's colours), repeating, mipmapped
+uniform int useDet;
 uniform vec2 res;         // output size in pixels
 uniform mat3 toObj;       // camera-space directions -> the grid's object space
 uniform vec3 camO;        // the camera in the grid's object space
@@ -535,8 +541,10 @@ void main() {
     float col2 = wordStep * ij.y + amp.z * s.x + amp.y * c.y + amp.x * s.z;   // +0x2c
     float row2 = wordStep * ij.x + amp.z * c.x + amp.y * c.y + amp.x * s.z;   // +0x2e
     // 0x4172e0: shd[tex[row2][col2]][tex[v1][u1]] with the rasterizers' +1 bias; the .shd is a 50 % blend
-    vec3 c1 = bilinear((vec2(u1, v1) + 1.0) / 16.0);
-    vec3 c2 = bilinear((vec2(col2, row2) + 1.0) / 16.0);
+    vec2 t1 = (vec2(u1, v1) + 1.0) / 16.0, t2 = (vec2(col2, row2) + 1.0) / 16.0;
+    vec3 h1 = texture(det, t1 / 256.0).rgb, h2 = texture(det, t2 / 256.0).rgb;   // outside the branch: derivatives
+    vec3 c1 = useDet != 0 ? h1 : bilinear(t1);
+    vec3 c2 = useDet != 0 ? h2 : bilinear(t2);
     o = vec4(0.5 * (c1 + c2), 1.0);
 }
 )";
@@ -570,6 +578,7 @@ public:
         // the image's warp parameters (0x404680 writes the second set)
         for (int k = 0; k < 15; k++) warp0_[k] = x.f32(kWarpVars + 4u * uint32_t(k));
         shader_.build(kFullscreenVS, std::string(inside::kIndexedGLSL) + kWarpFS, "sprites warp");
+        eng_.prepare();   // the textures, tables and upscales now, not at the first frame
     }
 
     void render(Ctx& c, double r) override {
@@ -594,6 +603,7 @@ private:
         std::string art;   // the photo's name in the picture list (pictures.cpp): its file name, spriteN
         float x = 0, y = 0;
         Texture idx, palTex;   // the warp shader's copies
+        Texture det;           // the warp's upscale of the texture (art/tex_<name>.jpg; id 0: none)
     };
 
     void initScene(Ctx& c, const Trace& s) {
@@ -664,8 +674,9 @@ private:
         bool black0 = t.value({palSlot, 0}) && t.value({palSlot, 1}) && t.value({palSlot, 2});
         auto colours = inside::palette(d, t.file(x, palSlot), black0);
         p.pal = eng_.palette(colours);
-        auto raw = d.file(t.file(x, kTexSlots + 4 * ku));
-        p.tex = eng_.texture(raw, 256, 256);
+        std::string texFile = t.file(x, kTexSlots + 4 * ku);
+        auto raw = d.file(texFile);
+        p.tex = eng_.textureFile(texFile, 256, 256);
         p.table = eng_.table(d.file(t.file(x, kTabSlots + 4 * ku)));
         // the photo: 0x415e50(pixels, pitch, width, height), type 3 (index 0 transparent)
         const Call* m = t.call(kMakeBitmap);
@@ -688,6 +699,8 @@ private:
         if (k <= 2) {
             p.idx = inside::uploadIndices(raw, 256, 256);
             p.palTex = inside::uploadPalette(colours);
+            const Image* up = c.art() ? c.pictures->detail(detailName(texFile)) : nullptr;
+            if (up && up->w == 4 * 256 && up->h == 4 * 256) p.det.create(*up, true, true);
         }
     }
 
@@ -787,8 +800,12 @@ private:
         gl::BindTexture(GL_TEXTURE_2D, p.idx.id);
         gl::ActiveTexture(GL_TEXTURE1);
         gl::BindTexture(GL_TEXTURE_2D, p.palTex.id);
+        gl::ActiveTexture(GL_TEXTURE2);
+        gl::BindTexture(GL_TEXTURE_2D, p.det.id);
         shader_.set("tex", 0);
         shader_.set("pal", 1);
+        shader_.set("det", 2);
+        shader_.set("useDet", p.det.id ? 1 : 0);
         shader_.set("res", float(c.w), float(c.h));
         gl::UniformMatrix3fv(shader_.loc("toObj"), 1, GL_TRUE, m);
         shader_.set("camO", float(camO.x), float(camO.y), float(camO.z));

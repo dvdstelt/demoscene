@@ -33,6 +33,13 @@ struct PictureInfo {
 const std::vector<PictureInfo>& pictureList();
 const PictureInfo* findPicture(const std::string& name);
 
+// The textures, level maps and pictures that the parts read by palette index and that have an upscale in
+// art/tex_<name>.jpg (tools/upscale_art.py, art/README.md): exactly 4 x the original's size. The parts keep reading
+// the original's indices through its tables and add the upscale's detail (inside/engine_gl.cpp). The name is the
+// INSIDE.DAT file's base name ("tunnel" for credits/tunnel.raw; detailName gives it).
+const std::vector<std::string>& detailList();
+std::string detailName(const std::string& datFile);
+
 // The original's picture as RGBA8 with premultiplied alpha.
 Image originalPicture(const InsideExe& exe, const InsideDat& dat, const PictureInfo& p);
 // A 768-byte 6-bit palette from INSIDE.DAT as 256 RGB floats 0..1 (v / 63; values above 63 are clamped, as 0x400364).
@@ -55,6 +62,9 @@ public:
     // The picture as a texture: the redraw when art is on and one exists, else the original's pixels. Cached; the
     // reference stays valid until release(). Needs the GL context. Unknown names give an empty picture (logged).
     const Picture& get(const std::string& name);
+    // The upscale of a texture of detailList() (RGBA8, not premultiplied), decoded on a worker thread at init:
+    // nullptr when art is off or there is none. Cached; valid until release().
+    const Image* detail(const std::string& name);
     void release();
 
 private:
@@ -63,4 +73,5 @@ private:
     std::string artDir_;
     bool useArt_ = true;
     std::map<std::string, std::unique_ptr<Picture>> cache_;
+    std::map<std::string, std::unique_ptr<Image>> details_;
 };

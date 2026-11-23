@@ -202,7 +202,7 @@ public:
         eng_.init(c);
         // 0x404464: data, scene, materials 1 (temple.raw, temple.int) and 2 (temple.raw, flare.shd from row 32)
         pal_ = eng_.palette(inside::palette(d, x.cstr(kPalName)));
-        int raw = eng_.texture(d.file(x.cstr(kRawName)), 256, 256);
+        int raw = eng_.textureFile(x.cstr(kRawName), 256, 256);
         std::span<const uint8_t> shd = d.file(x.cstr(kShdName));
         int intTable = eng_.table(d.file(x.cstr(kIntName)));
         int shdTable = eng_.table(shd);
@@ -308,6 +308,7 @@ public:
         camC1_ = x.f64(kCamC1);
         camC2_ = x.f64(kCamC2);
         camC3_ = x.f64(kCamC3);
+        eng_.prepare();   // the textures, tables and upscales now, not at the first frame
     }
 
     void render(Ctx& c, double r) override {

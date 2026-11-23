@@ -4,7 +4,8 @@ High-resolution redraws of the pictures of *Inside* (CNCD, The Gathering 1996) t
 graphics are Destop's (additional graphics Santtu); Hybrid's page about the demo credits the photography to Michael
 Schwartz. The remake shows these redraws by default; `--original-art` shows the original pixels, which it reads from
 `INSIDE.DAT`. The four photos of people in the sprites parts are redrawn too, at my request (see "The photos"
-below); the faces in the credits keep their original pixels.
+below); the faces in the credits keep their original pixels. The textures, two level maps and the intro's photo
+collage have 4× upscales instead of redraws (see "The upscaled textures").
 
 These are fan redraws made for this non-commercial tribute and under the same non-commercial terms as the rest of
 the repository (see [NOTICE.md](../../../NOTICE.md)). They are not CNCD's work and not endorsed by them.
@@ -73,11 +74,48 @@ where they are, with the blue beyond them, and do not complete the body. Only th
 no pixels, no colour bands. Do not add, remove or move anything, do not crop or zoom. Keep the flat pure blue
 background around the cut-out. An image of the same shape as the upload, as large as you can make it."
 
+## The upscaled textures
+
+The textures, the level maps the parts add through tables, and the intro's photo collage are not drawn as they are:
+the parts read them by palette index through shade, fog and blend tables, map them on 3D objects, wrap and mirror
+them, and the twirl and the environment maps depend on their exact layout. A redraw would move their pixels. They
+are upscaled 4× instead, with Real-ESRGAN's `realesr-general-x4v3` model (BSD-3-Clause,
+<https://github.com/xinntao/Real-ESRGAN>), which keeps every pixel where it is: `tools/upscale_art.py` decodes each
+one in the palette the demo shows it with, pads it with its own wrapped or mirrored edges, upscales it on the CPU and
+writes `tex_<name>.jpg` (level maps as grey, 255 × level / the highest level). Made on 23 November 2026. Of the
+three models tried, this one stayed closest to the originals: `RealESRGAN_x4plus` came out smoother, and
+`RealESRGAN_x4plus_anime_6B` drew hard outlines around the water mask's bubbles.
+
+The remake still computes every colour from the original's indices and tables and adds only the upscale's detail:
+colour + g × (upscale − the original's texels through the palette), where g is how much of a change in a texel's
+colour the tables pass on (1 for a plain texture, the gain of the shade or fog row, or of the fitted blend). Where
+the upscale equals the original, the colour is the original's. Level maps are read at the upscale's continuous
+level. `--original-art` turns them off.
+
+| file | the original | where it shows | how the remake uses it |
+|---|---|---|---|
+| `tex_wtrmask.jpg` | `credits/wtrmask.raw`, 320 × 200, levels 0..31 | the vignette of bubbles and fur-like strokes over the credits | its level through `wtrmask.int`'s fitted rows |
+| `tex_tunnel.jpg` | `credits/tunnel.raw`, 256 × 1024 | the credits' tunnel | detail through `tunnel.shd`'s gain |
+| `tex_piikkis.jpg` | `credits/piikkis.raw`, 256 × 256 | the spiked ball's environment map | detail, plain |
+| `tex_twlogo.jpg` | `logo/twlogo.raw`, 256 × 256 | the turning 3D logo | detail through `logo.shd`'s gain |
+| `tex_inmask.jpg` | `logo/inmask.raw`, 253 × 147, levels 0..15 | the lettering's dark mask over the logo | its level through `inmask.shd`'s fitted rows |
+| `tex_nigga1.jpg`, `tex_nigga2.jpg` | `nigga/nigga1.raw`, `nigga2.raw`, 256 × 256 | the warp behind the photos, the twirl | read in place of the palette's colours (the warp's table is a 50 % blend) |
+| `tex_nigga4.jpg`, `tex_nigga9.jpg` | `nigga/nigga4.raw`, `nigga9.raw`, 256 × 256 (nigga9 with the two elephants) | the turning room's walls, the twirl | detail through the `.qnt` light tables' gain |
+| `tex_jeesus1.jpg`, `tex_jeesus2.jpg` | `flower/jeesus1.raw`, `jeesus2.raw`, 256 × 256 | the flower and its tube, the twirl | detail through `jeesus.shd`'s gain; in the twirl, read as it is |
+| `tex_temple.jpg` | `temple/temple.raw`, 256 × 256 | the temple's chrome bowl, pillars and hall | detail through the blend tables' gain |
+| `tex_waterenv.jpg` | `water/waterenv.raw`, 256 × 256 | the water part's chrome objects and glass fish | detail through the tables' gain |
+| `tex_intro.jpg` | `intro/intro.raw`, 320 × 200 | the photo collage the intro's light reveals | detail through `intro.shd`'s gain at the light's level |
+
+The upscaler sharpens what the pixels hold and does not invent much: the painted swirls get clean edges between
+their colour bands instead of pixel steps, and the strokes of the water mask come out as strokes. The small print on
+the intro's glue tube stays unreadable, as it is in the original.
+
 ## Kept as the original
 
 | picture | why |
 |---|---|
 | the faces in the credits' names | photos of real people in drawn pictures: only the drawn star and name are redrawn |
-| the intro's picture (`intro/intro.raw`) | a photo collage with a nude, so it was not sent to ChatGPT; it waits for an open model (Comfy Cloud's free runs are used up) |
+| the intro's picture (`intro/intro.raw`) | not redrawn: a photo collage with a nude, so it was not sent to ChatGPT. It has an upscale instead (above) |
 | the water part's background (`water/water.raw`, 320 × 200) | a blurred, blue-tinted photo of an interior (no people), drawn as it is and shifted by the ripple. Two ChatGPT attempts on 23 November 2026, from the nearest-neighbour upload with a prompt that asked for the same picture with the same soft blur, without the pixels and the 143-colour bands: the first fitted well (RMS 7.1, detail correlation 0.930) but came out softer than the original, the second (asked to keep every edge as defined as the original's) fitted worse (RMS 8.2, 0.909); both darkened the left side. Neither is faithful enough, and the original pixels read filtered already look as soft as the photo is |
-| the textures (the tunnel, flower, twirl, flight, water, temple and sprites textures, the sun and the lens flares) | read by the effects through texture mapping, shade, fog and blend tables, or warped (the twirl): not drawn as they are, so the remake reads them filtered from the original |
+| the flight's landscape and river photos (`flight/map.raw`, `river.raw`) | upscaled they look painted rather than photographed, which is further from the original than its own filtered pixels |
+| the sun, the lens flares and the temple's flare (`flight/sun.raw`, `lens1..5.raw`, `temple/flare.raw`), the smoke puff (`credits/sauhu.raw`), the shadows of the photo room (`nigga/shadow4.raw`, `shadow9.raw`) | soft glows and blurred masks, or index maps of a table's rows; filtered reads of the original already show them as they are |

@@ -99,8 +99,17 @@ The photos of people in the sprites parts were first kept as they are. When I wa
 the only low-resolution pictures left, so I asked for them to be redrawn as well. They went up on a flat blue key in
 one conversation, and each came back right at the first attempt; the fits are not colour matched, because matching
 to the original's 256 colours made the white clothes blotchy. The faces, hair and prints in them are ChatGPT's
-reading of a few pixels each. The intro's photo collage has a nude in it, so it was not sent to ChatGPT; it keeps
-its original pixels until it can go through an open model.
+reading of a few pixels each. The intro's photo collage has a nude in it, so it was not sent to ChatGPT.
+
+The textures were still the original's 256 × 256 pixels, read through the demo's tables: at 2560 × 1920 a texel
+of the swirl behind the photos is about eight pixels wide. I pointed at the credits' water mask, which lies over the whole
+screen, and asked for the textures too. A redraw would move their pixels, and the parts depend on every pixel's
+place (they wrap, mirror and warp the textures and read them as environment maps), so they were upscaled 4× with
+Real-ESRGAN on the CPU, which keeps the layout. Of three models, `realesr-general-x4v3` stayed closest to the
+originals. The parts keep computing every colour from the original's indices and tables, and add the upscale's
+detail through how much of a change the tables pass on. The swirls then show clean edges between their colour
+bands instead of steps. The intro's collage got the same treatment, which sharpens it without redrawing anyone. The
+flight's two photos stay as they are: upscaled, they looked painted.
 
 [`remake/art/README.md`](../remake/art/README.md) has the prompts, the attempts and the fits. ChatGPT refused
 nothing it was given. `--original-art` shows the original pixels.

@@ -43,6 +43,24 @@ const std::vector<PictureInfo>& pictureList() {
     return list;
 }
 
+const std::vector<std::string>& detailList() {
+    static const std::vector<std::string> list = {
+        "wtrmask", "tunnel", "piikkis",                // credits: the water mask (levels), the tunnel, the ball
+        "twlogo", "inmask",                            // logo: the 3D logo's texture, the lettering's mask
+        "nigga1", "nigga2", "nigga4", "nigga9",        // sprites (warp, room) and twirl: the backgrounds
+        "jeesus1", "jeesus2",                          // flower and twirl: the environment map, the tube
+        "temple", "waterenv",                          // temple, water: the chrome spheres
+        "intro",                                       // intro: the photo collage
+    };
+    return list;
+}
+
+std::string detailName(const std::string& datFile) {
+    size_t a = datFile.find_last_of("/\\");
+    std::string base = a == std::string::npos ? datFile : datFile.substr(a + 1);
+    return base.substr(0, base.rfind('.'));
+}
+
 const PictureInfo* findPicture(const std::string& name) {
     for (const PictureInfo& p : pictureList())
         if (name == p.name) return &p;
@@ -123,6 +141,33 @@ void PictureStore::init(const InsideExe* exe, const InsideDat* dat, std::string 
         std::string path = redrawPath(p.name);
         if (!path.empty()) g_pending[p.name] = std::async(std::launch::async, decode, path).share();
     }
+    for (const std::string& n : detailList()) {
+        std::string path = redrawPath("tex_" + n);
+        if (!path.empty()) g_pending["tex_" + n] = std::async(std::launch::async, decode, path).share();
+    }
+}
+
+const Image* PictureStore::detail(const std::string& name) {
+    if (!useArt_) return nullptr;
+    auto it = details_.find(name);
+    if (it != details_.end()) return it->second.get();
+    std::string key = "tex_" + name;
+    std::shared_future<Decoded> fut;
+    {
+        std::lock_guard<std::mutex> g(g_pendingLock);
+        auto p = g_pending.find(key);
+        if (p != g_pending.end()) {
+            fut = p->second;
+            g_pending.erase(p);
+        }
+    }
+    std::unique_ptr<Image> im;
+    if (fut.valid()) {
+        const Decoded& d = fut.get();
+        if (d.im.w > 0) im = std::make_unique<Image>(d.im);
+        else SDL_Log("picture: cannot read the upscale %s (%s)", key.c_str(), d.err.c_str());
+    }
+    return details_.emplace(name, std::move(im)).first->second.get();
 }
 
 std::string PictureStore::redrawPath(const std::string& name) const {
@@ -172,6 +217,7 @@ const Picture& PictureStore::get(const std::string& name) {
 void PictureStore::release() {
     for (auto& [n, p] : cache_) p->tex.destroy();
     cache_.clear();
+    details_.clear();
     std::lock_guard<std::mutex> g(g_pendingLock);
     g_pending.clear();
 }

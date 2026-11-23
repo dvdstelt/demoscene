@@ -80,7 +80,8 @@ built from source). Only the MinGW build has been tried.
 
 - `src/main.cpp` options, playback loop, shots / video / bench; `src/demo.*` the framework (parts, the clock in
   screen refreshes, the script, render targets); `src/timeline.cpp` the running order; `src/player.*` audio output
-- `src/exe.*`, `src/unpack.cpp` reading `INSIDE.EXE` and `INSIDE.DAT`; `src/pictures.*` the pictures and the redraws
+- `src/exe.*`, `src/unpack.cpp` reading `INSIDE.EXE` and `INSIDE.DAT`; `src/pictures.*` the pictures, the redraws
+  and the upscales
 - `src/music.*` the soundtrack and the clock; `src/amp.*` DSMI's player; `src/gusdrv.*` DSMI's GUS driver;
   `src/gf1.*` the GF1 model. The soundtrack is rendered at load time (under 0.1 s)
 - `src/inside/` the core library: `fade.*` (the palette fades and flashes as the script runs them), `indexed.*`
@@ -89,7 +90,8 @@ built from source). Only the MinGW build has been tried.
 - `src/scenes/` one port per part: `intro`, `logo`, `credits`, `sprites`, `flower` (with `lws.h`, the LightWave scene
   reader), `flight`, `water`, `twirl`, `temple`
 - `art/` the redrawn pictures and how they were made (`art/README.md`); `tools/align_art.py` makes the picture to
-  upload, fits a redraw onto the original and writes the comparison sheet
+  upload, fits a redraw onto the original and writes the comparison sheet; `tools/upscale_art.py` writes the textures'
+  upscales
 - `tools/compare.py` puts remake frames next to the original's capture; `tools/test_music.cpp` checks the GUS
   register stream, the GUS memory and the music positions against the capture; `tools/engine_check.py` and
   `tools/blend_fit.py` check the engine and its fitted blends; `tools/intro_frames.py` measures the intro's frame
@@ -126,8 +128,9 @@ refreshes.
 - **Randomness.** Watcom's `rand()` is replayed from the original's seeds, so the flight path of the credits, the
   flares of the temple and the light levels of the flower tube are the original's.
 - **Pictures.** The title, the five names in the credits and the four photos of people in the sprites parts are
-  shown as faithful high-resolution redraws by default (see below); `--original-art` shows the original pixels,
-  filtered. The faces in the credits keep their original pixels.
+  shown as faithful high-resolution redraws by default, and the textures, two level maps and the intro's photo get
+  the detail of 4× upscales (see below); `--original-art` shows the original pixels, filtered. The faces in the
+  credits keep their original pixels.
 
 Known differences:
 
@@ -176,14 +179,20 @@ and the five name pictures of the credits (`credits/kredu*.raw`). It also draws 
 in the sprites parts (`nigga/sprite*.raw`). They are AI redraws made with ChatGPT's image generation from the
 original pixels and fitted onto them ([`art/README.md`](art/README.md) has the prompts, the attempts and the fit):
 
-- `art/logo_inside.png` is the title, drawn where the original draws it, with the logo part's dark mask
-  (`logo/inmask.raw`) still the original's.
+- `art/logo_inside.png` is the title, drawn where the original draws it, over the logo part's dark mask.
 - `art/credits_*.png` are the names. Each is a level map that the credits add to the tunnel through a shade table: a
   flat star, the name, and a scanned face of the group member. The redraws hold the star and the letters; the remake
   draws the original's face pixels on top of them.
 - `art/sprite*.png` are the photos, redrawn as photos at my request, with transparent backgrounds, drawn unscaled
   where the original draws them. Their faces, hair and prints are the generator's reading of a few pixels each.
 
-The water background was tried as well and keeps its original pixels, and so does the intro's photo collage for
-now (`art/README.md` says why). The textures stay
-the original's: they are read through shade, fog and blend tables or warped by the effects.
+The water background was tried as well and keeps its original pixels (`art/README.md` says why).
+
+The textures, the credits' water mask, the logo's dark mask and the intro's photo collage are not drawn as they are:
+they are read through shade, fog and blend tables, mapped on objects, wrapped and warped. They have 4× upscales
+instead (`art/tex_*.jpg`, made with Real-ESRGAN by `tools/upscale_art.py`), which keep every pixel where it is. The
+parts still compute each colour from the original's indices and tables and add the upscale's detail, scaled by how
+much of a change in the texel's colour the tables pass on (`src/inside/engine_gl.cpp` for the 3D parts; the intro,
+the twirl and the sprites' warp do the same in their own shaders); the two masks are read at the upscale's
+continuous level. The flight's landscape and river photos, the sun, the flares, the smoke and the shadows keep
+their original pixels: upscaled, the photos look painted, and the rest is soft already.

@@ -10,6 +10,15 @@
 // shader; each table row is fitted per colour channel as out = b * background + s over the palette's 256 colours
 // (least squares), and the fragment writes s and b for dual-source blending (out = s + b * dst). The fits are also
 // what the filtered taps and levels blend.
+//
+// Textures with an upscale (Renderer::textureFile, art/tex_<name>.jpg): the colour is still computed from the
+// original's indices through the tables, and the upscale's detail is added to it: out = S + g * (H - L), where H is
+// the upscale (mipmapped, sampled at the same texture coordinates), L the original's texels through the palette with
+// the same four taps, and g how much of a change in the texel's colour the tables pass on: 1 for a plain texture,
+// the least-squares gain of the shade (and fog) table row per channel, the gain of the fitted blend's s over the
+// texel colour for the blend tables (weighted by how often the renderer's textures use each index). Where the
+// upscale equals the original, out is the original's colour; the detail of a darkened or blended texel is darkened or
+// blended as the tables do it. The environment rasterizer (0x4172e0) and the billboards get no detail.
 #include <SDL3/SDL.h>
 
 #include <algorithm>
@@ -18,6 +27,8 @@
 #include <cstring>
 
 #include "demo.h"
+#include "exe.h"
+#include "pictures.h"
 #include "inside/engine.h"
 #include "inside/engine_impl.h"
 #include "inside/indexed.h"
@@ -57,14 +68,17 @@ void main() {
 // Shared by the scene and the bitmap shaders: palette, tables, fits, taps, table rows.
 const char* kCommonFS = R"(
 uniform sampler2D pal;      // 256 x 1 colours
-uniform sampler2D fits;     // 256 x 2n: row 2t = b, row 2t + 1 = s of table t, column = the table's row
+uniform sampler2D fits;     // 256 x 4n: rows 4t .. 4t + 3 of table t: b, s, the row's gain over the texel colour,
+                            // the gain of s over the row's texel colour (all columns); column = the table's row
 uniform int filt;           // 0: the nearest texel and floor(level) (the original), 1: four taps, continuous level
 layout(location = 0, index = 0) out vec4 oS;
 layout(location = 0, index = 1) out vec4 oB;
 
 vec3 P(uint i) { return texelFetch(pal, ivec2(int(i), 0), 0).rgb; }
-vec3 FB(int t, int row) { return texelFetch(fits, ivec2(row, 2 * t), 0).rgb; }
-vec3 FS(int t, int row) { return texelFetch(fits, ivec2(row, 2 * t + 1), 0).rgb; }
+vec3 FB(int t, int row) { return texelFetch(fits, ivec2(row, 4 * t), 0).rgb; }
+vec3 FS(int t, int row) { return texelFetch(fits, ivec2(row, 4 * t + 1), 0).rgb; }
+vec3 FG(int t, int row) { return texelFetch(fits, ivec2(row, 4 * t + 2), 0).rgb; }
+vec3 FGS(int t) { return texelFetch(fits, ivec2(0, 4 * t + 3), 0).rgb; }
 
 // The table rows around a level (the rasterizers' row is floor(level); the remake blends the rows whose centres
 // are around it).
@@ -112,6 +126,8 @@ flat in ivec4 vA;              // raster, texture, second texture, table 1
 flat in ivec4 vB;              // table 2, rows of table 1, rows of table 2, log2 size (w | h << 4)
 uniform usampler2DArray texs;
 uniform usampler2DArray tabs;
+uniform sampler2DArray dets;   // the upscales, each repeated over its layer
+uniform vec4 dInfo[32];        // per texture: the upscale's layer (-1: none), the texture's share of the layer (x, y)
 
 uint TB(int t, int row, uint col) { return texelFetch(tabs, ivec3(int(col), row, t), 0).r; }
 uint TX(int layer, ivec2 c) { return texelFetch(texs, ivec3(c, layer), 0).r; }
@@ -120,6 +136,11 @@ void main() {
     int raster = vA.x, tex = vA.y, tex2 = vA.z, t1 = vA.w, t2 = vB.x;
     ivec2 mask = ivec2((1 << (vB.w & 15)) - 1, (1 << (vB.w >> 4)) - 1);
     vec3 S = vec3(0.0), B = vec3(0.0);
+    // the upscale's coordinates and their derivatives, outside the branches
+    vec4 di = (tex >= 0 && tex < 32 && raster <= 3) ? dInfo[tex] : vec4(-1.0);
+    vec2 dc = vUV.xy / vec2(mask + 1) * di.yz;
+    vec2 dgx = dFdx(dc), dgy = dFdy(dc);
+    vec3 L = vec3(0.0);
     int a0, a1, b0, b1;
     float af, bf;
     rowsOf(vLev.x, vB.y, a0, a1, af);
@@ -158,6 +179,15 @@ void main() {
             }
             S += w[k] * s;
             B += w[k] * b;
+            L += w[k] * P(i);
+        }
+        if (filt == 1 && di.x >= 0.0) {
+            vec3 g;
+            if (raster == 0) g = vec3(1.0);
+            else if (raster == 1) g = mix(FG(t1, a0), FG(t1, a1), af);
+            else if (raster == 2) g = mix(FG(t1, a0), FG(t1, a1), af) * mix(FG(t2, b0), FG(t2, b1), bf);
+            else g = FGS(t1);
+            S += g * (textureGrad(dets, vec3(dc, di.x), dgx, dgy).rgb - L);
         }
     }
     oS = vec4(S, 1.0);
@@ -189,6 +219,9 @@ uniform int key;
 uniform int exactBg;
 uniform sampler2D bg;
 uniform usampler2DArray tabs;
+uniform sampler2D lev;      // the level map's upscale (useLev): grey = level / levMax
+uniform int useLev;
+uniform float levMax;
 uint bgIndex() {
     vec3 c = texelFetch(bg, ivec2(gl_FragCoord.xy), 0).rgb;
     uint best = 0u;
@@ -200,8 +233,25 @@ uint bgIndex() {
     }
     return best;
 }
+// the upscale's table row r: the fit, or the background as it is for the key
+void levRow(int r, out vec3 s, out vec3 b) {
+    if (type >= 3 && r == key) { s = vec3(0.0); b = vec3(1.0); }
+    else { s = FS(table, r); b = FB(table, r); }
+}
 void main() {
     ivec2 sz = textureSize(bmp, 0);
+    float g = texture(lev, vP / vec2(sz)).r;   // outside the branches: the mipmap needs the derivatives
+    if (useLev != 0) {
+        bool inside = all(greaterThanEqual(vP, vec2(0.0))) && all(lessThan(vP, vec2(sz)));
+        float L = inside ? clamp(g * levMax, 0.0, levMax) : float(key);
+        int r0 = min(int(L), int(levMax) - 1);
+        vec3 s0, b0, s1, b1;
+        levRow(r0, s0, b0);
+        levRow(r0 + 1, s1, b1);
+        oS = vec4(mix(s0, s1, L - float(r0)), 1.0);
+        oB = vec4(mix(b0, b1, L - float(r0)), 1.0);
+        return;
+    }
     if (exactBg != 0) {
         ivec2 t = ivec2(floor(vP));
         uint i = texelFetch(bmp, clamp(t, ivec2(0), sz - 1), 0).r;
@@ -344,6 +394,7 @@ struct Renderer::Impl {
     std::vector<Texture> palTex;
     std::vector<Material> mats;
     std::vector<Texture> bitmaps;
+    std::vector<std::pair<Texture, int>> bitmapLevels;   // per bitmap: a level map's upscale (id 0: none), its levels
     struct FitSet {
         size_t tables = 0;
         std::vector<std::vector<RowFit>> rows;
@@ -353,12 +404,19 @@ struct Renderer::Impl {
     GLuint texArray = 0, tabArray = 0;
     size_t texLayers = 0, tabLayers = 0;
     std::vector<GpuVertex> verts;
+    std::vector<const Image*> texDetail;   // per texture: its upscale (owned by the picture store) or nullptr
+    std::vector<float> detInfo;            // 32 x (layer, share x, share y, 0), the shader's dInfo
+    GLuint detArray = 0;
+    size_t detTextures = 0;                // textures when the upscales were uploaded
+    bool anyDetail = false;
 
     ~Impl() {
+        if (detArray) gl::DeleteTextures(1, &detArray);
         if (texArray) gl::DeleteTextures(1, &texArray);
         if (tabArray) gl::DeleteTextures(1, &tabArray);
         for (Texture& t : palTex) t.destroy();
         for (Texture& t : bitmaps) t.destroy();
+        for (auto& [t, n] : bitmapLevels) t.destroy();
         for (FitSet& f : fits) f.tex.destroy();
     }
 
@@ -397,25 +455,83 @@ struct Renderer::Impl {
             uploadArray(tabArray, 256, 256, tabData, sz);
             tabLayers = tabData.size();
         }
+        if (detTextures != texDetail.size() || detInfo.empty()) uploadDetails();
+    }
+
+    // The upscales as one RGBA8 array, mipmapped and repeating; each layer holds its upscale repeated (the sizes are
+    // powers of two), so that it wraps and its mipmaps tile as the texture does.
+    void uploadDetails() {
+        detTextures = texDetail.size();
+        detInfo.assign(32 * 4, 0.0f);
+        for (size_t t = 0; t < 32; t++) detInfo[t * 4] = -1.0f;
+        int W = 0, H = 0, n = 0;
+        for (const Image* im : texDetail)
+            if (im) { W = std::max(W, im->w); H = std::max(H, im->h); n++; }
+        anyDetail = n > 0;
+        if (!anyDetail) return;
+        if (!detArray) gl::GenTextures(1, &detArray);
+        gl::BindTexture(GL_TEXTURE_2D_ARRAY, detArray);
+        gl::PixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, W, H, n, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        std::vector<uint8_t> layer(size_t(W) * size_t(H) * 4);
+        int l = 0;
+        for (size_t t = 0; t < texDetail.size(); t++) {
+            const Image* im = texDetail[t];
+            if (!im) continue;
+            for (int y = 0; y < H; y++) {
+                const uint8_t* src = &im->rgba[size_t(y % im->h) * size_t(im->w) * 4];
+                for (int x0 = 0; x0 < W; x0 += im->w)
+                    std::memcpy(&layer[(size_t(y) * size_t(W) + size_t(x0)) * 4], src,
+                                size_t(std::min(im->w, W - x0)) * 4);
+            }
+            gl::TexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, l, W, H, 1, GL_RGBA, GL_UNSIGNED_BYTE, layer.data());
+            if (t < 32) {
+                detInfo[t * 4 + 0] = float(l);
+                detInfo[t * 4 + 1] = float(im->w) / float(W);
+                detInfo[t * 4 + 2] = float(im->h) / float(H);
+            }
+            l++;
+        }
+        gl::GenerateMipmap(GL_TEXTURE_2D_ARRAY);
+        gl::TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        gl::TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        gl::TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        gl::TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        gl::BindTexture(GL_TEXTURE_2D_ARRAY, 0);
     }
 
     FitSet& fitSet(int palette) {
         FitSet& f = fits[size_t(palette)];
         if (f.tables == tabData.size() && f.tex.id) return f;
         f.rows.resize(tabData.size());
-        std::vector<float> px(size_t(256) * 4 * 2 * std::max<size_t>(1, tabData.size()), 0.0f);
+        const std::array<Vec3, 256>& pal = pals[size_t(palette)];
+        // how often the textures use each index: the weights of the gains
+        std::array<double, 256> use{};
+        for (const auto& t : texData)
+            for (uint8_t i : t) use[i] += 1.0;
+        std::vector<float> px(size_t(256) * 4 * 4 * std::max<size_t>(1, tabData.size()), 0.0f);
+        auto put = [&](size_t row, int col, const Vec3& v) {
+            float* q = &px[(row * 256 + size_t(col)) * 4];
+            q[0] = v.x; q[1] = v.y; q[2] = v.z; q[3] = 1;
+        };
         for (size_t t = 0; t < tabData.size(); t++) {
-            if (f.rows[t].empty()) f.rows[t] = fitRows(tabData[t], tabRows[t], pals[size_t(palette)]);
+            if (f.rows[t].empty()) f.rows[t] = fitRows(tabData[t], tabRows[t], pal);
+            std::array<Vec3, 256> sOfRow{};
             for (int r = 0; r < 256; r++) {
                 // rows past the table's end: the identity
-                RowFit rf = r < int(f.rows[t].size()) ? f.rows[t][size_t(r)] : RowFit{Vec3(1, 1, 1), Vec3(0, 0, 0)};
-                float* b = &px[((2 * t) * 256 + size_t(r)) * 4];
-                float* s = &px[((2 * t + 1) * 256 + size_t(r)) * 4];
-                b[0] = rf.b.x; b[1] = rf.b.y; b[2] = rf.b.z; b[3] = 1;
-                s[0] = rf.s.x; s[1] = rf.s.y; s[2] = rf.s.z; s[3] = 1;
+                bool in = r < int(f.rows[t].size());
+                RowFit rf = in ? f.rows[t][size_t(r)] : RowFit{Vec3(1, 1, 1), Vec3(0, 0, 0)};
+                put(4 * t, r, rf.b);
+                put(4 * t + 1, r, rf.s);
+                std::array<Vec3, 256> y{};
+                for (int j = 0; j < 256; j++) y[size_t(j)] = in ? pal[tabData[t][size_t(r) * 256 + size_t(j)]] : pal[size_t(j)];
+                put(4 * t + 2, r, colourGain(pal, y, use));
+                sOfRow[size_t(r)] = rf.s;
             }
+            Vec3 gs = colourGain(pal, sOfRow, use);
+            for (int r = 0; r < 256; r++) put(4 * t + 3, r, gs);
         }
-        f.tex.createRaw(256, int(2 * std::max<size_t>(1, tabData.size())), GL_RGBA32F, GL_RGBA, GL_FLOAT, px.data(),
+        f.tex.createRaw(256, int(4 * std::max<size_t>(1, tabData.size())), GL_RGBA32F, GL_RGBA, GL_FLOAT, px.data(),
                         false, false, false);
         f.tables = tabData.size();
         return f;
@@ -527,7 +643,25 @@ int Renderer::texture(std::span<const uint8_t> px, int w, int h, int pitch) {
     while ((1 << t.hlog) < h) t.hlog++;
     d_->texData.push_back(std::move(d));
     d_->texInfo.push_back(t);
+    d_->texDetail.resize(d_->texData.size(), nullptr);
     return int(d_->texData.size()) - 1;
+}
+
+int Renderer::textureFile(const std::string& file, int w, int h, int pitch) {
+    Ctx& c = *d_->ctx;
+    int t = texture(c.dat->file(file), w, h, pitch);
+    const Fidelity& f = fidelity();
+    if (c.pictures && c.art() && f.filter && !f.exact) {
+        const Image* im = c.pictures->detail(detailName(file));
+        if (im && im->w % w == 0 && im->h % h == 0 && im->w / w == im->h / h) {
+            d_->texDetail.resize(d_->texData.size(), nullptr);
+            d_->texDetail[size_t(t)] = im;
+        } else if (im) {
+            SDL_Log("engine: the upscale of %s is %dx%d, not a multiple of %dx%d: not used", file.c_str(), im->w, im->h,
+                    w, h);
+        }
+    }
+    return t;
 }
 
 int Renderer::table(std::span<const uint8_t> t) {
@@ -570,6 +704,26 @@ Bitmap Renderer::bitmap(std::span<const uint8_t> px, int pitch, int w, int h) {
     gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     return b;
+}
+
+void Renderer::prepare() { d_->upload(); }
+
+void Renderer::bitmapDetail(const Bitmap& b, const std::string& file, int levels) {
+    Ctx& c = *d_->ctx;
+    const Fidelity& f = fidelity();
+    if (b.id < 0 || levels < 1 || !c.pictures || !c.art() || !f.filter || f.exact) return;
+    const Image* im = c.pictures->detail(detailName(file));
+    if (!im) return;
+    if (im->w != 4 * b.w || im->h != 4 * b.h) {
+        SDL_Log("engine: the upscale of %s is %dx%d, not 4 x %dx%d: not used", file.c_str(), im->w, im->h, b.w, b.h);
+        return;
+    }
+    std::vector<uint8_t> g(size_t(im->w) * size_t(im->h));
+    for (size_t i = 0; i < g.size(); i++) g[i] = im->rgba[i * 4];
+    d_->bitmapLevels.resize(d_->bitmaps.size());
+    auto& [t, n] = d_->bitmapLevels[size_t(b.id)];
+    t.createRaw(im->w, im->h, GL_R8, GL_RED, GL_UNSIGNED_BYTE, g.data(), true, false, true);
+    n = levels;
 }
 
 const std::vector<RowFit>& Renderer::fit(int table, int palette) {
@@ -632,12 +786,20 @@ void Renderer::render(Ctx& c, Scene& s, int palette, int clearIndex) {
         gl::BindTexture(GL_TEXTURE_2D_ARRAY, d.tabArray);
         sh.set("texs", 0);
         sh.set("tabs", 1);
-        d.bindCommon(sh, palette, blended);
+        if (d.anyDetail) {
+            gl::ActiveTexture(GL_TEXTURE0 + 4);
+            gl::BindTexture(GL_TEXTURE_2D_ARRAY, d.detArray);
+        }
+        sh.set("dets", 4);
+        gl::Uniform4fv(sh.loc("dInfo"), 32, d.detInfo.data());
+        d.bindCommon(sh, palette, blended || d.anyDetail);
         gl::Enable(GL_BLEND);
         gl::BlendEquation(GL_FUNC_ADD);
         gl::BlendFuncSeparate(GL_ONE, GL_SRC1_COLOR, GL_ONE, GL_ZERO);   // out = s + b * background
         gl::DrawArrays(GL_TRIANGLES, 0, GLsizei(d.verts.size()));
         gl::BindVertexArray(0);
+        gl::ActiveTexture(GL_TEXTURE0 + 4);
+        gl::BindTexture(GL_TEXTURE_2D_ARRAY, 0);
         gl::ActiveTexture(GL_TEXTURE1);
         gl::BindTexture(GL_TEXTURE_2D_ARRAY, 0);
         gl::ActiveTexture(GL_TEXTURE0);
@@ -692,6 +854,13 @@ void Renderer::drawBitmap(Ctx& c, const Bitmap& b, float x, float y, int palette
     sh.set("type", b.type);
     sh.set("table", std::max(b.table, 0));
     sh.set("key", b.key);
+    const auto* lv = size_t(b.id) < d.bitmapLevels.size() && d.bitmapLevels[size_t(b.id)].first.id && table && !exactBg
+                         ? &d.bitmapLevels[size_t(b.id)] : nullptr;
+    gl::ActiveTexture(GL_TEXTURE0 + 6);
+    gl::BindTexture(GL_TEXTURE_2D, lv ? lv->first.id : 0);
+    sh.set("lev", 6);
+    sh.set("useLev", lv ? 1 : 0);
+    sh.set("levMax", lv ? float(lv->second) : 1.0f);
     // with filtered taps the transparent types fade out over half a texel past their edge
     float m = (f.filter && b.type >= 3) ? 1.0f : 0.0f;
     sh.set("rect", x - m, y - m, float(b.w) + 2 * m, float(b.h) + 2 * m);
@@ -702,6 +871,8 @@ void Renderer::drawBitmap(Ctx& c, const Bitmap& b, float x, float y, int palette
     gl::BlendFuncSeparate(GL_ONE, GL_SRC1_COLOR, GL_ONE, GL_ZERO);
     drawQuad();
     setBlend(Blend::None);
+    gl::ActiveTexture(GL_TEXTURE0 + 6);
+    gl::BindTexture(GL_TEXTURE_2D, 0);
     gl::ActiveTexture(GL_TEXTURE0 + 5);
     gl::BindTexture(GL_TEXTURE_2D_ARRAY, 0);
     gl::ActiveTexture(GL_TEXTURE0);

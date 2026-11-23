@@ -19,6 +19,11 @@
 // of jumping once per drawn frame; the 64 shade levels become a continuous level (the colours of the shade table's two
 // neighbouring rows blended); the photo is filtered in colour (Catmull-Rom over its texels, each shaded at the level
 // of the output pixel) instead of being drawn with nearest-neighbour pixels.
+//
+// With the art on and an upscale of the photo (art/tex_intro.jpg, pictures.h), its detail is added to the shaded
+// colour: c + g(level) (H - P), where H is the upscale, P the photo's palette colours with the same Catmull-Rom taps,
+// and g the shade table's gain per level (inside::colourGain: how much of a change in the photo's colour intro.shd
+// passes on at that level), so the detail fades in and out with the light as the picture does.
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -95,6 +100,10 @@ in vec2 uv;
 out vec4 o;
 uniform sampler2D lev;      // RG8: clamp(L, 0, 63) of the frame shown before (r) and of the next one (g), / 255
 uniform sampler2D shaded;   // 8 x 8 tiles of 320 x 200: tile l = palette[intro.shd[l][intro.raw]]
+uniform sampler2D plain;    // 320 x 200: palette[intro.raw]
+uniform sampler2D det;      // the photo's upscale (useDet), mipmapped
+uniform int useDet;
+uniform vec3 gains[64];     // the shade table's gain per level
 uniform float w;            // weight of the next frame
 uniform vec2 res;           // output size in pixels
 
@@ -138,6 +147,17 @@ void main() {
         for (int x = 0; x < 4; x++) row += wx[x] * shadedAt(i + ivec2(x - 1, y - 1), l0, lf);
         c += wy[y] * row;
     }
+    vec3 h = texture(det, p / vec2(320.0, 200.0)).rgb;   // outside the branch: the mipmap needs the derivatives
+    if (useDet != 0) {
+        vec3 pc = vec3(0.0);
+        for (int y = 0; y < 4; y++) {
+            vec3 row = vec3(0.0);
+            for (int x = 0; x < 4; x++)
+                row += wx[x] * texelFetch(plain, clamp(i + ivec2(x - 1, y - 1), ivec2(0), ivec2(319, 199)), 0).rgb;
+            pc += wy[y] * row;
+        }
+        c += mix(gains[l0], gains[l0 + 1], lf) * (h - pc);
+    }
     o = vec4(clamp(c, 0.0, 1.0), 1.0);
 }
 )";
@@ -171,8 +191,15 @@ public:
         shader_.use();
         levTex_.bind(0);
         shaded_.bind(1);
+        plain_.bind(2);
+        gl::ActiveTexture(GL_TEXTURE3);
+        gl::BindTexture(GL_TEXTURE_2D, det_.id);
         shader_.set("lev", 0);
         shader_.set("shaded", 1);
+        shader_.set("plain", 2);
+        shader_.set("det", 3);
+        shader_.set("useDet", det_.id ? 1 : 0);
+        gl::Uniform3fv(shader_.loc("gains"), kLevels, gains_.data());
         shader_.set("w", w);
         shader_.set("res", float(c.w), float(c.h));
         drawFullscreen();
@@ -247,6 +274,26 @@ private:
         }
         shaded_.createRaw(aw, ah, GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, atlas.data(), false, false,
                           false);
+        // the upscale's detail: the photo's own colours and the table's gain per level, weighted by the photo's use
+        // of each index
+        const Image* up = c.art() ? c.pictures->detail(detailName(c.exe->cstr(kRawName))) : nullptr;
+        if (!up || up->w != 4 * kW || up->h != 4 * kH) return;
+        det_.create(*up, false, true);
+        std::vector<uint32_t> plain(size_t(kW) * kH);
+        std::array<double, 256> use{};
+        for (size_t k = 0; k < plain.size(); k++) {
+            plain[k] = packed[pic[k]];
+            use[pic[k]] += 1.0;
+        }
+        plain_.createRaw(kW, kH, GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, plain.data(), false, false, false);
+        for (int l = 0; l < kLevels; l++) {
+            std::array<Vec3, 256> y{};
+            for (int j = 0; j < 256; j++) y[size_t(j)] = pal[shd[size_t(l) * 256 + size_t(j)]];
+            Vec3 g = inside::colourGain(pal, y, use);
+            gains_[size_t(l) * 3] = g.x;
+            gains_[size_t(l) * 3 + 1] = g.y;
+            gains_[size_t(l) * 3 + 2] = g.z;
+        }
     }
 
     // ---------------------------------------------------------------- the simulation (notes 2.3, 2.4, 2.5)
@@ -383,7 +430,8 @@ private:
     std::vector<uint8_t> levCur_, levPrev_, rg_;
     int curFrame_ = -1, prevFrame_ = -2;   // the frames levCur_ / levPrev_ hold (-1: the empty start)
     int texA_ = -3, texB_ = -3;
-    Texture levTex_, shaded_;
+    Texture levTex_, shaded_, plain_, det_;   // plain_, det_: the upscale's detail (id 0: none)
+    std::vector<float> gains_ = std::vector<float>(size_t(kLevels) * 3, 0.0f);
     Shader shader_;
 };
 

@@ -1,6 +1,8 @@
 // Indexed pictures and palettes on the GPU (indexed.h).
 #include "inside/indexed.h"
 
+#include <algorithm>
+
 #include <vector>
 
 #include "exe.h"
@@ -40,5 +42,23 @@ uint idxAt(usampler2D tex, ivec2 t) {
     return texelFetch(tex, ivec2(((t.x % s.x) + s.x) % s.x, ((t.y % s.y) + s.y) % s.y), 0).r;
 }
 )";
+
+Vec3 colourGain(const std::array<Vec3, 256>& pal, const std::array<Vec3, 256>& y, const std::array<double, 256>& use) {
+    double total = 0;
+    for (double v : use) total += v;
+    double eps = 1e-3 * std::max(total, 1.0) / 256;
+    auto ch = [](const Vec3& v, int k) { return double(k == 0 ? v.x : k == 1 ? v.y : v.z); };
+    float g[3];
+    for (int k = 0; k < 3; k++) {
+        double n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+        for (size_t j = 0; j < 256; j++) {
+            double w = use[j] + eps, x = ch(pal[j], k), v = ch(y[j], k);
+            n += w; sx += w * x; sy += w * v; sxx += w * x * x; sxy += w * x * v;
+        }
+        double var = sxx - sx * sx / n;
+        g[k] = var > 1e-9 * n ? float(std::clamp((sxy - sx * sy / n) / var, 0.0, 2.0)) : 1.0f;
+    }
+    return Vec3(g[0], g[1], g[2]);
+}
 
 }  // namespace inside

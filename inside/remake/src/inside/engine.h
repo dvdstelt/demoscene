@@ -291,11 +291,23 @@ public:
     // Resources (any time after init; uploaded at the next render). Pixels are row-major, `pitch` bytes per row
     // (0: w).
     int texture(std::span<const uint8_t> px, int w, int h, int pitch = 0);
+    // A texture of INSIDE.DAT by file name, with its upscale (art/tex_<name>.jpg, pictures.h) when the remake shows
+    // its art and the texels are filtered: the shader adds the upscale's detail to the colour it computes from the
+    // original's indices, through the gain of the tables it reads (see the top of engine_gl.cpp).
+    int textureFile(const std::string& file, int w, int h, int pitch = 0);
     int table(std::span<const uint8_t> t);          // rows = size / 256 (up to 256)
     int palette(const std::array<Vec3, 256>& colours);
     int material(const Material& m);
     Material& materialAt(int handle);
     Bitmap bitmap(std::span<const uint8_t> px, int pitch, int w, int h);   // type 1, key 0
+    // A level map's upscale for a table bitmap (types 2, 4) whose pixels are table rows 0..levels (the INSIDE.DAT
+    // file's art/tex_<name>.jpg, grey 255 x level / levels, 4 x the bitmap's size), used with the art on and filtered
+    // texels: the bitmap is drawn at the upscale's continuous level (the two table rows around it blended; the key
+    // row leaves the background as it is).
+    void bitmapDetail(const Bitmap& b, const std::string& file, int levels);
+
+    // Upload the textures, tables and upscales now (the end of a part's init) instead of at the first render.
+    void prepare();
 
     // The fit of every row of a table through a palette (what the blended rasterizers draw).
     const std::vector<RowFit>& fit(int table, int palette);

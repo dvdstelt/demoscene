@@ -106,8 +106,9 @@ playing.
 ## Pictures
 
 `inside/remake/art/<name>.png` will hold the redraws of the pictures drawn as they are (a separate job; the notes say
-which pictures qualify: photos of real people are never redrawn, and anything read through palette indices or shade
-tables stays the original's). `c.picture(name)` gives a `Picture` (`src/pictures.h`: the original's pixels through
+which pictures qualify: photos of real people only when the maintainer asks for them, and anything read through
+palette indices or shade tables keeps the original's indices; such textures and maps got 4× upscales later, whose
+detail the parts add to what they compute from the indices, `remake/art/README.md`). `c.picture(name)` gives a `Picture` (`src/pictures.h`: the original's pixels through
 their palette, or the redraw), `c.drawPicture(p, PictureDraw{...})` draws it. Register a picture you draw as it is in
 `pictureList()` (`src/pictures.cpp`) through the coordinator.
 

@@ -151,8 +151,8 @@ public:
         pal_ = eng_.palette(inside::palette(d, fileName(x, kPalFile)));
         int shd = eng_.table(d.file(fileName(x, kShdFile)));
         int size = 1 << byteImm(x, kTexLog2);
-        int tubeTex = eng_.texture(d.file(fileName(x, kTubeTexFile)), size, size);
-        int envTex = eng_.texture(d.file(fileName(x, kEnvTexFile)), size, size);
+        int tubeTex = eng_.textureFile(fileName(x, kTubeTexFile), size, size);
+        int envTex = eng_.textureFile(fileName(x, kEnvTexFile), size, size);
         mat1_ = eng_.material({.texture = tubeTex, .texture2 = tubeTex, .table1 = shd, .table2 = shd, .fixedUV = true});
         mat2_ = eng_.material({.texture = tubeTex, .texture2 = tubeTex, .table1 = shd, .table2 = shd, .fixedUV = true});
         int fmat = eng_.material({.texture = envTex, .texture2 = envTex, .table1 = shd, .table2 = shd});
@@ -193,6 +193,7 @@ public:
             targets_[i].flags |= sr::kEnvMap;
         }
         replayTicks();
+        eng_.prepare();   // the textures, tables and upscales now, not at the first frame
     }
 
     void render(Ctx& c, double r) override {

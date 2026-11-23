@@ -103,7 +103,7 @@ public:
         step_ = sr::euler(e.x, e.y, e.z);
         sr::toAxisAngle(step_, axis_, angle_);
         pal_ = eng_.palette(inside::palette(d, x.cstr(kPalName)));
-        int tex = eng_.texture(d.file(x.cstr(kTexName)), 256, 256);
+        int tex = eng_.textureFile(x.cstr(kTexName), 256, 256);
         int shd = eng_.table(d.file(x.cstr(kShdName)));
         int mat = eng_.material({.texture = tex, .table1 = shd});
         scene_.width = int(movRegImm(x, kViewW));
@@ -118,6 +118,8 @@ public:
         mask_ = eng_.bitmap(d.file(x.cstr(kMaskName)), mw, mw, mh);
         mask_.type = 4;
         mask_.table = eng_.table(d.file(x.cstr(kMaskShdName)));
+        // its upscale: a level map of the table's rows (16 for inmask.shd: levels 0..15)
+        eng_.bitmapDetail(mask_, x.cstr(kMaskName), int(d.file(x.cstr(kMaskShdName)).size() / 256) - 1);
         textW_ = float(movRegImm(x, kTextW));
         textH_ = float(movRegImm(x, kTextH));
         // 0x402ca0: the camera
@@ -144,6 +146,7 @@ public:
         textY_ = pushedFloat(x, kTextY);
         textOn_ = c.entryRefresh(kTextOn);
         c.picture("logo_inside");   // load it in the init
+        eng_.prepare();   // the textures, tables and upscales now, not at the first frame
     }
 
     void render(Ctx& c, double r) override {

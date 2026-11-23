@@ -10,7 +10,9 @@
 // continuous ring, the shifts as floats instead of truncated integers, and a filtered read: the four taps around the
 // sample, each by the original's address rule pic[(256 row + column) & 0xffff] (a column past 255 carries into the
 // next row, which makes the seam), looked up in the palette and blended. Near the centre, where many columns meet in
-// one pixel, the pixel is supersampled.
+// one pixel, the pixel is supersampled. With the art on, a picture with an upscale (art/tex_<name>.jpg, pictures.h)
+// is read from the upscale instead (the pictures go straight through the palette here), at the same coordinates with
+// the same carry, mipmapped by the sample's footprint.
 #include <cmath>
 
 #include "demo.h"
@@ -39,6 +41,8 @@ in vec2 uv;
 out vec4 o;
 uniform usampler2D pic;
 uniform sampler2D pal;
+uniform sampler2D det;         // the picture's upscale (useDet), repeating, mipmapped
+uniform int useDet;
 uniform vec2 res;              // output size in pixels
 uniform float ringPx;          // radius per ring row (4 x 0.43)
 uniform float colPerRad;       // columns per radian (1 / (4 x 0.006135923))
@@ -49,7 +53,7 @@ vec3 tap(int c, int r) {
     return palColor(pal, texelFetch(pic, ivec2(a & 255, a >> 8), 0).r);
 }
 
-vec3 sampleAt(vec2 p) {            // p in VGA coordinates
+vec3 sampleAt(vec2 p, float lod) {   // p in VGA coordinates; lod: the upscale's mipmap level
     vec2 d = p - vec2(160.0, 100.0);
     float rho = length(d);
     float theta = atan(d.y, d.x);  // 0 = right, growing downwards (clockwise on screen)
@@ -58,6 +62,8 @@ vec3 sampleAt(vec2 p) {            // p in VGA coordinates
     float k = 128.0 + q;
     float R = q + s2c + A * sin(p1 + k * d18);
     float C = 128.0 + theta * colPerRad + 0.2 + s58 + B * sin(p2 + k * d14);
+    if (useDet != 0)   // a column past 255 carries into the next row, as the address rule does
+        return textureLod(det, vec2(C, R + floor(C / 256.0)) / 256.0, lod).rgb;
     // bilinear between the four texel centres around (C, R) (texel n covers [n, n + 1))
     vec2 t = vec2(C, R) - 0.5;
     vec2 f = fract(t);
@@ -73,10 +79,11 @@ void main() {
     float rho = max(length(p - vec2(160.0, 100.0)), 1e-3);
     float colsPerPx = colPerRad * max(px.x, px.y) / rho;
     int n = int(clamp(ceil(colsPerPx), 1.0, 6.0));
+    float lod = log2(max(4.0 * max(colsPerPx, max(px.x, px.y) / ringPx) / float(n), 1.0));
     vec3 acc = vec3(0.0);
     for (int y = 0; y < n; y++)
         for (int x = 0; x < n; x++)
-            acc += sampleAt(p + (vec2(x, y) + 0.5) / float(n) * px - 0.5 * px);
+            acc += sampleAt(p + (vec2(x, y) + 0.5) / float(n) * px - 0.5 * px, lod);
     o = vec4(acc / float(n * n), 1.0);
 }
 )";
@@ -99,6 +106,8 @@ public:
             // every event writes black into entry 0 of the palette it sets (0x40a098); the start keeps jeesus.pal's
             // entry 0, which is black in the file
             pals_[k] = inside::uploadPalette(inside::palette(*c.dat, pal, true));
+            const Image* up = c.art() ? c.pictures->detail(detailName(file)) : nullptr;
+            if (up && up->w == 4 * 256 && up->h == 4 * 256) dets_[k].create(*up, true, true);
         }
         shader_.build(kFullscreenVS, std::string(inside::kIndexedGLSL) + kFS, "twirl");
     }
@@ -137,8 +146,12 @@ public:
         gl::BindTexture(GL_TEXTURE_2D, pics_[pic].id);
         gl::ActiveTexture(GL_TEXTURE1);
         gl::BindTexture(GL_TEXTURE_2D, pals_[pic].id);
+        gl::ActiveTexture(GL_TEXTURE2);
+        gl::BindTexture(GL_TEXTURE_2D, dets_[pic].id);
         shader_.set("pic", 0);
         shader_.set("pal", 1);
+        shader_.set("det", 2);
+        shader_.set("useDet", dets_[pic].id ? 1 : 0);
         shader_.set("res", float(c.w), float(c.h));
         shader_.set("ringPx", float(4.0 * radiusStep_));
         shader_.set("colPerRad", float(1.0 / (4.0 * angleStep_)));
@@ -157,7 +170,7 @@ public:
 private:
     Set sets_[5];
     double angleStep_ = 0, radiusStep_ = 0;
-    Texture pics_[5], pals_[5];
+    Texture pics_[5], pals_[5], dets_[5];   // dets_: the upscales (id 0: none)
     Shader shader_;
 };
 
