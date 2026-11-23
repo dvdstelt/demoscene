@@ -34,7 +34,8 @@ and text is never copied into it.
 
 The remakes also include redrawn versions of the originals' hand-drawn pictures, and of Inside's photos of people
 (in each `<demo>/remake/art/`): high-resolution AI redraws made from the original pictures, faithful to them, and
-shown instead of the original pixels unless `--original-art` is given. 303's remake also includes its video clips
+shown instead of the original pixels unless `--original-art` is given. Inside's remake also includes 4× upscales of
+its textures, made with Real-ESRGAN. 303's remake also includes its video clips
 restored at high resolution with an AI video model (`303/remake/art/video/`), shown the same way. They are derived
 from the original artists' and photographers' work and footage, which stay theirs, and fall under the same
 non-commercial terms as everything else here. Each folder's README names the artist of every picture.

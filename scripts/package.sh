@@ -204,6 +204,11 @@ if [ -d "$art/video" ]; then
 --original-art shows the original frames as well.
 '
 fi
+if ls "$art"/tex_*.* >/dev/null 2>&1; then
+    art_note="$art_note"'The tex_* pictures are 4x upscales of textures that the effects read through their tables; the remake adds
+their detail to the colours it computes from the original'"'"'s, and --original-art turns them off as well.
+'
+fi
 
 # ---------------------------------------------------------------- fetch script and README
 if [ "$os" = windows ]; then

@@ -50,7 +50,9 @@ in its sprites parts were, as photos). The redraws are AI redraws made from the 
 stay faithful to them: the same composition, pose, proportions, framing, colours and text; only resolution and detail
 change. They live in `<demo>/remake/art/` with a README that names the original artist, how each picture was made
 and how it was aligned. Only pictures that are drawn as they are get a redraw; generated textures, maps and anything
-an effect reads through palette indices stay computed from the original. When ChatGPT refuses a picture or does not
+an effect reads through palette indices stay computed from the original. Hand-made textures and level maps that an
+effect reads through tables may get a 4× upscale instead, whose detail the remake adds to what it computes from the
+original's indices (Inside's). When ChatGPT refuses a picture or does not
 redraw it faithfully, try the Comfy Cloud route instead; a picture no tool redraws faithfully keeps the original
 pixels. Never reword a prompt to get past a refusal. [docs/redrawing-pictures.md](docs/redrawing-pictures.md) is the
 recipe.

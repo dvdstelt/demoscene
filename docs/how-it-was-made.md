@@ -90,7 +90,10 @@ grey picture (JIZZ multiplies its logo with computed clouds), only the grey pict
 a photo of a person (the scanned faces in Inside's credits), only the drawn rest of it is. Photos of people stay as
 they are unless I ask for one: Inside's cut-out photos of people were redrawn as photos at my request. ChatGPT refused one
 picture, the third of STARS's three women; it was redrawn with the open image-edit model Qwen-Image-Edit on Comfy
-Cloud instead, with the other two redraws as style references. The remakes show the redraws by default and the
+Cloud instead, with the other two redraws as style references. Inside's hand-made textures, which its parts read
+through shade and blend tables and wrap around objects, were upscaled 4× with Real-ESRGAN instead of redrawn, so
+that every pixel stays where the effects expect it; the remake adds the upscale's detail to the colours it computes
+from the original's indices. The remakes show the redraws by default and the
 original pixels with `--original-art`; palette fades are colour multiplies, so they apply to both.
 
 [redrawing-pictures.md](redrawing-pictures.md) is the recipe for the next picture: what gets a redraw, the upload,
