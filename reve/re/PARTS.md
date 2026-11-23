@@ -32,16 +32,16 @@ ends a swirl.
 | 15 | 2053cc | 204ee9 | 2054c4 | 205578 | 44:00 | 10806 | 10809 | 894 | 894 | 70.1 | 2d-a | `GFX\BOUCHE.RAW` (a mouth) twisted into a spiral |
 | 16 | 205261 | 20483f | 20483f | 20483f | 45:00 | 11702 | 11703 | 224 | 224 | 70.1 | 2d-b | `GFX\JUNIOR.RAW` ("Junior .born to code") |
 | 17 | 2052a0 | 20483f | 20483f | 20483f | 48:00 | 11926 | 11927 | 696 | 696 | 70.1 | 2d-b | `GFX\MRTOMMY.RAW` (a face with glasses) |
-| 18 | 20508d | 20483f | 2050ce | 20510c | 49:00 | 12622 | 12623 | 618 | 618 | 70.1 | 2d-b | `GFX\DADA.RAW` (a winged pony) smeared along horizontal lines |
-| 19 | 20483f | 20483f | 2050ed | 20510c | 50:00 | 13241 | 13241 | 786 | 785 | 70.0 | 2d-b | the same |
-| 20 | 205924 | 20483f | 20483f | 205950 | 51:48 | 14025 | 14027 | 398 | 398 | 70.1 | 2d-b | black (`GFX\GENE.RAW` loaded) |
+| 18 | 20508d | 20483f | 2050ce | 20510c | 49:00 | 12622 | 12623 | 618 | 618 | 70.1 | 2d-b | two perspective planes on alternate lines: `GFX\DADA.RAW` (a winged pony) and a 64 x 64 tile of TEXTURE.RAW, both tiled |
+| 19 | 20483f | 20483f | 2050ed | 20510c | 50:00 | 13241 | 13241 | 786 | 785 | 70.0 | 2d-b | the same, the DADA plane turning more slowly |
+| 20 | 205924 | 20483f | 20483f | 205950 | 51:48 | 14025 | 14027 | 398 | 398 | 70.1 | 2d-b | `GFX\GENE.RAW` strobing between black, the picture and its negative (as entry 5) |
 | 21 | 20483f | 20483f | 20483f | 2059fc | 52:00 | 14425 | 14425 | 67 | 57 | 59.6 | 2d-b | `GFX\GENE.RAW` ("Pulse Generation") |
 | 22 | 205a11 | 20497a | 25f3ae | 205ac0 | 56:00 | 14481 | 14492 | 887 | 571 | 45.1 | engine | 3D (`3D\PART4.WLD`): objects in wireframe boxes, letters |
-| 23 | 20516b | 20483f | 2051dd | 20520c | 58:00 | 15377 | 15379 | 446 | 446 | 70.1 | 2d-b | `GFX\TOM.RAW` and `GFX\BOZ.RAW` warped and smeared |
+| 23 | 20516b | 20483f | 2051dd | 20520c | 58:00 | 15377 | 15379 | 446 | 446 | 70.1 | 2d-b | two perspective planes on alternate lines: `GFX\TOM.RAW` (a face) and `GFX\BOZ.RAW` (a clown), tiled |
 | 24 | 2052df | 20483f | 20483f | 20483f | 59:00 | 15825 | 15825 | 224 | 224 | 70.1 | 2d-b | `GFX\DOG.RAW` ("Biscuit Addicted") |
 | 25 | 20531e | 20483f | 20483f | 20483f | 60:00 | 16048 | 16049 | 227 | 224 | 69.2 | 2d-b | `GFX\MRWAAF.RAW` ("Waaf .the dog") |
 | 26 | 205bb0 | 204ee9 | 205c87 | 205c90 | 62:00 | 16272 | 16276 | 446 | 445 | 69.9 | engine | 3D (`3D\FIN.WLD`): a spiked ring growing out of the dark |
-| 27 | 205ad8 | 20483f | 20483f | 205b04 | 63:48 | 16720 | 16722 | 390 | 390 | 70.1 | 2d-b | black (`GFX\BOUGE.RAW` loaded) |
+| 27 | 205ad8 | 20483f | 20483f | 205b04 | 63:48 | 16720 | 16722 | 390 | 390 | 70.1 | 2d-b | `GFX\BOUGE.RAW` strobing (as entry 5) |
 | 28 | 20483f | 20483f | 20483f | 2059fc | 64:00 | 17112 | 17112 | 57 | 57 | 70.1 | 2d-b | `GFX\BOUGE.RAW` (a puppet) |
 | 29 | 205368 | 20483f | 20483f | 20483f | 64:63 | 17168 | 17169 | 559 | 350 | 43.9 | 2d-b | `GFX\YOCOL.RAW` (a boy with pink hair); after the last entry 0x20538d shows the title again until the end |
 
