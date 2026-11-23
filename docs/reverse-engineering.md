@@ -102,6 +102,23 @@ python3 re303.py func 0x2d81c         # list a routine
 
 [`clone/re/README.md`](../clone/re/README.md) lists the commands in order.
 
+## Inside (PMODE/W, a PMW1-compressed Watcom C program, VGA mode 13h)
+
+| tool | what it does |
+|---|---|
+| [`inside/re/unpack.py`](../inside/re/unpack.py) | runs the PMODE/W stub's self-decompression and the extender's PMW1 decompressor in unicorn on all six compressed streams, checks a Python decompressor against it, and applies the fixups at two bases to check that every relocated dword is found |
+| [`inside/re/datfile.py`](../inside/re/datfile.py) | unpacks INSIDE.DAT (LZSS) and lists or extracts its 93 files |
+| [`inside/re/rep.py`](../inside/re/rep.py) | capstone helper on the program image: `func`, `dis`, `calls`, `xref`, `funcs`, `str`, `ints`, `ports` |
+| [`inside/re/run_inside.py`](../inside/re/run_inside.py) | runs the whole demo headless in unicorn without DOS or PMODE/W: answers the DOS, DPMI and video calls, fakes the VGA with its DAC and retrace, the timer chip, the interrupt and DMA controllers and a Gravis UltraSound (the demo loads DSMI's own GUS driver into it). Records per screen refresh the picture, the palette, the music position and the timer counts; every flip, every GUS write and the GUS memory. Snapshots at every part |
+| [`inside/re/frames2mp4.py`](../inside/re/frames2mp4.py), [`sheet.py`](../inside/re/sheet.py) | turn a capture into a video or a contact sheet |
+| [`inside/re/models/`](../inside/re/models/) | the agents' Python models: the clock and the script, the music player, the SurRender engine, every part |
+| [`inside/remake/tools/compare.py`](../inside/remake/tools/compare.py) | the remake's frames next to the capture's records, with an optional difference score |
+| [`inside/remake/tools/align_art.py`](../inside/remake/tools/align_art.py) | the redrawn pictures: makes the uploads (the credits' names without their scanned faces), fits a redraw onto the original, maps a level map's redraw onto its levels, and makes the comparison sheet |
+| [`inside/remake/tools/blend_fit.py`](../inside/remake/tools/blend_fit.py) | how well the remake's fitted blends reproduce the tables that read the screen |
+| [`inside/remake/tools/intro_frames.py`](../inside/remake/tools/intro_frames.py), [`water_frames.py`](../inside/remake/tools/water_frames.py) | write the capture's frame steps for the two parts that step a simulation once per drawn frame |
+
+[`inside/re/README.md`](../inside/re/README.md) lists the commands in order.
+
 ## The emulator harness in short
 
 `run_paper.py` doesn't emulate a PC. It emulates just enough for this one program:
@@ -121,7 +138,8 @@ inspected and resumed at any tick. `run_jizz.py` does the same for JIZZ, with DO
 instead of PMODE and VGA, `run_stars.py` for STARS, and `run_clone.py` for clone meets clone, which never waits for
 the retrace and so draws as many frames as its emulated CPU speed allows. `run_dope.py` adds a second CPU, because
 DOPE's parts run in real mode while its music player runs in 32-bit protected mode, and it skips the time a retrace
-wait would spin.
+wait would spin. `run_inside.py` does the same for Inside, whose timer interrupts four times per screen refresh and
+waits for the retrace on every fourth.
 
 ## In the remakes
 
@@ -137,6 +155,8 @@ The remakes do their own loading at run time, in C++:
   `SEG:OFF` address in each.
 - `clone/remake/src/unpack.cpp` unpacks CLONE.EXE like its veloader (decompressor and fixups);
   `clone/remake/src/exe.*` reads by address in the image relocated for 0x400000.
+- `inside/remake/src/unpack.cpp` unpacks INSIDE.EXE like PMODE/W (PMW1 decompressor and fixups) and INSIDE.DAT;
+  `inside/remake/src/exe.*` reads by address and the parts read the data files by name.
 
-The redrawn pictures of STARS, DOPE and clone meets clone are made outside the remakes (ChatGPT's image generation, then
-`tools/align_art.py`) and read from `<demo>/remake/art/` as PNG files; see [how-it-was-made.md](how-it-was-made.md).
+The redrawn pictures are made outside the remakes (ChatGPT's image generation, then `tools/align_art.py`) and read
+from `<demo>/remake/art/` as PNG files; see [how-it-was-made.md](how-it-was-made.md).

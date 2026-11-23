@@ -14,6 +14,7 @@ kept in the repository.
 | `stars-remake-2160p60.mp4` | STARS remake, 2880×2160, 60 fps |
 | `dope-remake-2160p60.mp4` | DOPE remake, 2880×2160, 60 fps |
 | `clone-remake-2160p60.mp4` | clone meets clone remake, 2880×2160, 60 fps |
+| `inside-remake-2160p60.mp4` | Inside remake, 2880×2160, 60 fps |
 
 2880×2160 is 4:3 at 2160 lines, so YouTube offers it in 4K. The remakes render offline, frame by frame, so the result does not depend on how fast the
 machine is.
@@ -59,11 +60,18 @@ dope/remake/build/dope-remake --video out.mp4 --fps 60 --shotsize 2880x2160 --vc
 clone/remake/build/clone-remake --video out.mp4 --fps 60 --shotsize 2880x2160 --vcodec "-c:v libsvtav1 -crf 18 -preset 5"
 ```
 
+The Inside remake too, in seconds of music time (the demo is 186.1 s long); `scripts/render-videos.sh
+inside-original` renders it with the original pixels:
+
+```
+inside/remake/build/inside-remake --video out.mp4 --fps 60 --shotsize 2880x2160 --vcodec "-c:v libsvtav1 -crf 18 -preset 5"
+```
+
 ## Uploading
 
 Suggested title: *Paper by Psychic Link (Wired '96 64k intro), 4K remake*. In the description, put the credits of
 the original, a link to this repository and the original's pouet.net page, and a note that it is a non-commercial
-fan remake. Turn off monetisation for the video. The music is Vic's (Probe's for JIZZ, Groo's for STARS, jugi's
-for DOPE, Simon's for clone meets clone), and nobody should earn from it.
+fan remake. Turn off monetisation for the video. The music belongs to the original's musicians (Vic for Paper and
+303), and nobody should earn from it.
 
 After uploading, put the links in the root README and the demo's README.

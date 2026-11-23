@@ -3,19 +3,16 @@
 The remakes were made in November 2026, over a few days, by [Claude Code](https://claude.com/claude-code)
 (Anthropic's coding agent) working with me, Dennis van der Stelt. I brought the original releases and my memory of
 how the demos looked and sounded, and I decided what was right. Claude Code did the reverse engineering and wrote
-the code. This page describes the way of working. The making-of pages for [303](../303/docs/making-of.md),
-[Paper](../paper/docs/making-of.md), [JIZZ](../jizz/docs/making-of.md), [STARS](../stars/docs/making-of.md),
-[DOPE](../dope/docs/making-of.md) and [clone meets clone](../clone/docs/making-of.md) have the details for each
-production.
+the code. This page describes the way of working. Each production's making-of, `<demo>/docs/making-of.md` (for
+example [Paper's](../paper/docs/making-of.md)), has the details.
 
 ## The goal
 
 My aim was a remake that is "the same as the original, but way sharper". The original runs at 320×200 in 256
 colours. The remake should run at any resolution in true colour, keep the original's motion, timing, composition,
 colours and music, and run on Windows and Linux. (JIZZ already ran in hicolor, 65,536 colours, at 320×200, and clone
-meets clone in true colour; for them the gain is resolution and exact maths.) For STARS, DOPE and clone meets clone,
-I also wanted the hand-drawn pictures sharper, which code alone cannot do; see [Redrawn
-pictures](#redrawn-pictures).
+meets clone in true colour; for them the gain is resolution and exact maths.) I also wanted the hand-drawn pictures
+sharper, which code alone cannot do; see [Redrawn pictures](#redrawn-pictures).
 
 ## From watching to reading the code
 
@@ -32,16 +29,18 @@ From then on the executable was the source of truth:
    were run in an emulator and the files unpacked with a decompressor checked against the program's own. DOPE is a
    chain of executables in one file, eight of them packed with Rob Northen's ProPack; every packer stub was run in
    an emulator. clone meets clone is a Watcom C program packed into a "VE" container that a small LE loader under
-   PMODE/W unpacks; the loader's own code was run in an emulator. For JIZZ, STARS, DOPE and clone meets clone a
-   Python reimplementation was checked against the emulated original; the remakes do the same unpacking in C++ at
+   PMODE/W unpacks; the loader's own code was run in an emulator. Inside is a Watcom C program in PMODE/W's own
+   compressed format, whose decompressor was run in an emulator. From JIZZ on, a Python reimplementation was
+   checked against the emulated original; the remakes do the same unpacking in C++ at
    start-up. Then disassemble with capstone.
 2. **Map the skeleton.** Find the main script, the clock (what advances per timer tick, per drawn frame, or per
    music row), the calling conventions, the asset loaders and the shared helpers. This is written down once, in a
    brief that every later agent reads.
-3. **Get a ground truth.** For Paper, JIZZ, STARS, DOPE and clone meets clone, the whole production runs headless
+3. **Get a ground truth.** For every production but 303, the whole production runs headless
    in an emulator (unicorn, with fake VGA or VESA, timer and sound-card hardware), recording the exact screen,
    palette and sound-card writes for every tick or displayed frame. STARS runs at the speed of a 486DX2/66, the
-   machine its NFO recommends, and clone meets clone at about the 133 MHz Pentium its INFO asks for. DOPE needs
+   machine its NFO recommends, clone meets clone at about the 133 MHz Pentium its INFO asks for, and Inside at
+   150 million instructions per second, the fast Pentium its README asks for. DOPE needs
    two emulated CPUs that share memory: one in real mode for its chain loader and its parts, one in 32-bit mode
    for the music player. For 303, a video capture of the original running on a Pentium MMX
    served as the reference.
@@ -53,8 +52,7 @@ From then on the executable was the source of truth:
    - the quirks a viewer would notice;
    - what is still unknown.
 
-   For Paper, JIZZ, STARS, DOPE and clone meets clone, every agent also built a Python model and checked it
-   against the capture.
+   For every production but 303, every agent also built a Python model and checked it against the capture.
 5. **Port in parallel.** Shared building blocks first (palette system, random generator, 3D engine, music), then
    one agent per part. Each agent owns its own files and builds in its own folder, so they don't get in each
    other's way. A second brief fixes the conventions: time, screen coordinates, colours, how state is stepped.
@@ -86,11 +84,10 @@ this:
    clone it fits every word of a caption on its own, where the generator spaced the words a little differently.
 
 The redraws live in `<demo>/remake/art/` with a README that names the original artist and gives, per picture, the
-prompt, the attempts and the measured fit ([303](../303/remake/art/README.md),
-[Paper](../paper/remake/art/README.md), [JIZZ](../jizz/remake/art/README.md), [STARS](../stars/remake/art/README.md),
-[DOPE](../dope/remake/art/README.md), [clone meets clone](../clone/remake/art/README.md)). Generated textures, maps
-and anything an effect reads through palette indices stay computed from the original; where an effect colours a
-grey picture (JIZZ multiplies its logo with computed clouds), only the grey picture is redrawn. ChatGPT refused one
+prompt, the attempts and the measured fit (for example [JIZZ's](../jizz/remake/art/README.md)). Generated textures,
+maps and anything an effect reads through palette indices stay computed from the original; where an effect colours a
+grey picture (JIZZ multiplies its logo with computed clouds), only the grey picture is redrawn; where a picture holds
+a photo of a person (the scanned faces in Inside's credits), only the drawn rest of it is. ChatGPT refused one
 picture, the third of STARS's three women; it was redrawn with the open image-edit model Qwen-Image-Edit on Comfy
 Cloud instead, with the other two redraws as style references. The remakes show the redraws by default and the
 original pixels with `--original-art`; palette fades are colour multiplies, so they apply to both.
