@@ -33,7 +33,7 @@ from the build folder. Or pass `--data DIR`. The redraws are found the same way 
 inside-remake [--window] [--size 1280x960] [--start SECONDS] [--ss 2] [--loop] [--info] [--original-art]
 ```
 
-Keys: `Esc` quit, `Space` pause, `←/→` seek ±5 s, `↓/↑` seek ±30 s, `F` toggle fullscreen.
+Keys: `Esc` quit, `Space` pause, `←/→` seek ±5 s, `↓/↑` seek ±30 s, `F`/`F11` toggle fullscreen.
 `--ss 2` renders at twice the resolution and downsamples. `--info` shows the time, music position and part in the
 title bar. `--original-art` shows the original pixels of the title and the names instead of the redraws.
 
