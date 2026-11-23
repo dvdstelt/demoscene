@@ -6,9 +6,10 @@
 Norway (2–6 April 1996), with 173 points, far ahead of Coma's *The Control* and Melon Dezign and Scoop's *Ninja II*
 (69 each). Its README credits the code to Wili, Jouni and Juliet, "graphics and all" to Destop, the music to Yolk and
 Legend, additional graphics to Santtu, the DSMI sound system to Otto Chrons (Virtual Visions) and PMODE/W to Thomas
-Pytel. It says the group's 3D engine, SurRender, "was used quite heavily", that the demo was first meant for
-Assembly '95, and that it wants a fast Pentium and 5.5 MB of free memory. It draws at 320×200 in 256 colours (VGA
-mode 13h) and plays the tune "eyegabo0om" through DSMI on any of its sound cards; the README dates it 3 April 1996.
+Pytel. It says SurRender, the 3D engine that Wili and Jouni wrote at the Helsinki company Hybrid, "was used quite
+heavily", that the demo was first meant for Assembly '95, and that it wants a fast Pentium and 5.5 MB of free memory.
+It draws at 320×200 in 256 colours (VGA mode 13h) and plays the tune "eyegabo0om" through DSMI on any of its sound
+cards; the README dates it 3 April 1996.
 
 `INSIDE.EXE` is 113,134 bytes: PMODE/W with the demo's Watcom C program in PMODE/W's own compressed format. The
 pictures, textures, palettes, shade tables and 3D objects are in `INSIDE.DAT` (1.3 MB, one compressed block of 93
