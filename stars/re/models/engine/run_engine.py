@@ -164,7 +164,8 @@ class Gus:
             self.glob[reg] = val
             self.log.write('%d g r41 %x\n' % (self.tick, val))
             if val & 1 and self.dma is not None:
-                # DMA to DRAM (bit 1 = 0: write), instantly; bit 2 = 16-bit DMA channel, bit 6 = invert the MSB
+                # DMA to DRAM (bit 1 = 0: write), instantly; bit 2 = 16-bit DMA channel, bit 6 = 16-bit data,
+                # bit 7 = invert the MSB (of every byte, or of every second byte for 16-bit data)
                 r42 = self.glob.get(0x42, 0)
                 ch = self.glob.get('ch', 1)
                 if val & 4:
@@ -172,8 +173,8 @@ class Gus:
                 else:
                     dst = r42 << 4
                 data = bytearray(self.dma(ch))
-                if val & 0x40:
-                    for i in range(1 if val & 0x80 else 0, len(data), 2 if val & 0x80 else 1):
+                if val & 0x80:
+                    for i in range(1 if val & 0x40 else 0, len(data), 2 if val & 0x40 else 1):
                         data[i] ^= 0x80
                 for i, b in enumerate(data):
                     self.dram[(dst + i) & 0xfffff] = b

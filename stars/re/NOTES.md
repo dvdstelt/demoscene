@@ -265,8 +265,10 @@ first. The remake should pick one (or use the clock like the original).
   DMA controllers, and a GUS at 0x240 (`Gus`, from jizz/re/run_jizz.py: register file, 1 MB DRAM via 0x43 / 0x44 +
   0x347, voice register reads return what was written with the "stopped" bits set; plus the timers: reg 0x45 / 0x46
   / 0x47, AdLib control 0x248 / 0x249, IRQ status 0x246; DMA: reg 0x41 bit 0 copies the programmed 8237 transfer to
-  DRAM at reg 0x42 << 4 at once, sets the DMA IRQ bit (cleared by reading reg 0x41) and raises IRQ 7 if reg 0x41 bit
-  5 is set).
+  DRAM at reg 0x42 << 4 at once (bit 7 inverts the MSB of every byte, or of every second byte when bit 6 = 16-bit
+  data is set; STARS writes 0x21, so neither applies), sets the DMA IRQ bit (cleared by reading reg 0x41) and raises
+  IRQ 7 if reg 0x41 bit 5 is set). Earlier versions had bits 6 and 7 swapped; STARS sets neither, so captures made
+  with them are unaffected (re-capturing the upload with the fix gives the same DRAM byte for byte).
 - Time base: the PIT clock (1,193,182 Hz). Main-line code runs at `--ips` instructions per second (default 40 M, see
   below) in quanta of ips/70/32 instructions; interrupt handlers run instantly (not charged). Events: PIT IRQ 0 every
   0x4286 clocks; GUS timer 1 every (256 - reg 0x46) x 80 us and timer 2 every (256 - reg 0x47) x 320 us while
