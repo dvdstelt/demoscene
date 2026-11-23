@@ -75,7 +75,7 @@ endif()
 # same with every compiler: the module synthesis, the player and the GF1 mix, and anything a part wants to keep
 # bit-exact (add it here).
 set(INSIDE_EXACT_FP_SOURCES ${SRC}/music.cpp ${SRC}/amp.cpp ${SRC}/gusdrv.cpp ${SRC}/gf1.cpp
-  ${SRC}/scenes/intro.cpp ${SRC}/inside/engine.cpp)
+  ${SRC}/scenes/intro.cpp ${SRC}/scenes/flight.cpp ${SRC}/inside/engine.cpp)
 foreach(f IN LISTS INSIDE_EXACT_FP_SOURCES)
   if(EXISTS ${f})
     set_source_files_properties(${f} PROPERTIES
