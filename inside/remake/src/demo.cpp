@@ -309,8 +309,10 @@ bool Demo::init(const InsideExe& exe, const InsideDat& dat, const Soundtrack& mu
 void Demo::resize(int w, int h) {
     ctx.w = w;
     ctx.h = h;
-    frame_.create(w, h, true, GL_RGBA16F);
-    part_.create(w, h, true, GL_RGBA16F);
+    // 16-bit normalised: every draw clamps to 0..1, as the original's pixels are always palette colours (a fitted
+    // table blend s + b * dst over a bright pixel must not go past white)
+    frame_.create(w, h, true, GL_RGBA16);
+    part_.create(w, h, true, GL_RGBA16);
     ctx.pool.clear();
 }
 

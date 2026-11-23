@@ -116,6 +116,7 @@ typedef ptrdiff_t GLintptr;
 #define GL_R16F 0x822D
 #define GL_RGBA8 0x8058
 #define GL_RGBA16F 0x881A
+#define GL_RGBA16 0x805B
 #define GL_DEPTH_COMPONENT24 0x81A6
 #define GL_TEXTURE0 0x84C0
 #define GL_TEXTURE1 0x84C1

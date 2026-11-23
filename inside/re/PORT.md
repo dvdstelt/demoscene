@@ -140,7 +140,9 @@ toolbox run -c acme303 python3 tools/compare.py <scratch>/cmp.jpg --shots <scrat
 
 Then look at `cmp.jpg` with the Read tool: left the capture's record, right the remake at that refresh.
 `INSIDE_PARTS` lists basenames in `src/scenes`; parts that are not built show a placeholder. `--nofade` leaves out
-the palette fades (compare the part's own colours). `--video out.mp4 --from T0 --to T1` renders a range in seconds
+the palette fades (compare the part's own colours). For pixel checks in the original's look, pass the engine's
+switch through the container with `env`: `toolbox run -c acme303 env INSIDE_ENGINE=original ./build-<you>/inside-remake
+... --shotsize 320x200` (`INSIDE_ENGINE=original toolbox run ...` does not reach the program). `--video out.mp4 --from T0 --to T1` renders a range in seconds
 of music time at 60 fps; `--bench T0,T1 --shotsize 2560x1920` reports the GPU time per frame; `--window --start T
 --info` plays from T with the position, part and refresh in the title. Delete your build directory when you are done.
 

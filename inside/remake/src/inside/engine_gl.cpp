@@ -319,7 +319,7 @@ struct Gpu {
             gl::GenRenderbuffers(1, &msColor);
         }
         gl::BindRenderbuffer(GL_RENDERBUFFER, msColor);
-        gl::RenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGBA16F, w, h);
+        gl::RenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGBA16, w, h);   // clamped, as ctx.out
         gl::BindFramebuffer(GL_FRAMEBUFFER, msFbo);
         gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, msColor);
         if (gl::CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
