@@ -342,8 +342,9 @@ int main(int argc, char** argv) {
     }
 
     const bool offline =
-        !opt.shots.empty() || !opt.picShots.empty() || !opt.videoOut.empty() || opt.bFrom >= 0 || opt.cues;
-    if ((!opt.shots.empty() || !opt.picShots.empty()) && !makeDir(opt.shotDir)) return 1;
+        !opt.shots.empty() || !opt.refreshShots.empty() || !opt.picShots.empty() || !opt.videoOut.empty() ||
+        opt.bFrom >= 0 || opt.cues;
+    if ((!opt.shots.empty() || !opt.refreshShots.empty() || !opt.picShots.empty()) && !makeDir(opt.shotDir)) return 1;
     if (!SDL_Init(SDL_INIT_VIDEO | (offline ? 0 : SDL_INIT_AUDIO))) {
         SDL_Log("SDL_Init: %s", SDL_GetError());
         return 1;
