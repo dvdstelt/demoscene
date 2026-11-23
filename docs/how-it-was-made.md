@@ -87,7 +87,8 @@ The redraws live in `<demo>/remake/art/` with a README that names the original a
 prompt, the attempts and the measured fit (for example [JIZZ's](../jizz/remake/art/README.md)). Generated textures,
 maps and anything an effect reads through palette indices stay computed from the original; where an effect colours a
 grey picture (JIZZ multiplies its logo with computed clouds), only the grey picture is redrawn; where a picture holds
-a photo of a person (the scanned faces in Inside's credits), only the drawn rest of it is. ChatGPT refused one
+a photo of a person (the scanned faces in Inside's credits), only the drawn rest of it is. Photos of people stay as
+they are unless I ask for one: Inside's cut-out photos of people were redrawn as photos at my request. ChatGPT refused one
 picture, the third of STARS's three women; it was redrawn with the open image-edit model Qwen-Image-Edit on Comfy
 Cloud instead, with the other two redraws as style references. The remakes show the redraws by default and the
 original pixels with `--original-art`; palette fades are colour multiplies, so they apply to both.
