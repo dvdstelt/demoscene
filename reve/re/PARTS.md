@@ -2,7 +2,7 @@
 
 From the capture (`full.log`, `full.ticks`; `python3 parts.py full` makes the table, `--sheet` a contact sheet with
 the first, middle and last record of every entry). Refreshes are records of `full.frames` (70.086 per second);
-music time 0 is the refresh at which the player starts (about record 31, notes-music.md). Each script entry
+music time 0 is refresh 29.0000, where the player starts its timers (notes-music.md 5.4). Each script entry
 (0x205ed0, NOTES.md "The script table") has an init, a done routine, a retrace routine (called once per refresh by the
 timer interrupt), a frame routine (called once per drawn frame) and the music position at which it ends.
 

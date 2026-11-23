@@ -16,7 +16,7 @@ from sheet import open_frames, rgb, W, H, FPS
 
 # The refresh (record) at which the music starts in the capture: reve/re/notes-music.md, the remake's
 # Soundtrack::startRefresh. Records before it are dropped, so video time 0 is the remake's music time 0.
-START_REFRESH = 31
+START_REFRESH = 29.0
 
 ap = argparse.ArgumentParser()
 ap.add_argument('frames')

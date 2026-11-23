@@ -170,9 +170,11 @@ dependent; the part notes say which.
 ### Music
 
 LCA's MOD-Player V3.03 ("LCA's Player, (C) Cedric BERMOND (LCA) 1993-95 Version 3.03"), a later version of the player
-in STARS (stars/re/NOTES.md "Music", stars/remake/src/lcaplay.cpp: V3.02). Card in [0x260406]; position: order
-[0x26042d], row [0x26042c] (0x2602eb returns AH = order... see notes-music.md). The module plays on the GUS timer
-(run_reve.py logs its IRQs); the intro plays at about 5 rows per second.
+in STARS (stars/re/NOTES.md "Music", stars/remake/src/lcaplay.cpp: V3.02); notes-music.md has it all, with the
+differences from V3.02. Card in [0x260406]; position: order [0x26042d], row [0x26042c] (0x2602eb returns them in
+AL / AH; the timer interrupt swaps them into order << 8 | row). The module plays on the GUS's own timers (80 BPM on
+timer 2, 31.04 ms per tick, and 150 BPM on timer 1, 16.64 ms), started at refresh 29.0000 of the capture; main stops
+the music 210 refreshes after the last entry's end position 64:63, at refresh 17,728.
 
 ## Running it headless (run_reve.py)
 
