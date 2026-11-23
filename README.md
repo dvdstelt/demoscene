@@ -28,8 +28,8 @@ meets clone, 320×200 in true colour).
 | ![303 remake](docs/images/303.jpg) | ![Paper remake](docs/images/paper.jpg) | ![JIZZ remake](docs/images/jizz.jpg) |
 | **[STARS](stars/) by NoooN** | **[DOPE](dope/) by Complex** | **[clone meets clone](clone/) by Acme and Fudge** |
 | ![STARS remake](docs/images/stars.jpg) | ![DOPE remake](docs/images/dope.jpg) | ![clone meets clone remake](docs/images/clone.jpg) |
-| **[Inside](inside/) by CNCD** | | |
-| ![Inside remake](docs/images/inside.jpg) | | |
+| **[Inside](inside/) by CNCD** | **[Reve](reve/) by Pulse** | |
+| ![Inside remake](docs/images/inside.jpg) | ![Reve remake](docs/images/reve.jpg) | |
 
 ## The demos
 
@@ -38,10 +38,11 @@ meets clone, 320×200 in true colour).
 | [**303**](303/) | Acme | X'97, April 1997 | PC demo, winner of the X'97 demo competition | [remake](303/remake/), ported from the executable routine by routine; [first version](303/remake-v1/) rebuilt from a video |
 | [**Paper**](paper/) | Psychic Link | Wired '96, November 1996 | 64k intro | [remake](paper/remake/), ported from the executable routine by routine and checked tick by tick in an emulator, with a redrawn sketch, text and inked logo |
 | [**JIZZ**](jizz/) | The Black Lotus | Wired '97, 1997 | 64k intro, winner of the PC 64k intro competition | [remake](jizz/remake/), ported from the executable routine by routine and checked against an emulator capture, with a redrawn logo and end picture |
-| [**STARS**](stars/) | NoooN | Assembly '95, August 1995 | PC demo, winner of the PC demo competition | [remake](stars/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures |
-| [**DOPE**](dope/) | Complex | The Gathering '95, April 1995 | PC demo, winner of the PC demo competition | [remake](dope/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures |
-| [**clone meets clone**](clone/) | Acme and Fudge | Takeover '98, May 1998 | 64k intro, winner of the PC 64k intro competition | [remake](clone/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures |
+| [**STARS**](stars/) | NoooN | Assembly '95, August 1995 | PC demo, winner of the PC demo competition | [remake](stars/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures, title and names and upscaled textures |
+| [**DOPE**](dope/) | Complex | The Gathering '95, April 1995 | PC demo, winner of the PC demo competition | [remake](dope/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures, title and names and upscaled textures |
+| [**clone meets clone**](clone/) | Acme and Fudge | Takeover '98, May 1998 | 64k intro, winner of the PC 64k intro competition | [remake](clone/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures, title and names and upscaled textures |
 | [**Inside**](inside/) | CNCD | The Gathering '96, April 1996 | PC demo, winner of the PC demo competition | [remake](inside/remake/), ported from the executable routine by routine and checked against an emulator capture, with a redrawn title, names and photos and upscaled textures |
+| [**Reve**](reve/) | Pulse | The Party '95, December 1995 | PC demo, 5th in the PC demo competition | [remake](reve/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures, title and names and upscaled textures |
 
 303 and Paper were coded by Statix, with music by Vic of Acme. JIZZ was coded by Jace, with music by Probe and a
 vector engine by Nix. STARS was coded by KARL and BARTi, with pictures by RA and music by Groo. DOPE was coded by
@@ -152,7 +153,8 @@ music replay routine by Phantom of Sonic PC (GUS part adapted by jmagic), 3D obj
 texture mapper and grid filler by Craft, the original radial blur by Dune, graphics help by Assa, the VESA library by
 Submissive, MXMPlay by Pascal (Niklas Beisert), PMODE/W by Daredevil and Tran. *Inside* is by CNCD: code by Wili,
 Jouni and Juliet, graphics by Destop, music by Yolk and Legend, additional graphics by Santtu, DSMI by Otto Chrons
-(Virtual Visions), PMODE/W by Thomas Pytel, the SurRender 3D engine by Hybrid. The originals and everything in them
+(Virtual Visions), PMODE/W by Thomas Pytel, the SurRender 3D engine by Hybrid. *Reve* is by Pulse: code by LCA,
+graphics by Antony and AJT, music by Shad. The originals and everything in them
 remain theirs; the redrawn pictures are derived from their artists' work and stay under the same non-commercial
 terms. This project is a non-commercial tribute, not affiliated with them. See
 [NOTICE.md](NOTICE.md).
