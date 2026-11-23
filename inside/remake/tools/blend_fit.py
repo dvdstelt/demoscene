@@ -6,8 +6,9 @@ The rasterizers 0x41669c (table[texel][background]) and 0x416dc8 (table[level][b
 (table[texel][background]) and the type 2 / 4 bitmaps (table[src][background]) give a palette index from the index
 already on screen. The remake draws them with dual-source blending: each table row r is fitted per colour channel as
     colour(table[r][j]) ~ clamp(b_r * colour(j) + s_r, 0, 1)   (least squares over the palette's 256 colours j)
-which is what Renderer::fit computes (the clamp: entries where the table saturates at white or black and the line is
-past it are left out of the fit; the frame clamps when it is shown). This prints, per table and the palette it is used with, the error of that fit
+with b and s in 0..1, which is what Renderer's fitRows computes (the clamp: entries where the table saturates at white
+or black and the line is past it are left out of the fit; the remake's 16-bit normalised target clamps every draw,
+and clamps the blend's source and factor to 0..1, hence the box). This prints, per table and the palette it is used with, the error of that fit
 in 6-bit units (0..63: one unit is one step of the VGA DAC): the mean over rows of the row's RMS error, the worst
 row's RMS, the largest single error, and the share of entries the fit puts within half a unit of the table's colour.
 For tables indexed by a source colour (.int) it also fits one blend for the whole table, out = a src + b dst + c,
@@ -38,18 +39,38 @@ TABLES = [
 ]
 
 
+def box_line(x, y):
+    """The least-squares line y ~ b x + s with b and s in 0..1: the free solution if it is inside, else the best of
+    the four edges' own minima (as Renderer's boxLine)."""
+    n = len(x)
+    if n < 1:
+        return 0.0, 0.0
+    sx, sy, sxx, sxy = x.sum(), y.sum(), (x * x).sum(), (x * y).sum()
+
+    def q(b, s):
+        return b * b * sxx + 2 * b * s * sx + n * s * s - 2 * b * sxy - 2 * s * sy
+    var = sxx - sx * sx / n
+    if var > 1e-12:
+        b = (sxy - sx * sy / n) / var
+        s = (sy - b * sx) / n
+        if 0 <= b <= 1 and 0 <= s <= 1:
+            return b, s
+    c = lambda v: min(max(v, 0.0), 1.0)  # noqa: E731
+    cands = [(c(sxy / sxx) if sxx > 1e-12 else 0.0, 0.0), (c((sxy - sx) / sxx) if sxx > 1e-12 else 0.0, 1.0),
+             (0.0, c(sy / n)), (1.0, c((sy - sx) / n))]
+    return min(cands, key=lambda bs: q(*bs))
+
+
 def fit_row(x, y):
-    """y ~ clamp(b x + s, 0, 1): least squares, then again without the entries the clamp already explains (the table
-    saturates at white or black where the line passes it), as Renderer's fitRows"""
+    """y ~ clamp(b x + s, 0, 1) with b, s in 0..1 (the remake's target clamps the blend's source and factor): least
+    squares, then again without the entries the clamp already explains (the table saturates at white or black where
+    the line passes it), as Renderer's fitRows"""
     use = np.ones(len(x), bool)
     b = s = 0.0
     for _ in range(4):
-        if use.sum() < 2:
+        if use.sum() < 1:
             break
-        xm, ym = x[use].mean(), y[use].mean()
-        var = ((x[use] - xm) ** 2).sum()
-        b = ((x[use] - xm) * (y[use] - ym)).sum() / var if var > 1e-12 else 0.0
-        s = ym - b * xm
+        b, s = box_line(x[use], y[use])
         p = b * x + s
         nu = ~(((y >= 1 - 1e-6) & (p >= y)) | ((y <= 1e-6) & (p <= y)))
         if (nu == use).all():

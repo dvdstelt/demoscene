@@ -423,21 +423,37 @@ struct Renderer::Impl {
 
     // Least squares per row and channel: table[r][j] ~ clamp(b * pal[j] + s, 0, 1) over the 256 background colours
     // j; entries where the table saturates at white or black and the line is already past it are left out of the
-    // refit (the frame clamps when it is shown). tools/blend_fit.py does the same and reports the errors.
+    // refit (the target clamps every draw). b and s stay in 0..1: ctx.out is 16-bit normalised, where the blend's
+    // source and factor are clamped to 0..1, so the fit is made within that box (it costs at most 0.16 of a 6-bit
+    // step in the mean over a table; tools/blend_fit.py does the same and reports the errors).
+    static void boxLine(const double* x, const double* y, const bool* use, double& b, double& s) {
+        double n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+        for (int j = 0; j < 256; j++)
+            if (use[j]) { n++; sx += x[j]; sy += y[j]; sxx += x[j] * x[j]; sxy += x[j] * y[j]; }
+        if (n < 1) return;
+        // the sum of squares as a function of the line, without the constant
+        auto q = [&](double bb, double ss) { return bb * bb * sxx + 2 * bb * ss * sx + n * ss * ss - 2 * bb * sxy - 2 * ss * sy; };
+        double var = sxx - sx * sx / n;
+        if (var > 1e-12) {
+            b = (sxy - sx * sy / n) / var;
+            s = (sy - b * sx) / n;
+            if (b >= 0 && b <= 1 && s >= 0 && s <= 1) return;
+        }
+        // the convex minimum lies on the box's edge: the best of the four edges' own minima
+        auto c01 = [](double v) { return std::clamp(v, 0.0, 1.0); };
+        double cand[4][2] = {{sxx > 1e-12 ? c01(sxy / sxx) : 0.0, 0.0}, {sxx > 1e-12 ? c01((sxy - sx) / sxx) : 0.0, 1.0},
+                             {0.0, c01(sy / n)}, {1.0, c01((sy - sx) / n)}};
+        double best = 1e300;
+        for (auto& c : cand)
+            if (double v = q(c[0], c[1]); v < best) { best = v; b = c[0]; s = c[1]; }
+    }
+
     static void fitLine(const double* x, const double* y, double& b, double& s) {
         bool use[256];
         std::fill(use, use + 256, true);
         b = s = 0;
         for (int it = 0; it < 4; it++) {
-            double n = 0, sx = 0, sy = 0;
-            for (int j = 0; j < 256; j++)
-                if (use[j]) { n++; sx += x[j]; sy += y[j]; }
-            if (n < 2) break;
-            double xm = sx / n, ym = sy / n, var = 0, cov = 0;
-            for (int j = 0; j < 256; j++)
-                if (use[j]) { var += (x[j] - xm) * (x[j] - xm); cov += (x[j] - xm) * (y[j] - ym); }
-            b = var > 1e-12 ? cov / var : 0.0;
-            s = ym - b * xm;
+            boxLine(x, y, use, b, s);
             bool same = true;
             for (int j = 0; j < 256; j++) {
                 double p = b * x[j] + s;
