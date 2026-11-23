@@ -218,7 +218,8 @@ unmask; 16-bit channels on 0xd4.. with halved values) and the GF1: `r8(0x41)` (c
 `w16(0x42, ((edi + 31) >> 5) * 2)` (DRAM address / 16, rounded up to 32 bytes; 16-bit channels use the GF1's
 16-bit address form), `w8(0x41, 0x21)` (start, card ← memory, 8-bit, IRQ at the end; | 4 for 16-bit channels).
 The IRQ handler 0x1a8e2 reads 2X6 until two reads agree and clears [0x29b8a] when bit 7 (DMA TC) is set. No byte
-is changed on the way (reg 0x41 bit 6 "invert MSB" is off): DRAM = the module's bytes.
+is changed on the way (reg 0x41 bit 7 "invert MSB" is off; bit 6 = 0: 8-bit data): DRAM = the module's bytes, 8-bit
+signed as the GF1 plays them. The capture has 30 writes of 0x21 and three of 0 to reg 0x41, nothing else.
 
 In this module every sample goes in one DMA block (none is longer than 64 KB, and the bounce buffer is 64 KB
 aligned), and the tails by PIO. Result (`lcaplay.py --info`; addresses hex; "end" = the GF1 end register: the
