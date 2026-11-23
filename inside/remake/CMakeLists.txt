@@ -70,6 +70,11 @@ target_compile_definitions(inside PRIVATE ${INSIDE_DEFINES})
 if(MINGW)
   target_link_options(inside PRIVATE -static -static-libgcc -static-libstdc++)
 endif()
+# SDL3 built from source on Windows: its DLL next to the program
+if(WIN32 AND TARGET SDL3::SDL3-shared)
+  add_custom_command(TARGET inside POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_FILE_DIR:inside>)
+endif()
 
 # Sources whose floating point must be evaluated as written (no contraction into FMAs), so that the results are the
 # same with every compiler: the module synthesis, the player and the GF1 mix, and anything a part wants to keep
