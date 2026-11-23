@@ -12,10 +12,11 @@ checking every file's SHA-256.
   fetch-originals.ps1 dope     only DOPE by Complex (The Gathering '95)
   fetch-originals.ps1 clone    only clone meets clone by Acme and Fudge (Takeover '98)
   fetch-originals.ps1 inside   only Inside by CNCD (The Gathering '96)
+  fetch-originals.ps1 reve     only Reve by Pulse (The Party '95; final version 1996)
 
 In the repository the files go into <repo>\<demo>\original\. Anywhere else (next to a released program such
-as acme303.exe, paper-remake.exe, jizz-remake.exe, stars-remake.exe, dope-remake.exe, clone-remake.exe or
-inside-remake.exe) they go
+as acme303.exe, paper-remake.exe, jizz-remake.exe, stars-remake.exe, dope-remake.exe, clone-remake.exe,
+inside-remake.exe or reve-remake.exe) they go
 into an original\ folder next to this script, and without an argument only the demo whose program is there is
 fetched.
 
@@ -31,7 +32,7 @@ powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 paper
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'clone', 'inside', 'all')]
+    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'clone', 'inside', 'reve', 'all')]
     [string]$Demo
 )
 
@@ -117,6 +118,15 @@ $Releases = [ordered]@{
             'INSIDE.DAT' = '9026946bd6988f3f375559a47982c7483a33817ef89d725f4ea194df84e5a865'
             'EYE.AMF'    = 'bf6172d3b1728da542b71f355ef4b58f9573a76fec02fd9ea99a801b5886d01f'
             'SDIGUS.DSD' = '9eebd39b89135d55039cd7b8de33a032555c0c6859a26efe2ecc07e36737eef1'
+        }
+    }
+    'reve' = @{
+        Title   = "Reve by Pulse (The Party '95, 1995; final version 1996)"
+        ZipName = 'pls_revf.zip'
+        ZipPath = 'demos/groups/pulse/pls_revf.zip'
+        Program = 'reve-remake'
+        Files   = [ordered]@{
+            'REVE.EXE' = 'a2053c9c3112977d3593c9f0690d32f10a225471109750b4947af68b22507cd2'
         }
     }
 }

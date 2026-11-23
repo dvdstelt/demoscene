@@ -10,6 +10,7 @@
 #   scripts/fetch-originals.sh dope     only DOPE by Complex (The Gathering '95)
 #   scripts/fetch-originals.sh clone    only clone meets clone by Acme and Fudge (Takeover '98)
 #   scripts/fetch-originals.sh inside   only Inside by CNCD (The Gathering '96)
+#   scripts/fetch-originals.sh reve     only Reve by Pulse (The Party '95; final version 1996)
 #
 # In the repository the files go into <repo>/<demo>/original/. Anywhere else (next to
 # a released program) they go into an original/ folder next to this script, and without an argument only the
@@ -98,6 +99,15 @@ demo_info() {
             "SDIGUS.DSD   9eebd39b89135d55039cd7b8de33a032555c0c6859a26efe2ecc07e36737eef1"
         )
         ;;
+    reve)
+        title="Reve by Pulse (The Party '95, 1995; final version 1996)"
+        zip_name=pls_revf.zip
+        zip_path=demos/groups/pulse/pls_revf.zip
+        program=reve-remake
+        files=(
+            "REVE.EXE     a2053c9c3112977d3593c9f0690d32f10a225471109750b4947af68b22507cd2"
+        )
+        ;;
     *) return 1 ;;
     esac
     # scene.org itself, two https mirrors, then the scene.org redirector (picks any mirror)
@@ -109,7 +119,7 @@ demo_info() {
     )
 }
 
-all_demos=(303 paper jizz stars dope clone inside)
+all_demos=(303 paper jizz stars dope clone inside reve)
 
 # ---------------------------------------------------------------- tools
 usage() {  # the comment at the top of this file
@@ -248,7 +258,7 @@ fetch_demo() {  # demo
 demos=()
 for arg in "$@"; do
     case "$arg" in
-    303 | paper | jizz | stars | dope | clone | inside) demos+=("$arg") ;;
+    303 | paper | jizz | stars | dope | clone | inside | reve) demos+=("$arg") ;;
     all) demos+=("${all_demos[@]}") ;;
     -h | --help) usage; exit 0 ;;
     *) fail "unknown argument '$arg'"; usage >&2; exit 2 ;;
