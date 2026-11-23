@@ -40,3 +40,11 @@ rendered at high resolution: the letters solid pure white, the star perfectly fl
 nothing on it, the background pure black, with no shading, texture, gradient, glow or shadow anywhere. Only the
 resolution changes. Do not add, remove or move anything, do not crop or zoom. A landscape image of the same shape as
 the upload, as large as you can make it."
+
+## Kept as the original
+
+| picture | why |
+|---|---|
+| the intro's picture (`intro/intro.raw`), the four photos of the sprites parts (`nigga/sprite*.raw`), the faces in the credits' names | photos of real people: never redrawn |
+| the water part's background (`water/water.raw`, 320 × 200) | a blurred, blue-tinted photo of an interior (no people), drawn as it is and shifted by the ripple. Two ChatGPT attempts on 23 November 2026, from the nearest-neighbour upload with a prompt that asked for the same picture with the same soft blur, without the pixels and the 143-colour bands: the first fitted well (RMS 7.1, detail correlation 0.930) but came out softer than the original, the second (asked to keep every edge as defined as the original's) fitted worse (RMS 8.2, 0.909); both darkened the left side. Neither is faithful enough, and the original pixels read filtered already look as soft as the photo is |
+| the textures (the tunnel, flower, twirl, flight, water, temple and sprites textures, the sun and the lens flares) | read by the effects through texture mapping, shade, fog and blend tables, or warped (the twirl): not drawn as they are, so the remake reads them filtered from the original |
