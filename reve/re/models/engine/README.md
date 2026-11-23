@@ -13,6 +13,7 @@ inside the toolbox from this folder: `toolbox run -c acme303 python3 <script> ..
 | `test_anim.py DIR NAME [--snaps ...]` | the ANI model vs the camera and object state of dumps and snapshots: prints the number of steps that reproduces each |
 | `test_frame.py DIR NAME ENTRY` | dump state → model render → the entry's 2D passes, vs the capture records |
 | `model_part.py ENTRY [--every N]` | end to end, from the archive's files and the refresh number only: sampled capture records of a 3D entry, classified as exact (with the state's age), torn, or split; counts culls decided by stale outcode bytes and whether they matter |
+| `painter.py ENTRY` | the same frames with the original's painter's order and with a per-pixel depth test: how much of the picture the order decides |
 | `check_isqrt.py` | runs the square root 0x2175dc in unicorn against floor(sqrt) |
 | `tables.py` | GOURAUD.PAL and ANTIALIA.PAL against TEXTURE.RAW's palette; the palette of each 3D entry in the capture |
 | `fit_tables.py` | fits the formulas the two tables quantise (brightness factor per level; nearest-average) |
@@ -46,3 +47,5 @@ toolbox run -c acme303 python3 models/engine/run_reve.py --load --snap snaps/f70
   tear), 2 split states, 3 PART4 records that differ only in box lines to corners behind the camera (the original
   draws them to screen positions from earlier frames).
 - `check_isqrt.py`: 0x2175dc = floor(sqrt) on 100,023 values.
+- `painter.py`: a depth test instead of the painter's order changes 0.36 % (P3D3) to 4.7 % (PART4) of the drawn
+  pixels by more than 12/63: whole surfaces swap.

@@ -89,7 +89,7 @@ def isqrt32(x):
 
 # ---------------------------------------------------------------- the world (WLD)
 class Vertex:
-    __slots__ = ('x', 'y', 'z', 'u', 'v', 'nx', 'ny', 'nz', 'xc', 'yc', 'zc', 'zc32', 'sx', 'sy', 'shade', 'clip')
+    __slots__ = ('x', 'y', 'z', 'u', 'v', 'nx', 'ny', 'nz', 'xc', 'yc', 'zc', 'zc32', 'sx', 'sy', 'shade', 'clip', 'ztrue')
 
     def __init__(self, x, y, z, u, v):
         self.x, self.y, self.z, self.u, self.v = x, y, z, u, v

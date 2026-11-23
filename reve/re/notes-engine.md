@@ -464,6 +464,15 @@ is not: `d ≈ (up + down + centre + left) / 4`. In colour that is a 4-tap blur 
 (0, 0), (−1, 0): horizontally a shift of the image by +¼ pixel to the right with variance 3/16 px², vertically no
 shift with variance ½ px² (units: original pixels).
 
+**The pass shifts colours.** Where the picture is flat (all four taps one index a) the result is
+`T[T[a][a]][T[a][a]]`, and the table does not map every colour to itself: on PART4's ramp 81 (62, 57, 52, beige) →
+2 → 1 (white), 82 → 4 → 3, 83 → 5 → 4, 85 → 40, 86 → 41, 88 → 87; texture colours likewise. Measured on the dumps'
+back buffers: 55 % of PART4's drawn pixels change colour this way (about 5/63 per channel where they change: its
+letters show white in the capture, not beige), 8–15 % of the INTRO's, P3D1's and P3D3's (2–4.5/63). The remake
+draws each index in the AA entries with the colour `pal[T[T[a][a]][T[a][a]]]` and then blurs in colour. (FIN's blend
+`T[new][screen]` converges for a still area of index a to a fixed point of `s ← T[a][s]`: a shift of 0.28/63 on
+average, left out.)
+
 The table is a rough average: over the colours the textures use, `T[a][b]` is the nearest palette colour to the
 average of a and b for only about half of the pairs; its colour is on average 6.7 (90th percentile 10.9, at most
 21.5) 6-bit units away from the true average, and `T[a][a] ≠ a` for 71 of the 173 colours (a colour maps to a
@@ -512,15 +521,15 @@ at cosθ ≈ ¼; surfaces facing the camera are blown out to white: the chrome l
   level linearly in screen space without subpixel prestep and truncates it to 16 steps.
 - **Flat faces**: `colour + level` with a continuous level, blending the two neighbouring palette entries of the ramp.
 - **Painter's order**: objects sorted by origin depth and drawn whole, faces by first-vertex depth within an
-  object. Where this order is right a depth buffer gives the same picture; where it is wrong (objects that
-  interpenetrate or overlap with origins in the other order, long faces whose first vertex is not representative)
-  the original shows the error. I did not measure how often that happens; a depth buffer is the exact evaluation of
-  the geometry, keeping the order keeps its errors. The culling rules (far cull, box tests) stay as they are either
-  way.
+  object. Measured with the exact model (`painter.py`: the same frames with a per-pixel depth test instead): a depth
+  buffer changes 0.36 % (P3D3), 0.75 % (FIN), 1.1 % (INTRO), 2.9 % (P3D1), 4.3 % (PART2) and 4.7 % (PART4) of the
+  drawn pixels by more than 12/63, mostly whole surfaces that swap (a beam's end in P3D1, the tower's inside in
+  PART2, letters and rings in PART4). The order is visible in every part: the remake keeps it (with the original's
+  keys). The culling rules (far cull, box tests) stay as they are either way.
 - **Edges**: anti-aliased instead of the fill rule above.
-- **AA pass**: the blur it approximates, in colour, at the output resolution: weights ¼ at the four taps in original
-  pixel units (or the Gaussian of the same variances, σx² = 3/16, σy² = ½ original px², with or without the ¼-pixel
-  shift); keep the black 4-pixel side and 1-pixel top and bottom borders (they are visible).
+- **AA pass**: the blur it approximates, in colour, at the output resolution: weights ¼ at the four taps one original
+  pixel apart, each tap a whole original pixel (the box average over it: taps of single output pixels make four
+  shifted copies of every sharp edge), with the colour shift above. The remake drops the black border.
 - **FIN's blend**: (new + old)/2 per refresh in colour, evaluated for seeking as Σ_k 2^−(k+1)·frame(r − k) over the
   last ~12 refreshes (2^−12 ≈ 0.0002), starting from black at FIN's first refresh.
 
