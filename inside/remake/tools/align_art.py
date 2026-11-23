@@ -83,11 +83,11 @@ def spec(name):
 # and boxes (x0, y0, x1, y1) that cover each scanned face with its hair and nothing of the name. Inside them every
 # pixel that is not the star's level 10 is the face. The remake uses the same shapes (src/scenes/credits.cpp).
 FACES = {
-    'credits_destop': dict(ellipses=[(50, 35, 36, 30)], boxes=[(78, 4, 93, 38)]),
+    'credits_destop': dict(ellipses=[(50, 35, 36, 30)], boxes=[(64, 2, 93, 38)]),
     'credits_wili': dict(ellipses=[(77, 37, 25, 28)], boxes=[]),
     'credits_jouni': dict(ellipses=[(50, 38, 23, 27)], boxes=[]),
     'credits_juliet': dict(ellipses=[(51, 36, 27, 25)], boxes=[]),
-    'credits_yolk_legend': dict(ellipses=[(49, 38, 34, 28), (266, 38, 28, 30)], boxes=[]),
+    'credits_yolk_legend': dict(ellipses=[(47, 40, 36, 29), (266, 38, 28, 30)], boxes=[]),
 }
 
 
@@ -102,65 +102,33 @@ def face_mask(name, level):
     return inside & (level != 10)
 
 
-def star_polygons(level):
-    """The stars of a name picture as 10-vertex polygons, from their own pixels: the convex hull of each star's level-10
-    pixels is the pentagon of its five tips; the inner corners are where the lines from each tip to the tips two
-    steps away cross. Stars are told apart by x (YOLK & LEGEND has one at the left and one at the right)."""
-    ys, xs = np.nonzero(level == 10)
-    pts = np.stack([xs + 0.5, ys + 0.5], axis=1)
-    groups = [pts]
-    if xs.max() - xs.min() > 150:                       # two stars
-        mid = (xs.max() + xs.min()) / 2
-        groups = [pts[pts[:, 0] < mid], pts[pts[:, 0] >= mid]]
-    polys = []
-    for g in groups:
-        c = g.mean(axis=0)
-        d = np.hypot(*(g - c).T)
-        ang = np.arctan2(g[:, 1] - c[1], g[:, 0] - c[0])
-        tips = []
-        free = np.ones(len(g), bool)
-        for _ in range(5):
-            k = int(np.argmax(np.where(free, d, -1)))
-            tips.append(g[k])
-            da = np.abs((ang - ang[k] + np.pi) % (2 * np.pi) - np.pi)
-            free &= da > np.pi / 5
-        tips = sorted(tips, key=lambda t: np.arctan2(t[1] - c[1], t[0] - c[0]))
-
-        def cross(p1, p2, p3, p4):
-            d1, d2 = p2 - p1, p4 - p3
-            den = d1[0] * d2[1] - d1[1] * d2[0]
-            t = ((p3[0] - p1[0]) * d2[1] - (p3[1] - p1[1]) * d2[0]) / den
-            return p1 + t * d1
-        poly = []
-        for k in range(5):
-            poly.append(tips[k])
-            poly.append(cross(tips[k], tips[(k + 2) % 5], tips[(k + 1) % 5], tips[(k - 1) % 5]))
-        polys.append(np.array(poly))
-    return polys
-
-
-def inside_polygon(poly, x, y):
-    inside = np.zeros(x.shape, bool)
-    n = len(poly)
-    for k in range(n):
-        x1, y1 = poly[k]
-        x2, y2 = poly[(k + 1) % n]
-        cond = (y1 > y) != (y2 > y)
-        xi = x1 + (y - y1) * (x2 - x1) / np.where(y2 != y1, y2 - y1, 1)
-        inside ^= cond & (x < xi)
-    return inside
+def inside_star(level):
+    """Pixels that have star pixels (level 10) to their left, right, top and bottom: the inside of the star(s)."""
+    st = level == 10
+    left = np.maximum.accumulate(st, axis=1)
+    right = np.maximum.accumulate(st[:, ::-1], axis=1)[:, ::-1]
+    up = np.maximum.accumulate(st, axis=0)
+    down = np.maximum.accumulate(st[::-1], axis=0)[::-1]
+    return left & right & up & down
 
 
 def remove_faces(name, level):
-    """The level map with every face pixel replaced by the star (inside its polygon) or black."""
+    """The level map with every face pixel replaced by the star (where the star surrounds it) or black."""
     mask = face_mask(name, level)
-    h, w = level.shape
-    yy, xx = np.mgrid[0:h, 0:w] + 0.5
-    star = np.zeros((h, w), bool)
-    for poly in star_polygons(level):
-        star |= inside_polygon(poly, xx, yy)
     out = level.copy()
-    out[mask] = np.where(star[mask], 10, 0)
+    out[mask] = np.where(inside_star(level)[mask], 10, 0)
+    # thin black seams where the hair reached the star's edge: star within 3 pixels on both sides closes them
+    st = out == 10
+    h, w = st.shape
+    for _ in range(2):
+        near_l = np.zeros_like(st)
+        near_r = np.zeros_like(st)
+        for d in range(1, 4):
+            near_l[:, d:] |= st[:, :w - d]
+            near_r[:, :w - d] |= st[:, d:]
+        fix = mask & ~st & near_l & near_r
+        out[fix] = 10
+        st = out == 10
     return out
 
 
@@ -435,6 +403,37 @@ def colour_match(orig, alpha, red, p):
     return out
 
 
+def level_match(orig, red, p, levels=(0, 10, 31)):
+    """For a level map: a piecewise-linear grey curve through the redraw's plateaus. The redraw's median where the
+    original is flat at each level (black, the star, the letters) goes to that level, values within the plateau's
+    spread stay exactly on it (the original's areas are flat), and the edges in between are scaled linearly."""
+    fit = Fit(orig, np.zeros(3), red)
+    fit.prepare(p[0])
+    w = fit.warp(p, ss=4)[..., 0]
+    lv = np.round(orig[..., 0] * 31.0 / 255.0).astype(np.int32)
+    xs, ys = [], []
+    for L in levels:
+        m = lv == L
+        for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):   # away from the edges
+            m &= np.roll(np.roll(lv, dy, 0), dx, 1) == L
+        if m.sum() < 20:
+            continue
+        med = float(np.median(w[m]))
+        t = float(np.percentile(np.abs(w[m] - med), 98))
+        xs.append((med, t))
+        ys.append(L * 255.0 / 31.0)
+    xp, yp = [], []
+    for i, ((med, t), y) in enumerate(zip(xs, ys)):
+        lo_gap = med - xs[i - 1][0] if i else 1e9
+        hi_gap = xs[i + 1][0] - med if i + 1 < len(xs) else 1e9
+        t = min(t, 0.3 * lo_gap, 0.3 * hi_gap)
+        xp += [med - t, med + t]
+        yp += [y, y]
+    print('  level plateaus: ' + ', '.join('%.0f +- %.0f -> %.0f' % (m, t, y) for (m, t), y in zip(xs, ys)))
+    g = np.interp(red.mean(axis=2), xp, yp)
+    return np.repeat(g[..., None], 3, axis=2)
+
+
 def align(a):
     name = a.name
     s = spec(name)
@@ -459,6 +458,8 @@ def align(a):
             c, al = unmix(red)
             c = colour_match(orig, alpha, c, p)
             red = c * al[..., None] + KEY * (1 - al[..., None])
+        elif s.get('levels'):
+            red = level_match(orig, red, p)
         else:
             red = colour_match(orig, alpha, red, p)
         fm = Fit(orig, bg, red)
@@ -472,6 +473,8 @@ def align(a):
         c, al = unmix(np.asarray(out, np.float64))
         out = Image.fromarray(np.clip(np.round(np.concatenate([c, al[..., None] * 255.0], axis=2)), 0, 255)
                               .astype(np.uint8), 'RGBA')
+    if s.get('levels'):
+        out = out.convert('L')   # a level map: grey 255 * level / 31, as the credits read it
     out_path = a.out or os.path.join(ART, name + '.png')
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     out.save(out_path, optimize=True)
