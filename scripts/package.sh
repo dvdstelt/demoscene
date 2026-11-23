@@ -2,7 +2,7 @@
 # Packages a build of a remake as a release download: a MinGW build as a zip for Windows, a Linux build as a
 # tar.gz.
 #
-#   scripts/package.sh <303|paper|jizz|stars|dope|clone|inside> <windows|linux> [BUILD_DIR] [OUT_DIR]
+#   scripts/package.sh <303|paper|jizz|stars|dope|clone|inside|reve> <windows|linux> [BUILD_DIR] [OUT_DIR]
 #
 # BUILD_DIR defaults to <repo>/<demo>/remake/build-win for Windows and <repo>/<demo>/remake/build for Linux (as in
 # the remakes' READMEs), OUT_DIR to <repo>/out. Writes OUT_DIR/<demo>-remake-windows-x64.zip or
@@ -26,7 +26,7 @@
 set -euo pipefail
 
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
-usage="usage: $0 <303|paper|jizz|stars|dope|clone|inside> <windows|linux> [BUILD_DIR] [OUT_DIR]"
+usage="usage: $0 <303|paper|jizz|stars|dope|clone|inside|reve> <windows|linux> [BUILD_DIR] [OUT_DIR]"
 
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 demo=${1:-}
@@ -39,6 +39,7 @@ stars) program=stars-remake ;;
 dope)  program=dope-remake ;;
 clone) program=clone-remake ;;
 inside) program=inside-remake ;;
+reve)  program=reve-remake ;;
 *)     die "$usage" ;;
 esac
 case "$os" in
@@ -318,6 +319,23 @@ effects, timing and music, rendered at any resolution in true colour instead of 
   --info            show the time, music position and part in the window title
   --original-art    show the original pixels instead of the redrawn pictures
   --data DIR        the folder with the original INSIDE.EXE, INSIDE.DAT, EYE.AMF and SDIGUS.DSD
+  --art DIR         the folder with the redrawn pictures"
+elif [ "$demo" = reve ]; then
+    title="Reve by Pulse - high resolution remake for $platform"
+    about='A re-implementation of "Reve", the PC demo by Pulse (code LCA, graphics Antony and AJT, music Shad)
+that placed 5th in the PC demo competition at The Party '"'"'95; this is its final version of 1996. It plays the
+original'"'"'s effects, timing and music, rendered at any resolution in true colour instead of 320x200 in 256
+colours.'
+    zipfile=pls_revf.zip
+    needed="REVE.EXE (999,999 bytes)"
+    options="  --window          run in a window instead of fullscreen
+  --size 1280x960   window size
+  --start SECONDS   start position
+  --ss 2            render at twice the resolution and downsample (antialiasing)
+  --loop            restart at the end
+  --info            show the time, music position and part in the window title
+  --original-art    show the original pixels instead of the redrawn pictures
+  --data DIR        the folder with the original REVE.EXE
   --art DIR         the folder with the redrawn pictures"
 else
     title="Paper by Psychic Link - high resolution remake for $platform"

@@ -86,8 +86,17 @@ Windows from Linux: `mingw64-cmake -S <dir> -B <dir>/build-win -G Ninja && cmake
 `scripts/ci-build.sh <project> <linux|windows>` builds and packages a project as the build workflow does.
 The maintainer's machine is Fedora Atomic: compilers, Python tools (numpy, PIL, capstone, unicorn) and dosbox live
 in a toolbox container (`toolbox run -c acme303 <cmd>`). Install packages only inside the container, never on the
-host. Use your own build directory (`build-<name>`) when other agents may build at the same time, and delete it
-afterwards.
+host.
+
+Where builds go (all git-ignored); keep to these names:
+
+| folder | what it holds |
+|---|---|
+| `<demo>/remake/build/` | **the** build: the program you run (`<demo>-remake`; 303's is `acme303`), and the one `scripts/render-videos.sh` uses. When the maintainer asks for a build to run, build here (Release, the default) and leave it in place. |
+| `<demo>/remake/build-win/` | the MinGW cross-build: `<demo>-remake.exe` and `SDL3.dll` |
+| `<demo>/remake/build-<name>/` | an agent's own build while other agents build the same demo at the same time; delete it afterwards. It never replaces `build/`. |
+| `<demo>/remake/build-ci-<linux\|windows>/`, `out/` | what `scripts/ci-build.sh` makes: the release download in `out/` (`<demo>-remake-linux-x64.tar.gz`, SDL3 linked in, or `<demo>-remake-windows-x64.zip`). Only for testing a release package; the Linux one is built in a throwaway `almalinux:9` container with the workflow's recipe, as SDL3 does not build from source in the toolbox. |
+| `videos/` | the videos `scripts/render-videos.sh` renders ([docs/videos.md](docs/videos.md)) |
 
 ## Builds and releases
 

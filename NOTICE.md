@@ -26,6 +26,8 @@ not include them, and the license in [LICENSE.md](LICENSE.md) does not cover the
 - **Inside** by CNCD (The Gathering '96, 1996): code Wili, Jouni and Juliet, graphics Destop, music Yolk and
   Legend, additional graphics Santtu. It uses DSMI by Otto Chrons (Virtual Visions), PMODE/W by Thomas Pytel and
   the SurRender 3D engine by Hybrid.
+- **Reve** by Pulse (The Party '95, 1995; final version 1996): code LCA, graphics Antony and AJT, music Shad. It uses
+  LCA's FLAT OS extender, MOD-Player and packer, and the Infiny Loader.
 
 The remakes read the original files at run time. You need your own copy of each original release:
 `scripts/fetch-originals.sh` (or `fetch-originals.ps1` on Windows) downloads it from scene.org. The source code
