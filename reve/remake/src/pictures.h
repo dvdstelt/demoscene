@@ -73,6 +73,9 @@ public:
     // The upscale of a texture of detailList() (RGBA8, not premultiplied), decoded on a worker thread at init:
     // nullptr when art is off or there is none. Cached; valid until release().
     const Image* detail(const std::string& name);
+    // The redraw art/<name>.png (or .jpg) of a texture that a part maps itself (the planes' DADA, TOM, BOZ), decoded
+    // as RGBA8 (premultiplied; the textures are opaque): w = 0 when art is off or there is none. Not cached.
+    Image redrawImage(const std::string& name) const;
     void release();
 
 private:

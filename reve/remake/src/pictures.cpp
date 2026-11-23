@@ -178,6 +178,14 @@ const Image* PictureStore::detail(const std::string& name) {
     return details_.emplace(name, std::move(im)).first->second.get();
 }
 
+Image PictureStore::redrawImage(const std::string& name) const {
+    std::string path = useArt_ ? redrawPath(name) : "";
+    if (path.empty()) return {};
+    Decoded d = decode(path);
+    if (d.im.w <= 0) SDL_Log("picture: cannot read %s (%s)", path.c_str(), d.err.c_str());
+    return d.im;
+}
+
 std::string PictureStore::redrawPath(const std::string& name) const {
     if (artDir_.empty()) return "";
     for (const char* ext : {".png", ".jpg"})

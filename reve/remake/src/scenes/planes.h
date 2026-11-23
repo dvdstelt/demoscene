@@ -23,13 +23,21 @@
 
 namespace planes {
 
-// A plane texture: indices of a RAW file through a palette, as colours (the upscale art/tex_<name>.jpg when there is
-// one: exactly 4 x the RAW file's size; a 64 x 64 tile takes its part of it).
+// A plane texture: indices of a RAW file through a palette, as colours; the redraw art/<name>.png (any size, covering
+// the whole RAW picture: DADA, TOM, BOZ) when art is on and there is one, else the upscale art/tex_<name>.jpg when
+// there is one (exactly 4 x the RAW file's size; a 64 x 64 tile takes its part of it).
 inline void loadTexture(Ctx& c, Texture& tex, uint32_t fileName, uint32_t paletteName, int x0, int y0, int size) {
     std::string file = c.exe->cstr(fileName);
     RawImage px = rawImage(*c.exe, file);
     RawImage pal = rawImage(*c.exe, c.exe->cstr(paletteName));
     Image im;
+    if (c.pictures && size == px.w && size == px.h && x0 == 0 && y0 == 0) {
+        Image red = c.pictures->redrawImage(detailName(file));
+        if (red.w > 0) {
+            tex.create(red, /*repeat=*/true, /*mipmap=*/true);
+            return;
+        }
+    }
     const Image* up = c.pictures ? c.pictures->detail(detailName(file)) : nullptr;
     if (up && up->w == 4 * px.w && up->h == 4 * px.h) {
         im.w = im.h = 4 * size;
