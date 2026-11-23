@@ -40,6 +40,12 @@ const std::vector<PictureInfo>& pictureList() {
         {"dog", 0x205dcf, 0, 0, 0, -1, -1, 0},        // GFX\DOG.RAW, entry 24
         {"waaf", 0x205ddb, 0, 0, 0, -1, -1, -1},      // GFX\MRWAAF.RAW, entry 25
         {"yocol", 0x205e40, 0, 0, 0, -1, -1, -1},     // GFX\YOCOL.RAW, entry 29
+        // the credits (entries 1-4, notes-parts3d.md): bands of 64 rows of GFX\CREDITS.RAW (0x205d08) through
+        // GFX\TEXTURE.RAW's palette, drawn as sprites over the 3D, index 0 not drawn (the black outline is index 79)
+        {"credits_antony", 0x205d08, 0x205ceb, 0, 0, 231, 64, 0},
+        {"credits_shad", 0x205d08, 0x205ceb, 0, 64, 151, 64, 0},
+        {"credits_lca", 0x205d08, 0x205ceb, 0, 128, 120, 64, 0},
+        {"credits_ajt", 0x205d08, 0x205ceb, 0, 192, 130, 64, 0},
         // the strobes (scenes/strobe.cpp): whole-screen pictures with their own palettes, shown with their negative
         {"pulse", 0x205d46, 0, 0, 0, -1, -1, -1},     // GFX\PULSE.RAW, entries 5 and 6
         {"gene", 0x205dea, 0, 0, 0, -1, -1, -1},      // GFX\GENE.RAW, entries 20 and 21

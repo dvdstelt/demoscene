@@ -42,17 +42,19 @@ retrace). Playback, `--start`, `--shots` and `--video` work in seconds of music 
 
 | clock | in the remake |
 |---|---|
-| the retrace routine's calls (the timer interrupt calls the script entry's retrace routine once per refresh, at the retrace, from the entry's first refresh on) | `c.refreshes(r)` = r − `c.start`: evaluate the stepped state continuously at n = r − c.start |
-| what a **frame routine** advances per drawn frame | frame-rate dependent: the notes give the capture's frame rate; the remake steps it at the capture's rate (one step per refresh where the capture draws every refresh), as continuous motion |
+| the retrace routine's calls (the timer interrupt calls the script entry's retrace routine once per refresh, at the retrace, from the entry's first refresh on) | `c.refreshes(r)` = r − `c.start`: record r shows the state after n = r − c.start calls; evaluate it continuously at that n |
+| what a **frame routine** advances per drawn frame | frame-rate dependent: the notes give the capture's frame rate; the 2D parts draw every refresh in the capture, so step them once per refresh, as continuous motion |
 | the music position order << 8 \| row | `c.position(r)`; `c.music->refreshOfPosition(pos)` = the first refresh whose retrace sees it |
 | the script table 0x205ed0 (read from the image) | `c.script()`: each entry's routines, end position and its `start` / `end` refreshes; `c.cue->entry` is the entry being drawn |
 | the capture | `c.captureRecord(r)` = the `full.frames` record shown at r |
 
-**Entry starts** (`src/timeline.cpp`, `reve-remake --cues`): one cue per script entry, from the refresh at which the
-music reaches the previous entry's end position to the one at which it reaches its own. The original then finishes
-its frame and runs the next entry's init (loading files can take several refreshes) before the next retrace routine
-runs; the remake switches at once, as an infinitely fast machine would, so an entry may start a few records earlier
-than in the capture (`full.log` lists the capture's "retrace routine set at frame N").
+**Entry starts** (`src/timeline.cpp`, `reve-remake --cues`): one cue per script entry. Its `c.start` is the
+capture's own first retrace call S of the entry ("retrace routine set at frame S" in `full.log`): the original's
+init runs 1 to 12 refreshes after the music reaches the previous entry's end position P (it unpacks files), and
+the remake takes the capture's time for it, so **record r shows the state after r − S retrace calls**, in every entry
+(the decompiling agents verified this rule). Between P + 1 and S the framework shows the previous entry's frame of
+refresh P + 1 (`Cue::hold`), or black where the next init clears the screen first (`Cue::black`); a part never
+needs to handle that gap. `c.end` is the next entry's S.
 
 **Stepped state.** Replay what the original steps per refresh from the entry start on every frame with closed forms
 or `TickStepper`, and blend continuous quantities between step n and n + 1 by the fraction, so motion is smooth at
