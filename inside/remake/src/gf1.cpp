@@ -1,6 +1,6 @@
-// The GUS as clone meets clone's MXMPlay sees it (the register ports 0x4022d2..0x402399 from the card's side), the
-// card's model that answers its reads (mxmplay.py's class GF1), and the GF1 synthesiser at any output rate. See
-// gf1.h; clone/re/notes-music.md sections 4.7, 6, 7 and 9.
+// The GUS as Inside's DSMI driver sees it (its port helpers 0x1152c0c..0x1152f50 from the card's side), the card's
+// model that answers its reads (inside/re/models/music/gf1.py), and the GF1 synthesiser at any output rate. See
+// gf1.h; inside/re/notes-music.md sections 7, 8 and 11.
 #include "gf1.h"
 
 #include <algorithm>
@@ -22,9 +22,11 @@ void Card::port(int p, int val) {
 
 void Card::logWrite(int reg, int val) {
     regs_[voice_][reg & 0x7f] = uint16_t(val);
-    if (!log) return;
+    if (!log || reg == 0x43 || reg == 0x44) return;  // the capture does not log the DRAM address
     char b[48];
-    const int n = std::snprintf(b, sizeof b, "%d v%d r%02x %x\n", tick, voice_, unsigned(reg), unsigned(val));
+    const int n = reg >= 0x40  // the global registers
+                      ? std::snprintf(b, sizeof b, "%d g r%02x %x\n", tick, unsigned(reg), unsigned(val))
+                      : std::snprintf(b, sizeof b, "%d v%d r%02x %x\n", tick, voice_, unsigned(reg), unsigned(val));
     if (n > 0) log->append(b, size_t(n));
 }
 
@@ -41,7 +43,7 @@ void Card::w16(int reg, int val) {
     received(voice_, reg, uint32_t(val));
 }
 
-// run_clone.py's fake GUS: the last value written to the register (the status registers with bit 0 set: "voice
+// run_inside.py's fake GUS: the last value written to the register (the status registers with bit 0 set: "voice
 // stopped", "ramp stopped"); the high byte for the registers whose 8-bit read returns the high byte.
 int Card::r8(int reg) {
     int v = reg >= 0x80 ? regs_[voice_][reg - 0x80] : 0;
@@ -54,6 +56,11 @@ int Card::r16(int reg) {
     int v = reg >= 0x80 ? regs_[voice_][reg - 0x80] : 0;
     if (reg == 0x80 || reg == 0x8d) v |= 1;
     return v & 0xffff;
+}
+
+void Card::waitVoice() {
+    for (int i = 0; i < 20; i++)
+        if (r8(0x8d) & 1) break;
 }
 
 // ---------------------------------------------------------------------------------------------- the card's model
@@ -103,20 +110,11 @@ int Hardware::r16(int reg) {
     return 0;
 }
 
-// 0x4024ee polls reg 0x8d of every channel until bit 0 (ramp stopped) is set; the GF1 runs meanwhile.
-void Hardware::waitRamps(int voices) {
-    int64_t n = 0;
-    for (int i = 0; i < voices; i++) {
-        const Voice& s = v_[i];
-        if (s.vctl & 3) continue;
-        const int64_t inc = rampInc(s);
-        if (!inc) continue;
-        const int64_t dist = (s.vctl & 0x40) ? s.vol - s.lo : s.hi - s.vol;
-        const int64_t frames = dist > 0 ? (dist + inc - 1) / inc : 1;
-        n = std::max(n, std::max<int64_t>(1, frames));
-    }
-    run(int(n));
-    waited += int(n);
+void Hardware::waitVoice() {
+    const Voice& s = v_[voice_];
+    if (s.vctl & 1 || !rampInc(s)) return;
+    run(1);
+    waited++;
 }
 
 void Hardware::run(int n) {

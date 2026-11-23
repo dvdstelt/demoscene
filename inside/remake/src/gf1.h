@@ -1,16 +1,17 @@
-// The Gravis UltraSound as clone meets clone's MXMPlay drives it (clone/re/notes-music.md sections 4.4-4.7, 6, 7 and
-// 9; JIZZ's jizz/remake/src/gf1.* and STARS's stars/remake/src/gf1.* extended with 16-bit voices).
+// The Gravis UltraSound as Inside's DSMI driver SDIGUS.DSD drives it (inside/re/notes-music.md sections 7, 8 and 11),
+// from clone meets clone's gf1.* (itself JIZZ's and STARS's, extended with 16-bit voices).
 //
-// gus::Card is the capture's fake GUS (run_clone.py): it logs every port and register write in the format of
-// clone/re/full.gus, keeps the 1 MB sample DRAM, and answers a register read with the last value written (| 1 for
-// the status registers 0x80 / 0x8d); the busy wait for the volume ramps takes no time. That is what full.gus was
-// recorded with.
+// gus::Card is the capture's fake GUS (run_inside.py): it logs every port and register write in the format of
+// inside/re/full.gus ("stamp vN rXX val" for the voice registers, "stamp g rXX val" for the global ones from 0x40 on,
+// except the DRAM address registers 0x43 / 0x44, "stamp pPPP val" for a port), keeps the 1 MB sample DRAM, and
+// answers a register read with the last value written (| 1 for the status registers 0x80 / 0x8d), so the driver's
+// ramp wait ends at once. That is what full.gus was recorded with.
 //
 // gus::Hardware answers the reads from a model of the GF1 running at the card's own rate, 617,400 / active voices
-// frames per second (34,300 Hz with this player's 18 voices), as mxmplay.py's class GF1 does (--real-volume-read):
-// the volume the player reads before a ramp is the voice's current (ramped) volume, the restart keeps the direction
-// bit of a bidirectional loop, and the busy wait lets the card run until the ramps have stopped. It can record
-// every write with the instant it takes effect, for gus::Synth.
+// frames per second (25,725 Hz with DSMI's 24 voices), as inside/re/models/music/gf1.py does: the volume the driver
+// reads before a ramp is the voice's current (ramped) volume, and the driver's bounded wait for a ramp (20 polls of
+// the selected voice) lets the card run one frame while that voice is still ramping. It can record every write with
+// the instant it takes effect, for gus::Synth.
 //
 // gus::Synth renders the voices from those writes at any output rate. The card's position increments and volume-
 // ramp steps are scaled by (617,400 / voices) / rate, so pitch, ramp durations and timing stay the card's; only the
@@ -19,7 +20,8 @@
 // a is a word address, its word is at byte (a & 0xc0000) | (a & 0x1ffff) << 1, signed little endian), linear
 // interpolation between address a and a + 1 (each translated), one-shots, forward and bidirectional loops (as
 // DOSBox-X and mxmplay.py model them), volume ramps, pan law L = (15 - pan) / 15, R = pan / 15, the 12-bit log
-// volume (256 + mantissa) * 2^(exponent - 24). Stopped voices are mixed at their parked position.
+// volume (256 + mantissa) * 2^(exponent - 24). Stopped voices are mixed at their parked position. (DSMI uses 8-bit
+// voices, forward loops and one-shots only.)
 #pragma once
 #include <cstdint>
 #include <memory>
@@ -28,7 +30,7 @@
 
 namespace gus {
 
-constexpr int kBase = 0x240;            // ULTRASND=240,...: the port of the capture's environment (for the log)
+constexpr int kBase = 0x220;            // SOUND.CFG's port: the capture's card (for the log)
 constexpr double kGf1Clock = 617400.0;  // GF1 voice frames per second x active voices
 constexpr int kGf1ClockInt = 617400;
 
@@ -39,19 +41,21 @@ public:
     Card();
     virtual ~Card() = default;
 
-    std::string* log = nullptr;  // register-write log in run_clone.py's text format ("tick vN rXX val"), or null
-    int tick = 0;                // log tick of the writes
+    std::string* log = nullptr;  // register-write log in full.gus's text format, or null
+    int tick = 0;                // log stamp of the writes (the timer interrupt)
 
-    void port(int p, int val);               // out base + p (p = 0: mix control)
-    void select(int v) { voice_ = v & 31; }  // 0x40236a: base + 0x102 (not logged)
-    void poke(uint32_t a, uint8_t b) { dram_[a & 0xfffff] = b; }  // the upload 0x4025de (not logged)
+    void port(int p, int val);               // out base + p (p = 0: mix control 2X0, 0x100: MIDI control 3X0)
+    void select(int v) { voice_ = v & 31; }  // 0x1152c0c: base + 0x102 (not logged)
+    void poke(uint32_t a, uint8_t b) { dram_[a & 0xfffff] = b; }  // what the DMA upload stores (not logged)
     const std::vector<uint8_t>& dram() const { return dram_; }    // 1 MB
 
-    void w8(int reg, int val);           // 0x4022da: reg -> base+0x103, byte -> base+0x105
-    void w16(int reg, int val);          // 0x402314: reg -> base+0x103, word -> base+0x104
-    virtual int r8(int reg);             // 0x40232a
-    virtual int r16(int reg);            // 0x402341
-    virtual void waitRamps(int /*voices*/) {}  // the busy wait 0x4024ee: no time passes on the fake card
+    void w8(int reg, int val);           // 0x1152c30: reg -> base+0x103, byte -> base+0x105
+    void w16(int reg, int val);          // 0x1152cb6: reg -> base+0x103, word -> base+0x104
+    virtual int r8(int reg);             // 0x1152d3f
+    virtual int r16(int reg);            // 0x1152d7a
+    // The driver's ramp wait 0x1152f50: at most 20 reads of reg 0x8d of the selected voice, until bit 0 (ramp
+    // stopped). On the fake card the first read ends it.
+    virtual void waitVoice();
 
 protected:
     // What the GF1 receives: the selected voice, the register and the 16-bit data word (an 8-bit write puts its
@@ -68,8 +72,9 @@ private:
 
 // ---------------------------------------------------------------------------------------------- the card's model
 
-// A register write as the synthesiser receives it, and when: at PIT clock `clock` (the caller's time base) plus
-// `waited` card frames at 617,400 / `voices` frames per second (the busy wait of the IRQ before the write).
+// A register write as the synthesiser receives it, and when: at instant `clock` of the caller's time base (Inside:
+// the timer interrupt that runs the driver) plus `waited` card frames at 617,400 / `voices` frames per second (the
+// ramp waits of that interrupt before the write).
 struct Write {
     int64_t clock;
     int64_t cardFrame;  // the card frames the model had run when it received the write
@@ -93,7 +98,9 @@ public:
 
     int r8(int reg) override;
     int r16(int reg) override;
-    void waitRamps(int voices) override;
+    // The 20 polls take about one GF1 frame (40 us on the ISA bus): the card runs one frame if the selected voice is
+    // still ramping (gf1.py wait_voice).
+    void waitVoice() override;
 
 protected:
     void received(int voice, int reg, uint32_t d) override;
