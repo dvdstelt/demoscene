@@ -2,8 +2,8 @@
 
 usage: python3 sheet.py full.frames out.jpg f1 f2 ...            these records (screen refreshes)
        python3 sheet.py full.frames out.jpg --every 2.0 [--from-time S] [--to-time S] [--cols 6] [--scale 0.5]
-                                                                one frame every 2 s of time since the music start
-                                                                (labels: frame, time, order:row, frame routine)
+                                                                one frame every 2 s of time since the script start
+                                                                (labels: frame, time, order:row, part, script line)
        python3 sheet.py full.frames out.jpg --pos 3:0 5:32 ...  the first frame at or after these music positions
 
 .frames: 24-byte header (b'VIVDFRM1', <IIII: width 320, height 200, record bytes 64768, header bytes 24), then per
@@ -41,27 +41,28 @@ def rgb(raw, k):
 
 
 class Tick:
-    __slots__ = ('frame', 'time', 'order', 'row', 'ticks', 'part_ticks', 'script', 'frame_fn', 'tick_fn', 'shown',
-                 'irqs', 'eip')
+    __slots__ = ('frame', 'time', 'order', 'row', 'frames', 'part', 'line', 'irqs', 'eip')
 
 
 def read_ticks(path):
+    """run_vivid.py's .ticks: {frame: Tick}"""
     rows = {}
     for line in open(path):
         if line.startswith('#'):
             continue
         f = line.split()
+        if len(f) < 9:
+            continue                          # a line still being written
         t = Tick()
         t.frame, t.time, t.order, t.row = int(f[0]), float(f[1]), int(f[2]), int(f[3])
-        t.ticks, t.part_ticks, t.script = float(f[4]), int(f[5]), int(f[6])
-        t.frame_fn, t.tick_fn, t.shown, t.irqs, t.eip = int(f[7], 16), int(f[8], 16), float(f[9]), int(f[10]), \
-            int(f[11], 16)
+        t.frames, t.part, t.line, t.irqs, t.eip = int(f[4]), int(f[5]), int(f[6]), int(f[7]), int(f[8], 16)
         rows[t.frame] = t
     return rows
 
 
 def music_start(ticks):
-    return next(t.time for k, t in sorted(ticks.items()) if t.order >= 0)
+    """Program time at which the script starts (the first record with a script line): the music starts with it."""
+    return next(t.time for k, t in sorted(ticks.items()) if t.line >= 0)
 
 
 def main():
@@ -85,13 +86,13 @@ def main():
         t = ticks.get(k)
         if not t:
             return 'f%d' % k
-        return 'f%d %.2fs %d:%02d %x' % (k, t.time - t0, t.order, t.row, t.frame_fn)
+        return 'f%d %.2fs %d:%02d p%d l%d' % (k, t.time - t0, t.order, t.row, t.part, t.line)
 
     if a.every:
         sel, nxt = [], None
         for k in sorted(ticks):
             mt = ticks[k].time - t0
-            if ticks[k].order < 0 or mt < a.from_time or mt > a.to_time:
+            if ticks[k].line < 0 or mt < a.from_time or mt > a.to_time:
                 continue
             if nxt is None:
                 nxt = mt
