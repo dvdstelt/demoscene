@@ -89,6 +89,10 @@ okean/re/*.time
 okean/re/dump/
 okean/re/snaps/
 okean/re/unpacked/
+okean/re/models/**/*.npy
+okean/re/models/**/*.jpg
+okean/re/models/**/*.hooks
+okean/re/models/**/runs/
 
 # Media: videos go to YouTube, audio renders stay local
 *.mp4
