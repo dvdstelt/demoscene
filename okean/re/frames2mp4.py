@@ -3,10 +3,11 @@
 usage: python3 frames2mp4.py full.frames out.mp4 [--fps 60] [--from SEC] [--to SEC] [--frame0 N]
                              [--size 960x720] [--vcodec "-c:v libopenh264 -b:v 12M"]
 
-Each record is one displayed video frame (49.85 Hz in the intro's own 625-line "50 Hz" mode, 70.09 Hz with -M);
-its start time is column 2 of .ticks. Output frame k at time t = start + k/fps shows the last record that started at or before t.
-Frames are scaled to 4:3 (320x200 -> 960x720) with nearest-neighbour. The video has no sound. Times are seconds
-from program start (the music starts about 0.11 s later; see PARTS.md).
+Each record is one displayed video frame (49.85 Hz in the intro's own 625-line "50 Hz" mode, 70.09 Hz with -M):
+record k is video memory at the end of refresh k, which the monitor shows during refresh k + 1, so it is shown from
+the start of the next record (column 2 of .ticks of record k + 1). Output frame j at time t = start + j/fps shows the
+last record shown at or before t (black before the first). Frames are scaled to 4:3 (320x200 -> 960x720) with
+nearest-neighbour. The video has no sound. Times are seconds from program start, as the remake's music time.
 """
 import argparse
 import bisect
@@ -32,16 +33,16 @@ a = ap.parse_args()
 raw, W, H, rec, hdr, n = open_frames(a.frames)
 tf = a.ticks or a.frames.rsplit('.', 1)[0] + '.ticks'
 nums, times = [], []
-for line in open(tf):
-    if line.startswith('#'):
-        continue
-    f = line.split()
+rows = [line.split() for line in open(tf) if not line.startswith('#')]
+for i, f in enumerate(rows):
     k = int(f[0]) - a.frame0
     if 0 <= k < n:
         nums.append(k)
-        times.append(float(f[1]))
+        # shown from the start of the next refresh
+        t = float(rows[i + 1][1]) if i + 1 < len(rows) else 2 * float(f[1]) - float(rows[i - 1][1])
+        times.append(t)
 ow, oh = (int(x) for x in a.size.split('x'))
-start, end = max(a.t0, times[0]), min(a.t1, times[-1])
+start, end = a.t0, min(a.t1, times[-1] + (times[-1] - times[-2]))
 # inside a toolbox without ffmpeg, run the host's
 ffmpeg = ['ffmpeg'] if shutil.which('ffmpeg') else ['flatpak-spawn', '--host', 'ffmpeg']
 cmd = ffmpeg + ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24',
@@ -52,10 +53,13 @@ while True:
     t = start + k / a.fps
     if t > end:
         break
-    i = max(bisect.bisect_right(times, t) - 1, 0)
+    i = bisect.bisect_right(times, t) - 1
     if i != last:
-        rgb, w, h = frame(raw, nums[i], W, H, rec, hdr)
-        cache = Image.fromarray(rgb).resize((ow, oh), Image.NEAREST).tobytes()
+        if i < 0:
+            cache = bytes(ow * oh * 3)
+        else:
+            rgb, w, h = frame(raw, nums[i], W, H, rec, hdr)
+            cache = Image.fromarray(rgb).resize((ow, oh), Image.NEAREST).tobytes()
         last = i
     p.stdin.write(cache)
     k += 1
