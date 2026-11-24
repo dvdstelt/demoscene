@@ -189,13 +189,12 @@ for f in "$art"/*.png "$art"/*.jpg; do
     [ -f "$f" ] || continue
     cp "$f" "$stage/art/"; n=$((n + 1))
 done
-[ "$n" -gt 0 ] || [ "$demo" = okean ] || die "no pictures in $art"   # okean: its font is not redrawn yet
+[ "$n" -gt 0 ] || die "no pictures in $art"
 if [ -d "$art/video" ]; then
     cp -r "$art/video" "$stage/art/"
 fi
 text "$art/README.md" "$stage/art/README.md"
-art_note=''
-[ "$n" -gt 0 ] && art_note='
+art_note='
 The pictures
 ------------
 The "art" folder holds high-resolution redraws of the original'"'"'s hand-drawn pictures: AI redraws made from the
