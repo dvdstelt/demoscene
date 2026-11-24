@@ -137,8 +137,15 @@ void main() {
         if (vInner > 0.5) {
             float on = 0.0;
             for (int k = 0; k < 8; k++) {
-                vec2 uv = (A + d * mix(t0, t1, (float(k) + 0.5) / 8.0)) / vec2(320.0, 200.0);
-                on += sharp != 0 ? texSharp(mask, uv).r : textureLod(mask, uv, 0.0).r;
+                // the pixel that holds the stamp's top left (no derivatives here: non-uniform control flow)
+                vec2 q = A + d * mix(t0, t1, (float(k) + 0.5) / 8.0);
+                if (sharp != 0) {
+                    ivec2 ts = textureSize(mask, 0);
+                    ivec2 px = clamp(ivec2(floor(q / vec2(320.0, 200.0) * vec2(ts))), ivec2(0), ts - 1);
+                    on += (q.x < 0.0 || q.y < 0.0 || q.x >= 320.0 || q.y >= 200.0) ? 0.0 : texelFetch(mask, px, 0).r;
+                } else {
+                    on += textureLod(mask, q / vec2(320.0, 200.0), 0.0).r;
+                }
             }
             clear = 1.0 - on / 8.0;
         }
