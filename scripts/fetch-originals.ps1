@@ -13,10 +13,11 @@ checking every file's SHA-256.
   fetch-originals.ps1 clone    only clone meets clone by Acme and Fudge (Takeover '98)
   fetch-originals.ps1 inside   only Inside by CNCD (The Gathering '96)
   fetch-originals.ps1 reve     only Reve by Pulse (The Party '95; final version 1996)
+  fetch-originals.ps1 okean    only The Sea Robot of Love by Orange (The Party '95)
 
 In the repository the files go into <repo>\<demo>\original\. Anywhere else (next to a released program such
 as acme303.exe, paper-remake.exe, jizz-remake.exe, stars-remake.exe, dope-remake.exe, clone-remake.exe,
-inside-remake.exe or reve-remake.exe) they go
+inside-remake.exe, reve-remake.exe or okean-remake.exe) they go
 into an original\ folder next to this script, and without an argument only the demo whose program is there is
 fetched.
 
@@ -32,7 +33,7 @@ powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 paper
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'clone', 'inside', 'reve', 'all')]
+    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'clone', 'inside', 'reve', 'okean', 'all')]
     [string]$Demo
 )
 
@@ -127,6 +128,15 @@ $Releases = [ordered]@{
         Program = 'reve-remake'
         Files   = [ordered]@{
             'REVE.EXE' = 'a2053c9c3112977d3593c9f0690d32f10a225471109750b4947af68b22507cd2'
+        }
+    }
+    'okean' = @{
+        Title   = "The Sea Robot of Love by Orange (The Party '95, 1995)"
+        ZipName = 'okean.zip'
+        ZipPath = 'parties/1995/theparty95/in64/okean.zip'
+        Program = 'okean-remake'
+        Files   = [ordered]@{
+            'KORSO2.EXE' = 'a18d2212b1b95eb153a9b7709154da9614698bf4c3d88df74b420befd4fdef64'
         }
     }
 }
