@@ -13,6 +13,7 @@ dope-remake
 clone-remake
 inside-remake
 reve-remake
+vividexp-remake
 test_music
 jizz-texdump
 jizz-textest
@@ -81,6 +82,14 @@ reve/re/*.jpg
 reve/re/dump/
 reve/re/snaps/
 reve/re/unpacked/
+vividexp/re/*.bin
+vividexp/re/*.log
+vividexp/re/*.jpg
+vividexp/re/*.time
+vividexp/re/*.script
+vividexp/re/dump/
+vividexp/re/snaps/
+vividexp/re/unpacked/
 
 # Media: videos go to YouTube, audio renders stay local
 *.mp4
