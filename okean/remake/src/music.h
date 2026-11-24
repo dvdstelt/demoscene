@@ -27,7 +27,8 @@ struct SongTicks {
     std::vector<int> pos;           // order * 64 + row as [0x12b75] / [0x12b72] read after tick j
     std::vector<uint8_t> newRow;    // 1 where tick j reads a row (its countdown ran out)
 };
-// Runs the player for `ticks` ticks (no sound). Throws std::runtime_error if the module is not the one expected.
+// Runs the player's tick 0x1343c for `ticks` ticks from the start (no sound; the positions do not depend on time).
+// Throws std::runtime_error if the program image is not what the player expects.
 SongTicks songTicks(const OkeanExe& exe, int ticks);
 
 // When the player's ticks are served and what the master volume is (schedule.cpp).
@@ -60,4 +61,32 @@ struct Soundtrack {
 
 // Renders the soundtrack: the song played at the schedule's tick times on the GF1 model, from program time 0 to the
 // stop, at `rate` frames per second. Fills pcm, rowTime / rowPos, schedule and song.
+//
+// The player (modplay.cpp) runs on the card's model (gf1.cpp) from the GUS init at program time 0: timer interrupts
+// 1..3 at their overflows (19.84 ms apart), player tick j at sch.tickTime[j], every volume-ramp IRQ at its ramp end
+// (the timer interrupt waits for it, so a new note starts 0.7..1.65 ms after the tick per new note on a lower or equal
+// voice), the master volume [0x12b8c] as sch.master gives it at each volume write, and the stop and shutdown at
+// sch.stopTime. Every register write is recorded with its time and applies from the first output frame at or after
+// it; the GF1 model then renders the 16 voices at the output rate with the card's pitch (+31.7 cents), ramps and
+// timing. The voices' state is advanced once through the song without output to take a snapshot every block of
+// frames, and the blocks are mixed in parallel from their snapshots, so the result does not depend on the number of
+// threads. The mix passes a 5 Hz one-pole high-pass (the card's AC-coupled line output) and is normalised so that its
+// peak is at -1 dBFS. Throws std::runtime_error if the program image is not what the player expects.
 Soundtrack renderSoundtrack(const OkeanExe& exe, const SongTicks& song, const MusicSchedule& sch, int rate);
+
+// For checks (tools/test_music.cpp): the mix before the high-pass and the normalisation, interleaved stereo float
+// (1.0 = one voice at full scale and gain 1, hard panned).
+struct MixSpec {
+    double rate = 48000;            // output frames per second
+    double origin = 0;              // program time of output frame 0 (earlier writes apply at frame 0)
+    bool stopAtOverflow = false;    // stop at the timer overflow after the last tick (okeanplay.py --wav) instead of
+                                    // at sch.stopTime
+    uint32_t voices = 0xffffffffu;  // the GF1 voices mixed (bit v = voice v = channel v)
+};
+struct MusicMix {
+    std::vector<float> pcm;           // interleaved stereo from spec.origin to the stop
+    double peak = 0;                  // max |sample|
+    std::vector<double> timerServed;  // program time of timer interrupt n (index n - 1)
+    double stopTime = 0;
+};
+MusicMix renderMix(const OkeanExe& exe, const MusicSchedule& sch, const MixSpec& spec);
