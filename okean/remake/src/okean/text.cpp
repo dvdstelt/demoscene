@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include "exe.h"
+#include "music.h"
 
 namespace okean {
 
@@ -81,11 +82,12 @@ int Printer::width(const std::string& line) const {
     return w;
 }
 
-std::vector<std::string> Printer::caption(Ctx& c, double r) const {
-    // the draw of record F + n prints the page the previous draw's call selected: one page per 16 rows (rows 0, 16,
-    // 32, and 48 in order 0), page 1 + row / 16 in order 0 and 5 + 3 (order - 1) + row / 16 from order 1 on
-    int n = int(std::floor(r - c.start));
-    int pos = c.positionAtDraw(std::max(n - 1, 0));
+std::vector<std::string> Printer::caption(Ctx& c, double r, double line) const {
+    // the draw of record r prints the page the previous draw's call selected (at `line` of refresh r - 2): one page
+    // per 16 rows (rows 0, 16, 32, and 48 in order 0), page 1 + row / 16 in order 0 and 5 + 3 (order - 1) + row / 16
+    // from order 1 on
+    double k = std::max(std::floor(r) - 1.0, c.start) - 1.0;
+    int pos = c.music ? c.music->positionAtTime((k + line / 625.0) / kRefreshHz) : -1;
     if (pos < 0) return {};
     int order = pos / 64, row = pos % 64;
     int p = order == 0 ? 1 + row / 16 : 5 + 3 * (order - 1) + row / 16;
@@ -93,8 +95,8 @@ std::vector<std::string> Printer::caption(Ctx& c, double r) const {
     return page(pages_[size_t(p)]);
 }
 
-void Printer::drawCaption(Ctx& c, double r, const std::array<Vec3, 256>& pal) {
-    for (const std::string& line : caption(c, r))
+void Printer::drawCaption(Ctx& c, double r, const std::array<Vec3, 256>& pal, double at) {
+    for (const std::string& line : caption(c, r, at))
         if (!line.empty()) drawLine(c, line, 162.0f, pal);
 }
 
