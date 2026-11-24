@@ -43,6 +43,7 @@ Snapshots (--snap-parts) are taken at the first refresh after the script runs on
 Init and Run commands), as <snapdir>/f<frame>.snap; --load --snap resumes from one, and the resumed run reproduces the uninterrupted one.
 
 usage: python3 run_vivid.py --out full [--ips 100e6] [--frames N] [--snap-parts] > full.log
+       python3 run_vivid.py --out part2 --args 2 > part2.log        (start at part II)
        python3 run_vivid.py --load --snap snaps/f1234.snap --out x --frames 2000
 """
 import argparse
@@ -224,6 +225,8 @@ def main():
     ap.add_argument('--load', action='store_true')
     ap.add_argument('--trace', default='', help='comma-separated addresses: print when each first runs')
     ap.add_argument('--no-frames', action='store_true')
+    ap.add_argument('--args', default='', help='command line: "2" starts at part II (NOTES.md), "m" asks for the '
+                    'sound card')
     a = ap.parse_args()
 
     mu = Uc(UC_ARCH_X86, UC_MODE_32)
@@ -232,8 +235,9 @@ def main():
     psp = bytearray(256)
     struct.pack_into('<H', psp, 0x2c, SEL_ENV)
     struct.pack_into('<H', psp, 0x02, 0x9fff)
-    psp[0x80] = 0
-    psp[0x81] = 0x0d
+    cmdline = (' ' + a.args if a.args else '').encode('latin1')
+    psp[0x80] = len(cmdline)
+    psp[0x81:0x81 + len(cmdline) + 1] = cmdline + b'\r'
     mu.mem_write(PSP, bytes(psp))
     mu.mem_write(ENV, b'PATH=C:\\\x00COMSPEC=C:\\COMMAND.COM\x00ULTRASND=220,1,1,11,11\x00\x00\x01\x00C:\\VIVID\\VIVID.EXE\x00')
     mu.mem_write(IRET, b'\xcf')
