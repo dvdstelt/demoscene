@@ -23,6 +23,8 @@ struct PictureInfo {
     int w, h;              // size in pixels
     // The original's pixels as RGBA8 with premultiplied alpha, read from the exe (pictures.cpp).
     std::function<Image(const OkeanExe&)> original;
+    // The redraw is drawn on black without an alpha channel: its alpha is max(R, G, B) (the font).
+    bool alphaFromBlack = false;
 };
 const std::vector<PictureInfo>& pictureList();
 const PictureInfo* findPicture(const std::string& name);

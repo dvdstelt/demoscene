@@ -24,9 +24,48 @@
 #pragma GCC diagnostic pop
 #endif
 
+namespace {
+// der piipo's font (notes-core.md section 6): the sheet at 0x3cec2, 320 bytes per row, 38 rows, the 26 glyphs in
+// columns 0..284. Index 216 (the body) white, 254 (single edge pixels, the grey 33/63) grey, 7 (the outline) red,
+// 0 transparent: the printer (okean/text.cpp) colours body and outline with the part's entries 216 and 7.
+Image fontSheet(const OkeanExe& exe) {
+    Image im;
+    im.w = 285;
+    im.h = 38;
+    im.rgba.assign(size_t(im.w) * im.h * 4, 0);
+    for (int y = 0; y < im.h; y++)
+        for (int x = 0; x < im.w; x++) {
+            uint8_t c = exe.u8(0x3cec2 + uint32_t(y * 320 + x)), *q = &im.rgba[size_t(y * im.w + x) * 4];
+            if (c == 216) q[0] = q[1] = q[2] = 255;
+            else if (c == 254) q[0] = q[1] = q[2] = uint8_t((33 * 255 + 31) / 63);
+            else if (c == 7) q[0] = 255;
+            else if (c != 0) q[0] = q[1] = q[2] = 255;   // (none in the sheet)
+            q[3] = c ? 255 : 0;
+        }
+    return im;
+}
+// The title's lettering "the sea ROBOT of love" (notes-title-objects.md): a 1-bit 320x200 mask at 0x1502c that the
+// beams skip; never drawn itself. White = letter, opaque.
+Image titleMask(const OkeanExe& exe) {
+    Image im;
+    im.w = 320;
+    im.h = 200;
+    im.rgba.assign(size_t(im.w) * im.h * 4, 0);
+    for (int i = 0; i < im.w * im.h; i++) {
+        uint8_t v = exe.u8(0x1502c + uint32_t(i)) ? 255 : 0, *q = &im.rgba[size_t(i) * 4];
+        q[0] = q[1] = q[2] = v;
+        q[3] = 255;
+    }
+    return im;
+}
+}  // namespace
+
 const std::vector<PictureInfo>& pictureList() {
     // The pictures parts draw as they are (okean/re/notes-*.md).
-    static const std::vector<PictureInfo> list = {};
+    static const std::vector<PictureInfo> list = {
+        {"font", 285, 38, fontSheet, true},
+        {"title_mask", 320, 200, titleMask, false},
+    };
     return list;
 }
 
@@ -114,7 +153,14 @@ const Picture& PictureStore::get(const std::string& name) {
         if (!fut.valid()) own = decode(path);
         const Decoded& d = fut.valid() ? fut.get() : own;
         if (d.im.w > 0) {
-            pic->tex.create(d.im, false, true);
+            if (info->alphaFromBlack) {
+                Image im = d.im;
+                for (size_t i = 0; i < im.rgba.size(); i += 4)
+                    im.rgba[i + 3] = std::max({im.rgba[i], im.rgba[i + 1], im.rgba[i + 2]});
+                pic->tex.create(im, false, true);
+            } else {
+                pic->tex.create(d.im, false, true);
+            }
             pic->redraw = true;
         } else {
             SDL_Log("picture: cannot read %s (%s): using the original's pixels", path.c_str(), d.err.c_str());
