@@ -95,8 +95,9 @@ The main ones:
   gets the light of every stamp that covers it unless that stamp's corner lies on a letter, so the mask is blurred by
   the stamp. The remake averages the mask along the stamps that cover each pixel, which gives the original's soft
   shadows with smooth edges, and the 1-bit mask needs no redraw.
-- **Noise.** Each part's noise keeps its levels and changes every refresh, drawn at a third of an original pixel:
-  fine snow at any resolution rather than 320×200 squares.
+- **Noise.** Each part's noise keeps its levels and changes every refresh. It was first drawn at a third of an
+  original pixel, as fine snow; next to the original that looked like a different texture, so it is now drawn with
+  one cell per original pixel, as coarse as the original's.
 - **The landscape's hidden lines.** A continuous horizon per output column hid lines the original shows (its
   horizon only rises at the points it draws), so the port tests each drawn point at eight columns per original
   pixel and keeps the original's gaps.

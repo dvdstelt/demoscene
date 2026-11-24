@@ -39,7 +39,7 @@ in vec2 uv;
 out vec4 o;
 uniform float levels;
 uniform float frame;
-uniform float grain;
+uniform vec2 grain;      // one original pixel in output pixels
 void main() {
     vec2 cell = floor(gl_FragCoord.xy / grain);
     float h = hash12(cell + vec2(frame * 7.13, frame * 3.71));
@@ -144,14 +144,13 @@ void Canvas::begin(Ctx& c) {
     blobs_.clear();
 }
 
-void Canvas::noise(Ctx& c, int levels, uint32_t frame) {
+void Canvas::noise(Ctx&, int levels, uint32_t frame) {
     setBlend(Blend::None);
     noise_.use();
     noise_.set("levels", float(levels));
     noise_.set("frame", float(frame % 65536u));
-    // the grain: a third of an original pixel (frame height / 600), at least one output pixel
-    // (okean/remake/README.md "Noise")
-    noise_.set("grain", std::max(1.0f, float(c.h) / 600.0f));
+    // the grain: one original pixel, 1/320 of the width by 1/200 of the height (okean/remake/README.md "Noise")
+    noise_.set("grain", std::max(1.0f, float(buf_->w) / 320.0f), std::max(1.0f, float(buf_->h) / 200.0f));
     drawFullscreen();
 }
 

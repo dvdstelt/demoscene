@@ -47,7 +47,7 @@ out vec4 o;
 uniform vec2 size;        // the index buffer in pixels
 uniform vec4 bg;          // bg1, bgd1, bg2, bgd2: the two sines' phases and steps per row
 uniform float frame;
-uniform float grain;
+uniform vec2 grain;       // one original pixel in output pixels
 float tsin(float a) { return 1022.0 * sin(a * (6.283185307 / 4096.0)); }
 void main() {
     // 0x2e9ca: per row ((T[a] + 0x400) >> 6) + ((T[b] + 0x400) >> 8), evaluated per output row (row k's centre at k;
@@ -153,7 +153,7 @@ public:
         bgShader_.set("size", float(buf.w), float(buf.h));
         bgShader_.set("bg", float(bg1_), float(bgd1_), float(bg2_ - 16.0 * n), float(bgd2_));
         bgShader_.set("frame", float(uint32_t(std::floor(r)) % 65536u));
-        bgShader_.set("grain", std::max(1.0f, float(c.h) / 600.0f));
+        bgShader_.set("grain", std::max(1.0f, float(buf.w) / 320.0f), std::max(1.0f, float(buf.h) / 200.0f));
         drawFullscreen();
 
         // the copies: orders 1-2 eight cogs 0x1ff apart about the vertical axis, orders 3+ five along the tube

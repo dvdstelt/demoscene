@@ -131,8 +131,9 @@ them; `--refshots` renders the same records.
   in which the original shows them; the end texts with their own layout. The font's outline takes each part's own
   dark colour and fades with it.
 - **Noise.** Every part fills its background with fresh random noise of its levels (8, 16 or 32 dark palette
-  entries, grey in the end part) every refresh. The remake keeps the levels and the per-refresh change but draws it
-  at a third of an original pixel (frame height / 600), so it reads as fine TV snow rather than 320×200 squares.
+  entries, grey in the end part) every refresh. The remake keeps the levels, the per-refresh change and the grain:
+  one cell per original pixel (1/320 of the width by 1/200 of the height), so the snow is as coarse as the
+  original's. A finer grain (a third of an original pixel) was tried first and read as a different texture.
 
 ## Known differences
 
