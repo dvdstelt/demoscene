@@ -13,10 +13,11 @@ checking every file's SHA-256.
   fetch-originals.ps1 clone    only clone meets clone by Acme and Fudge (Takeover '98)
   fetch-originals.ps1 inside   only Inside by CNCD (The Gathering '96)
   fetch-originals.ps1 reve     only Reve by Pulse (The Party '95; final version 1996)
+  fetch-originals.ps1 vividexp only Vivid Experiment by Doomsday (Assembly '96)
 
 In the repository the files go into <repo>\<demo>\original\. Anywhere else (next to a released program such
 as acme303.exe, paper-remake.exe, jizz-remake.exe, stars-remake.exe, dope-remake.exe, clone-remake.exe,
-inside-remake.exe or reve-remake.exe) they go
+inside-remake.exe, reve-remake.exe or vividexp-remake.exe) they go
 into an original\ folder next to this script, and without an argument only the demo whose program is there is
 fetched.
 
@@ -32,7 +33,7 @@ powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 paper
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'clone', 'inside', 'reve', 'all')]
+    [ValidateSet('303', 'paper', 'jizz', 'stars', 'dope', 'clone', 'inside', 'reve', 'vividexp', 'all')]
     [string]$Demo
 )
 
@@ -127,6 +128,17 @@ $Releases = [ordered]@{
         Program = 'reve-remake'
         Files   = [ordered]@{
             'REVE.EXE' = 'a2053c9c3112977d3593c9f0690d32f10a225471109750b4947af68b22507cd2'
+        }
+    }
+    'vividexp' = @{
+        Title   = "Vivid Experiment by Doomsday (Assembly '96, 1996)"
+        ZipName = 'vividexp.zip'
+        ZipPath = 'parties/1996/assembly96/demo/vividexp.zip'
+        Program = 'vividexp-remake'
+        Files   = [ordered]@{
+            'VIVID.EXE'   = 'f60040bb29b830482202eed85490e16c858494e7f2b4146dc3255ba3ccf2bf28'
+            'EXPRMNT1.XM' = '1aab58c9bbd8697a86ff80564f5cd95e4918c2ee6f83aa41eaee54ccf2b8080b'
+            'EXPRMNT2.XM' = 'b78cef2f737647ce27d9d0636f93aca84e1e1d9376fda3dca2321e6c0cc48362'
         }
     }
 }
