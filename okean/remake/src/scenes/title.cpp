@@ -111,6 +111,7 @@ uniform int nrects;
 uniform vec2 size;       // the index buffer in pixels
 uniform sampler2D mask;
 uniform int sharp;
+uniform vec4 kbox;       // the stamp's footprint relative to its top left
 // Narrows [t0, t1] to the t where a + t d lies in [lo, hi].
 void clip1(float a, float d, float lo, float hi, inout float t0, inout float t1) {
     if (abs(d) > 1e-5) {
@@ -130,26 +131,29 @@ void main() {
         float t0 = 0.0, t1 = 1.0;
         clip1(A.x, d.x, p.x - rects[i].z, p.x - rects[i].x, t0, t1);
         clip1(A.y, d.y, p.y - rects[i].w, p.y - rects[i].y, t0, t1);
-        if (t1 <= t0) continue;
-        // inner beams (0x2bf4f): a stamp whose top left lies on a letter is left out, so p gets the share of those
-        // stamps whose top left is clear (the mask sampled along their part of the path)
-        float clear = 1.0;
-        if (vInner > 0.5) {
-            float on = 0.0;
+        s += rectw[i] * max(t1 - t0, 0.0);
+    }
+    // inner beams (0x2bf4f): a stamp whose top left lies on a letter is left out, so p gets the share of the stamps
+    // covering it whose top left is clear: the mask sampled along their part of the path (the whole footprint's)
+    if (vInner > 0.5 && s > 0.0) {
+        float t0 = 0.0, t1 = 1.0;
+        clip1(A.x, d.x, p.x - kbox.z, p.x - kbox.x, t0, t1);
+        clip1(A.y, d.y, p.y - kbox.w, p.y - kbox.y, t0, t1);
+        float on = 0.0;
+        if (t1 > t0) {
+            ivec2 ts = textureSize(mask, 0);
             for (int k = 0; k < 8; k++) {
                 // the pixel that holds the stamp's top left (no derivatives here: non-uniform control flow)
                 vec2 q = A + d * mix(t0, t1, (float(k) + 0.5) / 8.0);
                 if (sharp != 0) {
-                    ivec2 ts = textureSize(mask, 0);
                     ivec2 px = clamp(ivec2(floor(q / vec2(320.0, 200.0) * vec2(ts))), ivec2(0), ts - 1);
                     on += (q.x < 0.0 || q.y < 0.0 || q.x >= 320.0 || q.y >= 200.0) ? 0.0 : texelFetch(mask, px, 0).r;
                 } else {
                     on += textureLod(mask, q / vec2(320.0, 200.0), 0.0).r;
                 }
             }
-            clear = 1.0 - on / 8.0;
         }
-        s += rectw[i] * (t1 - t0) * clear;
+        s *= 1.0 - on / 8.0;
     }
     o = vec4(s * vN);
 }
