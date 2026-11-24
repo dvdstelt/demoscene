@@ -112,7 +112,7 @@ demo_info() {
     okean)
         title="The Sea Robot of Love by Orange (The Party '95, 1995)"
         zip_name=okean.zip
-        zip_path=parties/1995/theparty95/in64/okean.zip
+        zip_path=demos/groups/orange/okean.zip
         program=okean-remake
         files=(
             "KORSO2.EXE   a18d2212b1b95eb153a9b7709154da9614698bf4c3d88df74b420befd4fdef64"
