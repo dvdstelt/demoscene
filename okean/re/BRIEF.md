@@ -80,7 +80,8 @@ port them. You are read-only on everything except your own notes file and your o
   the same 64,000 values.
 
 Say also which frame of the capture shows the result of which callback count: the order of the callback, the draw
-and the copy to video memory decides it (frame k shows the buffer copied during frame k - 1).
+and the copy to video memory decides it (record k is video memory and the DAC at the end of refresh k, the buffer
+copied in refresh k's retrace; notes-core.md section 4).
 
 ## Colours: 8 bits through a palette
 

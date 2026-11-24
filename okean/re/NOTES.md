@@ -131,7 +131,8 @@ bytes at 0x12b98.
 - Hardware models from `dope/re/run_dope.py`: the VGA (timing from the CRTC and misc registers), the PIT (modes 0, 2,
   3), the GUS (registers, 1 MB DRAM, timers, voice positions and volume ramps with their IRQs; a timing model, not a
   sound renderer). Keyboard: nothing pressed.
-- Outputs per displayed frame (49.85 Hz): `full.frames` (header `OKEANFR1`, per frame <HHHH w, h, flags, 0>, the 768
+- Outputs per displayed frame (49.85 Hz; record k is video memory and the DAC at the end of refresh k, i.e. what
+  the monitor shows during refresh k + 1; notes-core.md section 4): `full.frames` (header `OKEANFR1`, per frame <HHHH w, h, flags, 0>, the 768
   bytes of the DAC, 320x240 bytes of indices with the 320x200 picture top left), `full.ticks` (frame, time, order,
   row, tick countdown, music ticks, part, start address, start writes, timer IRQs, mode, EIP), `full.gus` (every GUS
   register write, stamped with the timer-2 ticks served, and an `irq` line per GUS interrupt), `full.dram`.
