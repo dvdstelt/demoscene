@@ -3,8 +3,7 @@
 A C++/OpenGL re-implementation of *The Sea Robot of Love*, the 64k intro by Orange (code hoplite and dune, music
 dune, font and graphics der piipo) that came 3rd in the PC intro competition at The Party 1995. It runs on Linux and
 Windows at any resolution in true colour, instead of 320×200 in 256 colours, with the original's motion, timing and
-music, and with a high-resolution redraw of der piipo's font where one exists (or the original pixels,
-`--original-art`).
+music, and with a high-resolution redraw of der piipo's font (or the original pixels, `--original-art`).
 
 The remake reads everything from the original program. It is not included: get it with
 `scripts/fetch-originals.sh okean` (or `.ps1` on Windows) from the repository root, which puts it in
@@ -161,6 +160,6 @@ them; `--refshots` renders the same records.
 ## The redrawn pictures
 
 The intro draws one hand-made picture as it is: der piipo's font, 26 lowercase letters 38 pixels high with a dark
-outline, used for the captions and the end texts. [`art/README.md`](art/README.md) says how the redraw was made,
-or why the font keeps its original pixels. The title's lettering is a 1-bit mask that the light beams skip; it is
-only ever seen blurred by the 8-pixel stamps, so it is used as it is.
+outline, used for the captions and the end texts. The remake shows a faithful AI redraw of it, made with ChatGPT
+from the original and fitted letter by letter; [`art/README.md`](art/README.md) says how. The title's lettering is
+a 1-bit mask that the light beams skip; it is only ever seen blurred by the 8-pixel stamps, so it is used as it is.

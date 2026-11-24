@@ -74,6 +74,17 @@ soundtrack in about 60 ms. Each part was compared with the capture in side-by-si
 and crops, checked for seeking (the same frames rendered forwards and backwards are identical) and timed at
 2560 × 1920.
 
+## The redraw
+
+The intro has one hand-drawn picture that it shows as it is: der piipo's font, 26 lowercase letters with a dark
+outline, which the captions and the end texts are set in. It was redrawn with ChatGPT's image generation from the
+original pixels, with the letters in a grid on black (`remake/tools/align_art.py` makes the upload and fits the
+redraw onto the original, letter by letter). The first redraw had the right letters but shaded the inside of their
+right and bottom edges grey, like a bevel, where the original has only single grey pixels at the steps of its
+curves; asked to remove that band, ChatGPT drew the edges as pixel steps; asked to go back to the first with only
+the band removed, it gave plain white letters with smooth edges and a thin outline, which is the one the remake
+uses. The title's lettering is not redrawn: it is a 1-bit mask the light beams skip, and only ever seen blurred.
+
 ## Decisions
 
 The main ones:
