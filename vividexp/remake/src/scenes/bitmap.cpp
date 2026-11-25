@@ -35,9 +35,12 @@
 //     7.3), is drawn as that blend;
 //   - the 2 x 2 effect's index sum is the sum of the planes' filtered index values, looked up in the ramp palette
 //     between neighbouring entries, per output pixel (no 2 x 2 blocks);
-//   - the photo (original pixels: a photo of a real person, not redrawn) is filtered bilinearly in colour through the
-//     palette from its opaque pixels only; its edge is the 0.5 contour of the B-spline-smoothed mask, anti-aliased
-//     over one output pixel, instead of the pixel stairs.
+//   - the photo is its redraw (art/nainen<n>.png, RGBA: its own edge and transparency) over the effect, with the
+//     palette's fades applied to its colours: per channel, the gain and offset that turn the photo's own 64 colours
+//     into the DAC's entries 192..255 at this refresh (a least-squares fit; exact for fades to or from one colour).
+//     With --original-art it is the original pixels, filtered bilinearly in colour through the palette from its
+//     opaque pixels only, with its edge at the 0.5 contour of the B-spline-smoothed mask, anti-aliased over one
+//     output pixel, instead of the pixel stairs.
 // Kept: the table formulas, centres and tilings, the speeds with RunBITMAPEFEK's y quirk (a negative x speed borrows
 // 1 from the y speed, notes 4.2), the offsets carried across runs and sections (part II starts where the 2 x 2
 // ended), the refresh part II loses after each Init (4.3), the photo's place and mask, the textures' texels.
@@ -238,6 +241,9 @@ uniform vec4 tabBlock;     // original pixels per entry of slots 0..3 (1: .1x1, 
 uniform sampler2D pal;     // the DAC
 uniform usampler2D photo;  // TAUSTA: 320 x 200, 0xc0 = the effect shows
 uniform int photoOn;
+uniform sampler2D photoArt;          // the photo's redraw (RGBA, straight alpha), when photoRedraw
+uniform int photoRedraw;
+uniform vec3 photoGain, photoBias;   // what the DAC does to the photo's own colours
 
 // The formula of coordinate i at p (original pixel units, pixel x's centre at x): value and gradient.
 vec3 formulaAt(int i, vec2 p) {
@@ -380,7 +386,14 @@ void main() {
         col = mix(palColor(pal, i0), palColor(pal, (i0 + 1u) & 255u), s - fs);
     }
 
-    if (photoOn != 0) col = overPhoto(col, p);
+    if (photoOn != 0) {
+        if (photoRedraw != 0) {
+            vec4 a = texture(photoArt, P / vec2(320.0, 200.0));
+            col = mix(col, a.rgb * photoGain + photoBias, a.a);
+        } else {
+            col = overPhoto(col, p);
+        }
+    }
     o = vec4(col, 1.0);
 }
 )";
@@ -409,6 +422,8 @@ struct Effect {
     int tableCount = 0;
     Texture photo;                       // TAUSTA after the subtraction (R8UI), when the drawer shows it
     bool photoOn = false;
+    std::array<Vec3, 64> photoOwn{};     // the photo's own colours (its RAW palette 0..63, at the DAC's 192..255)
+    const Texture* photoArt = nullptr;   // its redraw, if any
 };
 
 std::unique_ptr<Effect> loadEffect(const VividExe& exe, const std::string& iniName) {
@@ -450,6 +465,8 @@ std::unique_ptr<Effect> loadEffect(const VividExe& exe, const std::string& iniNa
             for (int j = 0; j < 4; ++j) t[i + size_t(j)] = uint8_t(d >> (8 * j));
         }
         e->photo = vivid::uploadIndices(t, 320, 200);
+        const vivid::Palette own = vivid::toColours(b.pal);
+        std::copy_n(own.begin(), 64, e->photoOwn.begin());
         e->photoOn = e->mode != 1;   // 0x40cbe7 (two 1 x 1 planes) has no background
     }
 
@@ -531,7 +548,9 @@ public:
             }
             try {
                 owned_.push_back(loadEffect(*c.exe, name));
-                byName[name] = effects_[s.init] = owned_.back().get();
+                Effect& e = *owned_.back();
+                if (e.photoOn) e.photoArt = c.pictures->redraw(e.ini.bpicName);
+                byName[name] = effects_[s.init] = &e;
             } catch (const std::exception& ex) {
                 SDL_Log("bitmap: script line %d: %s", l.line, ex.what());
             }
@@ -548,7 +567,30 @@ public:
         const Effect& e = *it->second;
         const Texture& dac = c.paletteTex();   // the DAC: Init's palette and the script's fades
         if (e.mode != 2) colourPlanes(c, e, dac);
-        draw(c, e, run->second.at(r), dac);
+        draw(c, e, run->second.at(r), dac, photoFade(c.palette(r), e.photoOwn));
+    }
+
+    // What the DAC does to the photo's colours at this refresh: per channel, the least-squares gain and offset from
+    // its own colours (entries 1..63; 0 is transparent) to the DAC's entries 193..255.
+    struct Fade {
+        Vec3 gain{1, 1, 1}, bias{0, 0, 0};
+    };
+    static Fade photoFade(const vivid::Palette& dac, const std::array<Vec3, 64>& own) {
+        auto at = [](const Vec3& v, int ch) { return ch == 0 ? v.x : ch == 1 ? v.y : v.z; };
+        float g3[3], b3[3];
+        for (int ch = 0; ch < 3; ++ch) {
+            double sp = 0, sd = 0, spp = 0, spd = 0;
+            const int n = 63;
+            for (int i = 1; i < 64; ++i) {
+                const double pv = at(own[size_t(i)], ch), dv = at(dac[size_t(192 + i)], ch);
+                sp += pv; sd += dv; spp += pv * pv; spd += pv * dv;
+            }
+            const double var = spp - sp * sp / n, cov = spd - sp * sd / n;
+            const double g = var > 1e-9 ? cov / var : 1.0;
+            g3[ch] = float(g);
+            b3[ch] = float((sd - g * sp) / n);
+        }
+        return {Vec3(g3[0], g3[1], g3[2]), Vec3(b3[0], b3[1], b3[2])};
     }
 
 private:
@@ -572,7 +614,7 @@ private:
     }
 
     // The frame: the planes through their coordinates at offsets o (1/256 texels), combined as the drawer does.
-    void draw(Ctx& c, const Effect& e, const std::array<double, 8>& o, const Texture& dac) {
+    void draw(Ctx& c, const Effect& e, const std::array<double, 8>& o, const Texture& dac, const Fade& pf) {
         float off[8];
         for (size_t i = 0; i < 8; ++i) off[i] = float(std::fmod(std::fmod(o[i] / 256.0, 256.0) + 256.0, 256.0));
         shader_.use();
@@ -590,6 +632,13 @@ private:
         shader_.set("pal", 8);
         shader_.set("photo", 9);
         shader_.set("photoOn", e.photoOn ? 1 : 0);
+        gl::ActiveTexture(GL_TEXTURE0 + 10);
+        gl::BindTexture(GL_TEXTURE_2D, e.photoArt ? e.photoArt->id : 0);
+        gl::ActiveTexture(GL_TEXTURE0);
+        shader_.set("photoArt", 10);
+        shader_.set("photoRedraw", e.photoArt ? 1 : 0);
+        shader_.set("photoGain", pf.gain);
+        shader_.set("photoBias", pf.bias);
         shader_.set("mode", e.mode);
         shader_.set("planes", e.planes);
         shader_.set("pix", 320.0f / float(c.out->w), 200.0f / float(c.out->h));
