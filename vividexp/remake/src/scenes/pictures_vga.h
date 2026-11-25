@@ -103,7 +103,7 @@ struct CensorArea {
 inline constexpr CensorArea kCensor[] = {
     {"synknai1", {{76.0f, 100.0f, 24.0f, 31.0f}, {}}, 1},
     {"synknai2", {{288.0f, 46.0f, 18.0f, 13.0f}, {}}, 1},
-    {"vivid", {{145.0f, 65.0f, 22.0f, 13.0f}, {}}, 1},
+    {"vivid", {{167.0f, 71.0f, 22.0f, 14.0f}, {}}, 1},
 };
 inline constexpr float kMosaic = 6.0f;   // the mosaic's squares, in original pixels (tools/align_art.py MOSAIC)
 
