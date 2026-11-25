@@ -52,7 +52,8 @@ none.
 1. Arguments: `vivid.exe m` asks for the sound card in a menu (MIDAS's setup screens); `vivid.exe 2` starts at part
    II ([0x825c44] = 1). Anything else stops with an error.
 2. Prints "Use: 'vivid.exe m' for manual config!!!", sets up the archives, initialises MIDAS 0.5a (detects the GUS
-   from `ULTRASND`), prints "MIDAS Sound System v0.5a (c) Sahara Surfers" and the device.
+   from `ULTRASND`), forces mono output (0x4002e0: every GUS voice stays at the middle pan), prints "MIDAS Sound
+   System v0.5a (c) Sahara Surfers" and the device.
 3. Measures the screen refresh (MIDAS `tmrGetScrSync`, 0x410ab6 → [0x825c60]) and starts MIDAS's timer synchronised
    to the screen (0x410d23 with the routines 0x40007c before the retrace and 0x403728 in the retrace).
 4. Part I: reads `script/demo1.scr` (0x40b6e4), runs its `LoadXM` line (0x40b5a0: loads `EXPRMNT1.XM` from disk),
@@ -70,7 +71,9 @@ adds 1 to the frame counter [0x825c5c]: **the demo's clock is the screen refresh
 retrace (0x403728) calls [0x832504] if a part set it.
 
 The music position: 0x400104 asks MIDAS for the play status and copies order position [0x825c48], pattern
-[0x825c4c], row [0x825c50] and the sync value [0x825c54]. The main line calls it while it waits.
+[0x825c4c], row [0x825c50] and the sync value [0x825c54] (always -1: the songs have no W commands; nothing reads
+it). The main line calls it while it waits. The player's tick is 2,982,950 / BPM PIT clocks, scheduled on the same
+PIT as the refresh interrupt (notes-music.md section 6).
 
 ## The script
 
@@ -111,8 +114,8 @@ Commands (0x40b760; the handler addresses):
 | `EarthEffect` | 0x406c08 | no | (left over) |
 | `DogInit` / `DogEffect` | 0x403ab4 / 0x404220 | no | (left over) |
 
-Part II's script names files that are in none of the archives (`gen2/gen.ini` is in archive 3, but
-`pal/greets.pal` and `pal/phong2.pal` are too; check what happens to each "not found" in the capture).
+Part II's script names `gen2/gen.ini`, `pal/greets.pal` and `pal/phong2.pal`, which are only in archive 3: every
+lookup searches all three archives, so they are found (notes-core.md 2).
 
 ## Code map
 

@@ -20,7 +20,7 @@ The module starts at refresh 23 (the first script line runs then).
 | 2604 – 3571 | 9:00 – 12:62 | 52–63 | the code credits: the label "coding" in the corner, a flash, then DOOM (`doom.pcx`) zooms over the sky (RunZOOMSYNC to 10:62), a flash, MRI (to 12:62) |
 | 3572 – 4538 | 13:00 – 16:62 | 65–76 | the graphics credits: "graphics", DICE, DAMAC |
 | 4539 – 5505 | 17:00 – 20:62 | 78–90 | the music credits: "music", SWALLOW, WODE |
-| 5506 – 5512 | 21:00 | 92–96 | "called" on a white flash (fade to `white.pal`, 45 steps) |
+| 5506 – 5512 | 21:00 | 92–96 | the "music" label erased (an empty rectangle of `alkutext.pcx`; the word "called" in that picture is never shown) and a fade toward white cut short after 6 steps |
 | 5513 – 5990 | 21:00 – 23:00 | 99–102 | the title picture `vivid.pcx` fades in from white over 150 steps |
 | 5991 – 7757 | 24:00 – 30:60 | 107–123 | bitmap effects #1 (`efek1.ini`: the photo `nainen1.raw` over effects of `plo2.raw`; then `4efek1.ini`, `16efek1.ini`; to white from 30:40) |
 | 7758 – 8658 | 31:15 – 34:63 | 125–145 | slides #1: `synknai1.pcx` with four caption lines of `synktxt1.pcx` appearing one by one, then `synknai2.pcx` with `synktxt2.pcx`; fade to black |
