@@ -10,9 +10,12 @@
 // What is on screen: the effect of a Run command (RunBITMAPEFEK, RunBUMPEFEK, RunZOOMSYNC, WaterEffect,
 // GenericEffect) from its start to its end, and between them the pictures the PutPCXSYNC commands copied into VGA
 // memory since the last ClearSCR (the "pictures" scene). The palette is the DAC's: LoadPAL, the pictures' own
-// palettes (InitPCX with flag 0) and the fades of InitFADE, stepped once per refresh.
+// palettes (InitPCX with flag 0), the water's palette, and the fades of InitFADE, stepped once per refresh by the
+// wait loops and the bitmap and bump effects (not by the water and generic scenes).
 #pragma once
+#include <span>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "vivid/images.h"
@@ -60,9 +63,12 @@ private:
         int steps = 0;             // refreshes the fade takes (0: a set)
         int first = 0, last = 255; // the entries the fade changes
     };
+    double steppedRefreshes(double from, double to) const;   // refreshes of fade-stepping loops in [from, to)
+    Palette paletteAt(size_t ev, double r) const;
     std::vector<TimedLine> lines_;
     std::vector<Segment> segs_;
     std::vector<PalEvent> pal_;
+    std::vector<std::pair<double, double>> stepping_;   // [start, end) of the lines whose loops step the fades
     double end_ = 0;
 };
 

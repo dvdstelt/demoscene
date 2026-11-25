@@ -31,10 +31,40 @@ const std::map<std::string, std::string>& initScenes() {
     };
     return m;
 }
-// Commands that wait for their music position (POS given): the Run commands, WaitSYNC and PutPCXSYNC.
+// Commands that wait for their music position (POS given): the Run commands, WaitSYNC and PutPCXSYNC. InitFADE
+// never waits, whatever its POS says (notes-core.md 3).
 bool waits(const ScriptLine& l) {
     const std::string& c = l.command();
     return l.posGiven && (runScenes().count(c) || c == "WaitSYNC" || c == "PutPCXSYNC");
+}
+// Loops that step the palette fade once per refresh (0x401ed0): the waits, the zoom, the bitmap and bump effects.
+// The water and generic scenes do not.
+bool stepsFade(const ScriptLine& l) {
+    const std::string& c = l.command();
+    return waits(l) && c != "WaterEffect" && c != "GenericEffect";
+}
+
+// A value of a "key=value" ini file ('#' starts a comment), or "".
+std::string iniValue(std::span<const uint8_t> f, const std::string& key) {
+    std::string text(f.begin(), f.end()), line;
+    size_t p = 0;
+    while (p < text.size()) {
+        size_t e = text.find_first_of("\r\n", p);
+        if (e == std::string::npos) e = text.size();
+        line = text.substr(p, e - p);
+        p = e + 1;
+        size_t a = line.find_first_not_of(" \t");
+        if (a == std::string::npos || line[a] == '#') continue;
+        size_t eq = line.find('=', a);
+        if (eq == std::string::npos) continue;
+        std::string k = line.substr(a, eq - a);
+        while (!k.empty() && (k.back() == ' ' || k.back() == '\t')) k.pop_back();
+        if (k != key) continue;
+        std::string v = line.substr(eq + 1);
+        size_t b = v.find_first_not_of(" \t"), c = v.find_last_not_of(" \t");
+        return b == std::string::npos ? "" : v.substr(b, c - b + 1);
+    }
+    return "";
 }
 }  // namespace
 
@@ -45,7 +75,7 @@ std::vector<TimedLine> timeScript(const VividExe& exe, int part, const Soundtrac
     double t = song.startRefresh;
     for (ScriptLine& l : script) {
         TimedLine tl{l, t, t};
-        if (waits(l)) {
+        if (waits(l)) {   // the wait loop: at least one refresh, then until order >= POS and row >= PAT
             double e = song.reached(l.pos, l.pat, t);
             tl.end = std::isfinite(e) ? e : std::max(t, song.stopRefresh);
         }
@@ -59,6 +89,7 @@ bool Timeline::build(const VividExe& exe, const Soundtrack& music, std::string* 
     lines_.clear();
     segs_.clear();
     pal_.clear();
+    stepping_.clear();
     Palette black{};
     pal_.push_back({-1e9, black, black, 0, 0, 255});
     for (int part = 0; part < 2; ++part) {
@@ -79,7 +110,8 @@ bool Timeline::build(const VividExe& exe, const Soundtrack& music, std::string* 
             const ScriptLine& l = tl.line;
             const std::string& c = l.command();
             const int idx = int(lines_.size());
-            // palette events
+            // palette events and the refreshes in which fades step
+            if (stepsFade(l) && tl.end > tl.start) stepping_.push_back({tl.start, tl.end});
             try {
                 if (c == "LoadPAL") {
                     Palette p = toColours(loadPal(exe, l.arg(0)));
@@ -93,6 +125,14 @@ bool Timeline::build(const VividExe& exe, const Soundtrack& music, std::string* 
                         Palette c6 = toColours(p.pal);
                         pal_.push_back({tl.start, c6, c6, 0, 0, 255});
                     }
+                } else if (c == "WaterEffect" && init >= 0) {
+                    // the water sets its environment map's palette (or the ini's Palette=) before its first frame
+                    // (notes-water.md, 0x413b70); its Init line names the ini
+                    std::span<const uint8_t> ini = exe.file(lines_[size_t(init)].line.arg(1));
+                    std::string palFile = iniValue(ini, "Palette");
+                    Palette c6 = palFile.empty() ? toColours(loadPicture(exe, iniValue(ini, "EnvironmentMap")).pal)
+                                                 : toColours(loadPal(exe, palFile));
+                    pal_.push_back({tl.start, c6, c6, 0, 0, 255});
                 }
             } catch (const std::exception& e) {
                 if (err) *err = std::string("script line ") + std::to_string(l.line) + ": " + e.what();
@@ -127,18 +167,34 @@ const Segment* Timeline::segmentAt(double r) const {
     return nullptr;
 }
 
-Palette Timeline::palette(double r) const {
-    // the last event at or before r; a fade runs from `from` to `to` over `steps` refreshes for its entries
-    const PalEvent* e = &pal_.front();
-    for (const PalEvent& p : pal_)
-        if (p.at <= r) e = &p;
-    Palette out = e->from;
-    if (e->steps > 0) {
-        float s = float(std::clamp((r - e->at) / e->steps, 0.0, 1.0));
-        for (int i = std::max(0, e->first); i <= std::min(255, e->last); ++i)
-            out[size_t(i)] = e->from[size_t(i)] * (1 - s) + e->to[size_t(i)] * s;
-    }
+double Timeline::steppedRefreshes(double from, double to) const {
+    double n = 0;
+    for (const auto& [a, b] : stepping_) n += std::max(0.0, std::min(b, to) - std::max(a, from));
+    return n;
+}
+
+Palette Timeline::paletteAt(size_t ev, double r) const {
+    // Event ev is the last one at or before r. A set holds from its refresh on. A fade (0x4020b8) does not write the
+    // DAC; the wait loops write it right after each retrace and then step (0x401ed0), so at the j-th refresh a
+    // stepping loop sees the DAC shows p1 + min(j - 1, steps) / steps * (p2 - p1) (evaluated in float, between
+    // refreshes as a fraction: the original's truncated 16.16 steps are dropped); before the first such refresh it
+    // still shows what it showed before the fade (notes-core.md 5).
+    const PalEvent& e = pal_[ev];
+    if (e.steps <= 0) return e.from;
+    double j = steppedRefreshes(e.at, r);
+    if (j < 1.0) return ev > 0 ? paletteAt(ev - 1, r) : e.from;
+    Palette out = e.from;
+    float s = float(std::clamp((j - 1.0) / e.steps, 0.0, 1.0));
+    for (int i = std::max(0, e.first); i <= std::min(255, e.last); ++i)
+        out[size_t(i)] = e.from[size_t(i)] * (1 - s) + e.to[size_t(i)] * s;
     return out;
+}
+
+Palette Timeline::palette(double r) const {
+    size_t ev = 0;
+    for (size_t i = 0; i < pal_.size(); ++i)
+        if (pal_[i].at <= r) ev = i;
+    return paletteAt(ev, r);
 }
 
 }  // namespace vivid

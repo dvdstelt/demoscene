@@ -22,8 +22,9 @@ std::pair<int, int> Soundtrack::Song::positionAt(double r) const {
 }
 
 double Soundtrack::Song::reached(int pos, int pat, double from) const {
-    // WaitSYNC polls once per refresh: the first whole refresh >= from whose position satisfies the condition
-    double k = std::ceil(from - 1e-9);
+    // WaitSYNC waits for the next refresh at least once, then polls once per refresh: the first whole refresh after
+    // `from` whose position satisfies the condition (notes-core.md 3, "The waits")
+    double k = std::floor(from + 1e-9) + 1;
     for (size_t i = 0; i < rows.size(); ++i) {
         const Row& w = rows[i];
         double next = i + 1 < rows.size() ? rows[i + 1].refresh : stopRefresh;
