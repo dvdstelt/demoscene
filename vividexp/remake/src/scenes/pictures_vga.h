@@ -49,10 +49,11 @@
 //     whitens the sky but keeps the black bands).
 //
 // Censored areas (kCensor: the nude parts of two of the slides' pin-ups and of the title picture, ellipses measured
-// on the pictures, our own parameters): with --censor (c.censor) they are a mosaic of 6 x 6 original pixels, each
-// square the mean colour of its pixels through the palette, anti-aliased at the ellipse's edge; without it they are
-// drawn as everything else. (Should one of these pictures get a redraw, the redraw is not shown inside the areas:
-// they show the original's pixels, blended into the redraw over two original pixels.)
+// on the pictures, our own parameters): with --censor (c.censor) they are a mosaic of 6 x 6 original pixels,
+// anti-aliased at the ellipse's edge; without it they are drawn as everything else. On the original pixels each
+// square is the mean colour of its pixels through the palette; on a redraw it is the redraw's mean colour over the
+// square (through the fade as the redraw's other colours), in the redraw's own ellipses, which are measured on the
+// redraw (synknai1's redraw covers the chest and has none).
 //
 // Evaluated exactly instead of the original's shortcuts: the zoom's integer rectangle and 16.16 stepping (which drops
 // the start fraction) become the continuous transform above; the fades are continuous (the framework's palette);
@@ -94,16 +95,20 @@ struct Op {
     const vivid::Segment* seg = nullptr;   // Effect: the Run command's segment
 };
 
-// The censored areas: the picture's art name and up to two ellipses (cx, cy, rx, ry) in its pixels.
+// The censored areas: the picture's art name and up to two ellipses (cx, cy, rx, ry) in its pixels, on the original
+// pixels (e, n) and on the redraw (art, nArt; measured on art/<name>.png, in the same picture pixels). synknai1's
+// redraw covers the chest, so it has none.
 struct CensorArea {
     const char* name;
     float e[2][4];
     int n;
+    float art[2][4];
+    int nArt;
 };
 inline constexpr CensorArea kCensor[] = {
-    {"synknai1", {{76.0f, 100.0f, 24.0f, 31.0f}, {}}, 1},
-    {"synknai2", {{288.0f, 46.0f, 18.0f, 13.0f}, {}}, 1},
-    {"vivid", {{167.0f, 71.0f, 22.0f, 14.0f}, {}}, 1},
+    {"synknai1", {{76.0f, 100.0f, 24.0f, 31.0f}, {}}, 1, {{}, {}}, 0},
+    {"synknai2", {{288.0f, 46.0f, 18.0f, 13.0f}, {}}, 1, {{289.0f, 46.0f, 22.0f, 13.0f}, {}}, 1},
+    {"vivid", {{167.0f, 71.0f, 22.0f, 14.0f}, {}}, 1, {{168.0f, 70.0f, 23.0f, 15.0f}, {}}, 1},
 };
 inline constexpr float kMosaic = 6.0f;   // the mosaic's squares, in original pixels (tools/align_art.py MOSAIC)
 
@@ -311,7 +316,7 @@ uniform int source;       // 0 the original pixels, 1 a colour redraw, 2 a text 
 uniform int inkIndex, paperIndex;
 uniform int censorN;      // censored ellipses (0..2)
 uniform vec4 censorE[2];  // cx, cy, rx, ry in picture texels
-uniform int censorMode;   // 1 the original's pixels there, 2 a mosaic of mosaicSize texels
+uniform int censorMode;   // 2 a mosaic of the original's pixels, 3 of the redraw's colours (mosaicSize texels)
 uniform float mosaicSize;
 uniform int mode;         // 0 opaque, 1 index 0 transparent, 2 added to the colours under it
 uniform int useSdf;
@@ -350,17 +355,11 @@ vec4 pixels(vec2 p, vec2 e, vec3 artc) {
                mix(tap(t + ivec2(0, 1), artc), tap(t + ivec2(1, 1), artc), f.x), f.y);
 }
 
-// the original's own pixels (palette colours, no redraw), as pixels() draws them
+// the original's own pixel t (its palette colour, no redraw)
 vec4 tapOrig(ivec2 t) {
     uint i = texelFetch(idx, clamp(t, ivec2(srcRect.xy), ivec2(srcRect.zw) - 1), 0).r;
     if (mode == 1 && i == 0u) return vec4(0.0);
     return vec4(palColor(pal, i), 1.0);
-}
-vec4 pixelsOrig(vec2 p, vec2 e) {
-    vec2 q = p - 0.5, b = floor(q);
-    vec2 f = clamp((q - b - 0.5) / e + 0.5, 0.0, 1.0);
-    ivec2 t = ivec2(b);
-    return mix(mix(tapOrig(t), tapOrig(t + ivec2(1, 0)), f.x), mix(tapOrig(t + ivec2(0, 1)), tapOrig(t + ivec2(1, 1)), f.x), f.y);
 }
 // how far inside the censored ellipses p is, in texels (negative outside)
 float censorDepth(vec2 p) {
@@ -378,6 +377,18 @@ vec4 mosaic(vec2 p) {
     vec4 acc = vec4(0.0);
     for (int y = 0; y < m; ++y)
         for (int x = 0; x < m; ++x) acc += tapOrig(b0 + ivec2(x, y));
+    return acc / float(m * m);
+}
+// ... on a redraw: the redraw's mean colour over the square (its mipmap at the square's size), through the fade as
+// tap() takes it for each of the square's texels
+vec4 mosaicArt(vec2 p) {
+    vec2 b0 = floor(p / mosaicSize) * mosaicSize;
+    vec2 n = vec2(textureSize(art, 0)) / picSize * mosaicSize;   // redraw texels per square
+    vec3 artc = textureLod(art, (b0 + 0.5 * mosaicSize) / picSize, log2(max(n.x, n.y))).rgb;
+    int m = int(mosaicSize);
+    vec4 acc = vec4(0.0);
+    for (int y = 0; y < m; ++y)
+        for (int x = 0; x < m; ++x) acc += tap(ivec2(b0) + ivec2(x, y), artc);
     return acc / float(m * m);
 }
 
@@ -449,15 +460,9 @@ void main() {
         }
     }
     if (censorN > 0 && censorMode != 0) {
-        float d = censorDepth(p);
-        float fwp = max(length(dx) + length(dy), 1e-4);   // texels per output pixel
-        if (censorMode == 2) {
-            float w = clamp(d / fwp + 0.5, 0.0, 1.0);      // a hard edge, anti-aliased
-            if (w > 0.0) c = mix(c, mosaic(p), w);
-        } else {
-            float w = clamp(d / max(2.0, fwp) + 0.5, 0.0, 1.0);   // blended into the redraw over two texels
-            if (w > 0.0) c = mix(c, pixelsOrig(p, max(abs(dx) + abs(dy), vec2(1e-4))), w);
-        }
+        float fwp = max(length(dx) + length(dy), 1e-4);         // texels per output pixel
+        float w = clamp(censorDepth(p) / fwp + 0.5, 0.0, 1.0);   // a hard edge, anti-aliased
+        if (w > 0.0) c = mix(c, censorMode == 3 ? mosaicArt(p) : mosaic(p), w);
     }
     o = c * cov;
 }
@@ -852,14 +857,15 @@ private:
         shader_.set("sdf", 4);
         shader_.set("foot", 5);
         shader_.set("ink", 6);
-        // censored areas: the original's pixels under a redraw, a mosaic with --censor
-        int cmode = !p.censor ? 0 : c.censor ? 2 : source == 1 ? 1 : 0;
-        shader_.set("censorMode", cmode);
-        shader_.set("censorN", cmode ? p.censor->n : 0);
-        if (cmode) {
+        // censored areas, with --censor: a mosaic of the original's pixels, or of the redraw's colours on a redraw
+        int cmode = !p.censor || !c.censor ? 0 : source == 1 ? 3 : 2;
+        const int cn = cmode == 3 ? p.censor->nArt : cmode == 2 ? p.censor->n : 0;
+        shader_.set("censorMode", cn ? cmode : 0);
+        shader_.set("censorN", cn);
+        if (cn) {
             float e[8] = {};
-            for (int k = 0; k < p.censor->n; ++k)
-                for (int j = 0; j < 4; ++j) e[k * 4 + j] = p.censor->e[k][j];
+            for (int k = 0; k < cn; ++k)
+                for (int j = 0; j < 4; ++j) e[k * 4 + j] = cmode == 3 ? p.censor->art[k][j] : p.censor->e[k][j];
             gl::Uniform4fv(shader_.loc("censorE"), 2, e);
         }
         shader_.set("mosaicSize", kMosaic);
