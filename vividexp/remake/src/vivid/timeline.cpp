@@ -2,6 +2,8 @@
 #include "vivid/timeline.h"
 
 #include <algorithm>
+#include <array>
+#include <cstdlib>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -126,6 +128,27 @@ bool Timeline::build(const VividExe& exe, const Soundtrack& music, std::string* 
                         Palette c6 = toColours(p.pal);
                         pal_.push_back({tl.start, c6, c6, 0, 0, 255});
                     }
+                } else if (c == "InitBITMAPEFEK" && l.argInt(1) == 0) {
+                    // InitBITMAPEFEK 0x400ae4 sets the whole palette from the first texture's raw palette (the
+                    // colour table's for two 1 x 1 planes), entries 192..255 from the background picture's first 64
+                    // colours, and writes the DAC (notes-bitmap.md 3, 8). The ini: TYPE PLANES BPIC x, BPICNAME
+                    // DTABNAME x x, P1..P4, T1..T8, whitespace-separated
+                    std::span<const uint8_t> ini = exe.file(l.arg(0));
+                    std::istringstream words(std::string(ini.begin(), ini.end()));
+                    std::vector<std::string> w;
+                    for (std::string x; w.size() < 12 && words >> x;) w.push_back(x);
+                    if (w.size() < 12) throw std::runtime_error("cannot read " + l.arg(0));
+                    const int type = std::atoi(w[0].c_str()), planes = std::atoi(w[1].c_str());
+                    const bool bpic = std::atoi(w[2].c_str()) == 1;
+                    std::span<const uint8_t> raw = exe.file(type == 1 && planes == 2 ? w[5] : w[8]);
+                    std::array<uint8_t, 768> p6{};
+                    for (size_t k = 0; k < 768 && 32 + k < raw.size(); ++k) p6[k] = uint8_t(raw[32 + k] >> 2);
+                    if (bpic) {
+                        std::span<const uint8_t> b = exe.file(w[4]);
+                        for (size_t k = 0; k < 64 * 3 && 32 + k < b.size(); ++k) p6[192 * 3 + k] = uint8_t(b[32 + k] >> 2);
+                    }
+                    Palette c6 = toColours(p6);
+                    pal_.push_back({tl.start, c6, c6, 0, 0, 255});
                 } else if (c == "InitBUMP" && l.argInt(1) == 0) {
                     // InitBUMP's flag goes to InitPCX for the light picture, the 7th word of its ini: 0 sets that
                     // picture's palette at once (notes-bump.md 2, 8)
