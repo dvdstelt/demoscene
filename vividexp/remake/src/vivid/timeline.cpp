@@ -133,6 +133,14 @@ bool Timeline::build(const VividExe& exe, const Soundtrack& music, std::string* 
                     Palette c6 = palFile.empty() ? toColours(loadPicture(exe, iniValue(ini, "EnvironmentMap")).pal)
                                                  : toColours(loadPal(exe, palFile));
                     pal_.push_back({tl.start, c6, c6, 0, 0, 255});
+                } else if (c == "GenericEffect" && init >= 0) {
+                    // the 3D scenes send the ini's Palette= (else the background picture's) to the DAC at the start
+                    // of GenericEffect (notes-generic.md 9)
+                    std::span<const uint8_t> ini = exe.file(lines_[size_t(init)].line.arg(1));
+                    std::string palFile = iniValue(ini, "Palette");
+                    Palette c6 = !palFile.empty() ? toColours(loadPal(exe, palFile))
+                                                  : toColours(loadPicture(exe, iniValue(ini, "BackgroundPic")).pal);
+                    pal_.push_back({tl.start, c6, c6, 0, 0, 255});
                 }
             } catch (const std::exception& e) {
                 if (err) *err = std::string("script line ") + std::to_string(l.line) + ": " + e.what();
