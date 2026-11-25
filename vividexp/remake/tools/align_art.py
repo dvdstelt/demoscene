@@ -1,6 +1,7 @@
 """Fits a high-resolution redraw of one of Vivid Experiment's pictures onto the original and writes art/NAME.png.
 
     python3 tools/align_art.py --upload NAME OUT.png         the nearest-neighbour picture to give the image generator
+                                                             (--uncensored: without the mosaic over CENSOR's areas)
     python3 tools/align_art.py NAME REDRAW.png [--match]      fit the redraw and write art/NAME.png (or art/<name>.png
                                                              for each name of a group)
     python3 tools/align_art.py --sheet OUT.jpg NAME [NAME ..] comparison sheet: original | redraw
@@ -54,7 +55,29 @@ PICTURES = {
                      what='white serif lettering on black: several words and lines of text'),
     'siipiman': dict(file='pics/siipiman.pcx', pal='pal/siipiman.pal',
                      what='a painting of a muscular winged man flying against a yellow sun and an orange sky'),
+    # the backgrounds (photos of a sky, a star cluster and a sunset; no people)
+    'taivas': dict(file='pics/taivas.pcx', pal='pal/taivas.pal',
+                   what='a photo of a cloudy evening sky in purple and pink, between black bands at the top and bottom'),
+    'watback': dict(file='water/watback.pcx', pal='pal/watback.pal',
+                    what='a photo of a star cluster: bright pink stars and faint nebulae on a dark purple sky'),
+    'back': dict(file='gen2/back.pcx', pal='gen2/texture.pal',
+                 what='a photo of a sunset over a lake with forested shores, in shades of orange and brown'),
+    # the slides' airbrushed pin-ups; the nude parts are a mosaic in the upload (CENSOR)
+    'synknai1': dict(file='pics/synknai1.pcx', pal='pal/synknai1.pal',
+                     what='a woman in a black catsuit with cat ears and a tail, crouching, on white, at the left'),
+    'synknai2': dict(file='pics/synknai2.pcx', pal='pal/synknai2.pal',
+                     what='a woman in grey latex with a horse mask, blond tail and a riding crop, on white, at the right'),
+    'synknai3': dict(file='pics/synknai3.pcx', pal='pal/synknai3.pal',
+                     what='a woman in a shiny pink dress leaning back with her arms out, on white, at the right'),
 }
+# Censored areas (original pixel coordinates; measured on the pictures): ellipses (cx, cy, rx, ry), a mosaic of
+# MOSAIC x MOSAIC blocks in the uploads. The remake (src/scenes/pictures_vga.h, kCensor) draws the original's pixels
+# there, or the same mosaic with --censor, so the redraw is never seen in them.
+CENSOR = {
+    'synknai1': [(76.0, 100.0, 24.0, 31.0)],
+    'synknai2': [(288.0, 46.0, 18.0, 13.0)],
+}
+MOSAIC = 6
 # The zoom credits' names: 1280x200 pictures with the name around column 640 (notes-core.md 8); the crop: columns
 # 360..919 and the name's rows with a margin of 6
 NAMES = ['doom', 'mri', 'dice', 'damac', 'swallow', 'wode']
@@ -122,6 +145,27 @@ def load_original(name):
     pal = np.frombuffer(archive_file(s['pal']), np.uint8).reshape(256, 3).astype(np.float64)
     rgb = np.minimum(pal, 63) * 255.0 / 63.0
     return rgb[px], np.ones(px.shape)
+
+
+def censor_mask(name, h, w):
+    yy, xx = np.mgrid[0:h, 0:w] + 0.5
+    m = np.zeros((h, w), bool)
+    for cx, cy, rx, ry in CENSOR.get(name, []):
+        m |= ((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2 <= 1.0
+    return m
+
+
+def mosaic(name, rgb):
+    """The picture with its censored areas as a mosaic: MOSAIC x MOSAIC blocks (from 0, 0) of their mean colour."""
+    h, w = rgb.shape[:2]
+    m = censor_mask(name, h, w)
+    out = rgb.copy()
+    for by in range(0, h, MOSAIC):
+        for bx in range(0, w, MOSAIC):
+            blk = m[by:by + MOSAIC, bx:bx + MOSAIC]
+            if blk.any():
+                out[by:by + MOSAIC, bx:bx + MOSAIC][blk] = rgb[by:by + MOSAIC, bx:bx + MOSAIC].reshape(-1, 3).mean(0)
+    return out
 
 
 def group_layout(group):
@@ -437,7 +481,7 @@ def upload(a):
         what = ', '.join(spec(n)['what'] for n, _, _ in rows)
     else:
         rgb, alpha = load_original(a.name)
-        c = rgb
+        c = rgb if a.uncensored else mosaic(a.name, rgb)
         CH, CW = c.shape[:2]
         what = spec(a.name)['what']
     fx, fy = upload_scale(CW)
@@ -498,6 +542,7 @@ def main():
     ap.add_argument('--match', action='store_true')
     ap.add_argument('--sheet')
     ap.add_argument('--upload', action='store_true')
+    ap.add_argument('--uncensored', action='store_true')
     a = ap.parse_args()
     if a.sheet:
         a.names = [x for x in [a.name] + a.rest if x] or list(PICTURES)
