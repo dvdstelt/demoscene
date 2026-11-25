@@ -186,8 +186,8 @@ std::unique_ptr<Effect> loadEffect(Ctx& c, const vivid::ScriptLine& init, FitCac
 }
 
 bool setsPalette(const vivid::ScriptLine& l) {
-    const std::string& cmd = l.command();
-    return cmd == "LoadPAL" || cmd == "InitFADE" || (cmd == "InitPCX" && l.argInt(2) == 0);
+    using vivid::Cmd;
+    return l.cmd == Cmd::LoadPAL || l.cmd == Cmd::InitFADE || (l.cmd == Cmd::InitPCX && l.argInt(2) == 0);
 }
 
 const char* kBumpFS = R"(

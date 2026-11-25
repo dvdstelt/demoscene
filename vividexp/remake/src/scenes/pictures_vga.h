@@ -327,11 +327,11 @@ public:
         std::vector<Picture*> names;
         for (const vivid::TimedLine& tl : c.timeline->lines()) {
             const vivid::ScriptLine& l = tl.line;
-            const std::string& cmd = l.command();
+            const vivid::Cmd cmd = l.cmd;
             try {
-                if (cmd == "InitPCX") picture(c, l.arg(1));
-                else if (cmd == "InitZOOM") picture(c, l.arg(0));
-                else if (cmd == "RunZOOMSYNC") names.push_back(&picture(c, l.arg(0)));
+                if (cmd == vivid::Cmd::InitPCX) picture(c, l.arg(1));
+                else if (cmd == vivid::Cmd::InitZOOM) picture(c, l.arg(0));
+                else if (cmd == vivid::Cmd::RunZOOMSYNC) names.push_back(&picture(c, l.arg(0)));
             } catch (const std::exception& e) {
                 SDL_Log("pictures: script line %d: %s", l.line, e.what());
             }
@@ -472,11 +472,11 @@ private:
         for (size_t i = linesUpTo(*c.timeline, r); i-- > 0;) {
             const vivid::TimedLine& tl = lines[i];
             const vivid::ScriptLine& l = tl.line;
-            const std::string& cmd = l.command();
-            if (cmd == "LoadPAL" || cmd == "WaterEffect" || cmd == "GenericEffect" ||
-                ((cmd == "InitPCX" || cmd == "InitBUMP") && l.argInt(cmd == "InitPCX" ? 2 : 1) == 0))
+            const vivid::Cmd cmd = l.cmd;
+            if (cmd == vivid::Cmd::LoadPAL || cmd == vivid::Cmd::WaterEffect || cmd == vivid::Cmd::GenericEffect ||
+                ((cmd == vivid::Cmd::InitPCX || cmd == vivid::Cmd::InitBUMP) && l.argInt(cmd == vivid::Cmd::InitPCX ? 2 : 1) == 0))
                 return f;   // a palette set at once: it holds
-            if (cmd != "InitFADE") continue;
+            if (cmd != vivid::Cmd::InitFADE) continue;
             const Palette &A = palFile(c, l.arg(0)), &B = palFile(c, l.arg(1));
             int first = std::clamp(l.argInt(3), 0, 255), last = std::clamp(l.argInt(4), 0, 255);
             double num = 0, den = 0;
@@ -516,23 +516,23 @@ private:
         std::vector<int> mem(320 * 200, 0);   // -1: drawn by the zoom or an effect (not tracked)
         for (size_t i = 0; i < count; ++i) {
             const vivid::ScriptLine& l = lines[i].line;
-            const std::string& cmd = l.command();
+            const vivid::Cmd cmd = l.cmd;
             Op op;
             op.line = int(i);
-            if (cmd == "InitPCX") {
+            if (cmd == vivid::Cmd::InitPCX) {
                 slot[l.argInt(0)] = l.arg(1);
-            } else if (cmd == "DeinitPCX") {
+            } else if (cmd == vivid::Cmd::DeinitPCX) {
                 slot.erase(l.argInt(0));
-            } else if (cmd == "InitZOOM") {
+            } else if (cmd == vivid::Cmd::InitZOOM) {
                 slot[0] = l.arg(0);
-            } else if (cmd == "DeinitZOOM") {
+            } else if (cmd == vivid::Cmd::DeinitZOOM) {
                 slot.erase(0);
-            } else if (cmd == "ClearSCR") {
+            } else if (cmd == vivid::Cmd::ClearSCR) {
                 ops.clear();
                 std::fill(mem.begin(), mem.end(), 0);
                 op.kind = Op::Clear;
                 ops.push_back(std::move(op));
-            } else if (cmd == "PutPCXSYNC") {
+            } else if (cmd == vivid::Cmd::PutPCXSYNC) {
                 auto s = slot.find(l.argInt(0));
                 op.kind = Op::Rect;
                 op.dx = l.argInt(1); op.dy = l.argInt(2); op.sx = l.argInt(3); op.sy = l.argInt(4);
@@ -545,7 +545,7 @@ private:
                 apply(c, op, mem);
                 if (op.mode == 0 && op.dx <= 0 && op.dy <= 0 && op.w >= 320 && op.h >= 200) ops.clear();
                 ops.push_back(std::move(op));
-            } else if (cmd == "RunZOOMSYNC") {
+            } else if (cmd == vivid::Cmd::RunZOOMSYNC) {
                 auto s = slot.find(0);
                 if (s == slot.end()) continue;
                 op.kind = Op::Zoom;

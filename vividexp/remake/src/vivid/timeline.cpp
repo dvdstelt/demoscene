@@ -19,33 +19,31 @@ namespace {
 constexpr uint32_t kScriptName[2] = {0x82010a, 0x82011b};   // "script/demo1.scr", "script/demo2.scr"
 
 // The Run commands and the scene that draws each.
-const std::map<std::string, std::string>& runScenes() {
-    static const std::map<std::string, std::string> m = {
-        {"RunBITMAPEFEK", "bitmap"}, {"RunBUMPEFEK", "bump"}, {"RunZOOMSYNC", "zoom"},
-        {"WaterEffect", "water"},    {"GenericEffect", "generic"},
+const std::map<Cmd, std::string>& runScenes() {
+    static const std::map<Cmd, std::string> m = {
+        {Cmd::RunBITMAPEFEK, "bitmap"}, {Cmd::RunBUMPEFEK, "bump"}, {Cmd::RunZOOMSYNC, "zoom"},
+        {Cmd::WaterEffect, "water"},    {Cmd::GenericEffect, "generic"},
     };
     return m;
 }
-// The Init command that sets up each scene's effect.
-const std::map<std::string, std::string>& initScenes() {
-    static const std::map<std::string, std::string> m = {
-        {"InitBITMAPEFEK", "bitmap"}, {"InitBUMP", "bump"}, {"InitZOOM", "zoom"},
-        {"WaterInit", "water"},       {"GenericInit", "generic"},
-    };
-    return m;
+// The Init commands that set the effects up.
+bool isInit(Cmd c) {
+    return c == Cmd::InitBITMAPEFEK || c == Cmd::InitBUMP || c == Cmd::InitZOOM || c == Cmd::WaterInit ||
+           c == Cmd::GenericInit;
 }
 // Commands that wait for their music position (POS given): the Run commands, WaitSYNC and PutPCXSYNC. InitFADE
 // never waits, whatever its POS says (notes-core.md 3).
 bool waits(const ScriptLine& l) {
-    const std::string& c = l.command();
-    return l.posGiven && (runScenes().count(c) || c == "WaitSYNC" || c == "PutPCXSYNC");
+    return l.posGiven && (runScenes().count(l.cmd) || l.cmd == Cmd::WaitSYNC || l.cmd == Cmd::PutPCXSYNC);
 }
 // Loops that step the palette fade once per refresh (0x401ed0): the waits, the zoom, the bitmap and bump effects.
 // The water and generic scenes do not.
 bool stepsFade(const ScriptLine& l) {
-    const std::string& c = l.command();
-    return waits(l) && c != "WaterEffect" && c != "GenericEffect";
+    return waits(l) && l.cmd != Cmd::WaterEffect && l.cmd != Cmd::GenericEffect;
 }
+// The ini keys the water (0x405bd0) and generic (0x408cec) inits read the palette with, from their own strings.
+constexpr uint32_t kWaterPalette = 0x820612, kWaterEnvMap = 0x8205fb;        // "Palette", "EnvironmentMap"
+constexpr uint32_t kGenericPalette = 0x820f52, kGenericBackPic = 0x820ed4;   // "Palette", "BackgroundPic"
 
 // A value of a "key=value" ini file ('#' starts a comment), or "".
 std::string iniValue(std::span<const uint8_t> f, const std::string& key) {
@@ -72,7 +70,7 @@ std::string iniValue(std::span<const uint8_t> f, const std::string& key) {
 }  // namespace
 
 std::vector<TimedLine> timeScript(const VividExe& exe, int part, const Soundtrack& music) {
-    std::vector<ScriptLine> script = parseScript(exe.file(exe.cstr(kScriptName[part - 1])), part);
+    std::vector<ScriptLine> script = parseScript(exe, exe.file(exe.cstr(kScriptName[part - 1])), part);
     const Soundtrack::Song& song = music.song[part - 1];
     std::vector<TimedLine> out;
     double t = song.startRefresh;
@@ -111,24 +109,24 @@ bool Timeline::build(const VividExe& exe, const Soundtrack& music, std::string* 
         Segment pics{"pictures", part + 1, t, t, -1, -1};
         for (TimedLine& tl : timed) {
             const ScriptLine& l = tl.line;
-            const std::string& c = l.command();
+            const Cmd c = l.cmd;
             const int idx = int(lines_.size());
             // palette events and the refreshes in which fades step
             if (stepsFade(l) && tl.end > tl.start) stepping_.push_back({tl.start, tl.end});
             try {
-                if (c == "LoadPAL") {
+                if (c == Cmd::LoadPAL) {
                     Palette p = toColours(loadPal(exe, l.arg(0)));
                     pal_.push_back({tl.start, p, p, 0, 0, 255});
-                } else if (c == "InitFADE") {
+                } else if (c == Cmd::InitFADE) {
                     Palette a = toColours(loadPal(exe, l.arg(0))), b = toColours(loadPal(exe, l.arg(1)));
                     pal_.push_back({tl.start, a, b, std::max(1, l.argInt(2)), l.argInt(3), l.argInt(4)});
-                } else if (c == "InitPCX") {
+                } else if (c == Cmd::InitPCX) {
                     Indexed p = loadPicture(exe, l.arg(1));
                     if (l.argInt(2) == 0) {
                         Palette c6 = toColours(p.pal);
                         pal_.push_back({tl.start, c6, c6, 0, 0, 255});
                     }
-                } else if (c == "InitBITMAPEFEK" && l.argInt(1) == 0) {
+                } else if (c == Cmd::InitBITMAPEFEK && l.argInt(1) == 0) {
                     // InitBITMAPEFEK 0x400ae4 sets the whole palette from the first texture's raw palette (the
                     // colour table's for two 1 x 1 planes), entries 192..255 from the background picture's first 64
                     // colours, and writes the DAC (notes-bitmap.md 3, 8). The ini: TYPE PLANES BPIC x, BPICNAME
@@ -149,7 +147,7 @@ bool Timeline::build(const VividExe& exe, const Soundtrack& music, std::string* 
                     }
                     Palette c6 = toColours(p6);
                     pal_.push_back({tl.start, c6, c6, 0, 0, 255});
-                } else if (c == "InitBUMP" && l.argInt(1) == 0) {
+                } else if (c == Cmd::InitBUMP && l.argInt(1) == 0) {
                     // InitBUMP's flag goes to InitPCX for the light picture, the 7th word of its ini: 0 sets that
                     // picture's palette at once (notes-bump.md 2, 8)
                     std::span<const uint8_t> ini = exe.file(l.arg(0));
@@ -158,21 +156,21 @@ bool Timeline::build(const VividExe& exe, const Soundtrack& music, std::string* 
                     for (int k = 0; k < 7 && words >> w; ++k) light = w;
                     Palette c6 = toColours(loadPicture(exe, light).pal);
                     pal_.push_back({tl.start, c6, c6, 0, 0, 255});
-                } else if (c == "WaterEffect" && init >= 0) {
+                } else if (c == Cmd::WaterEffect && init >= 0) {
                     // the water sets its environment map's palette (or the ini's Palette=) before its first frame
                     // (notes-water.md, 0x413b70); its Init line names the ini
                     std::span<const uint8_t> ini = exe.file(lines_[size_t(init)].line.arg(1));
-                    std::string palFile = iniValue(ini, "Palette");
-                    Palette c6 = palFile.empty() ? toColours(loadPicture(exe, iniValue(ini, "EnvironmentMap")).pal)
+                    std::string palFile = iniValue(ini, exe.cstr(kWaterPalette));
+                    Palette c6 = palFile.empty() ? toColours(loadPicture(exe, iniValue(ini, exe.cstr(kWaterEnvMap))).pal)
                                                  : toColours(loadPal(exe, palFile));
                     pal_.push_back({tl.start, c6, c6, 0, 0, 255});
-                } else if (c == "GenericEffect" && init >= 0) {
+                } else if (c == Cmd::GenericEffect && init >= 0) {
                     // the 3D scenes send the ini's Palette= (else the background picture's) to the DAC at the start
                     // of GenericEffect (notes-generic.md 9)
                     std::span<const uint8_t> ini = exe.file(lines_[size_t(init)].line.arg(1));
-                    std::string palFile = iniValue(ini, "Palette");
+                    std::string palFile = iniValue(ini, exe.cstr(kGenericPalette));
                     Palette c6 = !palFile.empty() ? toColours(loadPal(exe, palFile))
-                                                  : toColours(loadPicture(exe, iniValue(ini, "BackgroundPic")).pal);
+                                                  : toColours(loadPicture(exe, iniValue(ini, exe.cstr(kGenericBackPic))).pal);
                     pal_.push_back({tl.start, c6, c6, 0, 0, 255});
                 }
             } catch (const std::exception& e) {
@@ -180,7 +178,7 @@ bool Timeline::build(const VividExe& exe, const Soundtrack& music, std::string* 
                 return false;
             }
             // segments
-            if (initScenes().count(c)) init = idx;
+            if (isInit(c)) init = idx;
             auto run = runScenes().find(c);
             if (run != runScenes().end()) {
                 if (pics.end > pics.start) segs_.push_back(pics);
