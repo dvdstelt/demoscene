@@ -35,7 +35,9 @@ vividexp-remake [--window] [--size 1280x960] [--start SECONDS] [--ss 2] [--loop]
 Keys: `Esc` quit, `Space` pause, `←/→` seek ±5 s, `↓/↑` seek ±30 s, `F`/`F11` toggle fullscreen.
 `--ss 2` renders at twice the resolution and downsamples. `--info` shows the time, music position and scene in the
 title bar. `--original-art` shows the original pixels of the lettering, the names and the winged man instead of the
-redraws.
+redraws. `--censor` covers the nude parts of the title picture and of two of the slides' pin-ups with a mosaic, for
+a video that is to be published (`scripts/render-videos.sh` uses it); without it, the pictures are shown as the
+original shows them.
 
 Offline: `--wav out.wav` writes the soundtrack; `--shots 10,62.5 --shotdir DIR --shotsize WxH` writes the frames at
 those music times (seconds) to PNG; `--video out.mp4 [--from T0 --to T1] [--fps 60] [--shotsize WxH]` renders the

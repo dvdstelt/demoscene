@@ -21,7 +21,8 @@ II starts with glossy hearts flying over a star cluster, then a bump-mapped map 
 blended texture tunnels, a flight over a bump-mapped landscape, an ice-like relief, tumbling blobs over a sunset, the
 word "doomsday" bump-mapped in water and the greetings. It lasts 6 minutes 35 seconds.
 
-The demo shows photos of women, two of them nude or nearly, and sexualised pin-ups (Demozoo tags it nsfw).
+The demo shows photos of women, two of them nude or nearly, and sexualised pin-ups (Demozoo tags it nsfw). The
+remake shows them as the demo does; `--censor` covers their nude parts with a mosaic, and the video uses it.
 
 Links: [pouet.net](https://www.pouet.net/prod.php?which=2167) · [demozoo](https://demozoo.org/productions/10152/) ·
 [Assembly '96 results](https://ftp.scene.org/pub/parties/1996/assembly96/info/a96resul.txt) ·

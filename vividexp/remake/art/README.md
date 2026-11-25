@@ -44,8 +44,10 @@ sky's index), so they are kept as coverage masks and the remake does the arithme
 - The captions `synktxt1..4.pcx`: they quote a song's lyrics, which this project does not reproduce. The remake
   sharpens them when it draws them instead: their own pixels' lightness, upsampled and cut at a threshold, gives
   smooth script at any resolution (`src/scenes/pictures_vga.h`, "ink pictures").
-- The slides' pin-ups `synknai1..4.pcx`: two show nudity and were not sent to an image generator (as Inside's nude
-  was not), and the third looks like a retouched photo of a real woman; the four are shown together, so all of them
-  keep their original pixels.
+- The slides' pin-ups `synknai1..4.pcx`. At the maintainer's request the first was sent to ChatGPT with its nude part
+  covered by a mosaic (25 November 2026); ChatGPT refused it, saying the image may violate its guardrails concerning
+  similarity to third-party content: the pin-ups are a professional illustrator's work that the demo copied, so they
+  are not redrawn with another tool either. The fourth looks like a retouched photo of a real woman. All four keep
+  their original pixels; `--censor` covers the nude parts of two of them (and of the title photo) with a mosaic.
 - Everything an effect reads through palette indices or tables: the height pictures and light pictures of the bump
   mapping, the bitmap effects' textures, the 3D scenes' maps and textures.

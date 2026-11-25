@@ -85,8 +85,13 @@ The demo shows four kinds of picture as they are: its own lettering, borrowed ar
   a fantasy painting in Boris Vallejo's style, came back a little redder and darker and was matched to the original's
   colours.
 - **Not redrawn**: the photos of women in the title picture, the greetings and the bitmap effects (photos of real
-  people); the slides' pin-ups, of which two show nudity and one looks like a retouched photo (the four are shown
-  together, so all four keep their pixels); and the captions on the slides, which quote a song's lyrics.
+  people); the slides' pin-ups; and the captions on the slides, which quote a song's lyrics. I wanted the pin-ups in
+  high resolution too, censored for YouTube, so the first went to ChatGPT with its nude part covered by a mosaic.
+  ChatGPT refused it for its similarity to third-party content: the pin-ups are a professional illustrator's work that
+  the demo copied, so they keep their pixels. The captions are drawn sharper instead from their own pixels: their
+  lightness, scaled up and cut at a threshold, gives smooth script at any resolution.
+- **Censoring.** For the YouTube video, `--censor` covers the nude parts of the title picture and of two pin-ups with
+  a mosaic of 6 × 6 original pixels; the remake shows the pictures as the demo does unless it is given.
 
 [`remake/art/README.md`](../remake/art/README.md) has the prompts, the attempts and the fits.
 
