@@ -5,6 +5,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <sstream>
 
 #include "exe.h"
 #include "music.h"
@@ -125,6 +126,15 @@ bool Timeline::build(const VividExe& exe, const Soundtrack& music, std::string* 
                         Palette c6 = toColours(p.pal);
                         pal_.push_back({tl.start, c6, c6, 0, 0, 255});
                     }
+                } else if (c == "InitBUMP" && l.argInt(1) == 0) {
+                    // InitBUMP's flag goes to InitPCX for the light picture, the 7th word of its ini: 0 sets that
+                    // picture's palette at once (notes-bump.md 2, 8)
+                    std::span<const uint8_t> ini = exe.file(l.arg(0));
+                    std::istringstream words(std::string(ini.begin(), ini.end()));
+                    std::string w, light;
+                    for (int k = 0; k < 7 && words >> w; ++k) light = w;
+                    Palette c6 = toColours(loadPicture(exe, light).pal);
+                    pal_.push_back({tl.start, c6, c6, 0, 0, 255});
                 } else if (c == "WaterEffect" && init >= 0) {
                     // the water sets its environment map's palette (or the ini's Palette=) before its first frame
                     // (notes-water.md, 0x413b70); its Init line names the ini

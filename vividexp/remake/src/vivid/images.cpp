@@ -101,9 +101,9 @@ void updatePalette(Texture& t, const Palette& pal) {
 
 const char* kIndexedGLSL = R"(
 vec3 palColor(sampler2D pal, uint i) { return texelFetch(pal, ivec2(int(i), 0), 0).rgb; }
-uint idxAt(usampler2D tex, ivec2 t) {
+uint idxAt(usampler2D tex, ivec2 t) {   // wrapping (a floor modulo: GLSL leaves % of negative ints undefined)
     ivec2 s = textureSize(tex, 0);
-    return texelFetch(tex, ivec2(((t.x % s.x) + s.x) % s.x, ((t.y % s.y) + s.y) % s.y), 0).r;
+    return texelFetch(tex, t - s * ivec2(floor(vec2(t) / vec2(s))), 0).r;
 }
 uint idxClamp(usampler2D tex, ivec2 t) {
     ivec2 s = textureSize(tex, 0);
