@@ -30,6 +30,8 @@ meets clone, 320×200 in true colour).
 | ![STARS remake](docs/images/stars.jpg) | ![DOPE remake](docs/images/dope.jpg) | ![clone meets clone remake](docs/images/clone.jpg) |
 | **[Inside](inside/) by CNCD** | **[Reve](reve/) by Pulse** | |
 | ![Inside remake](docs/images/inside.jpg) | ![Reve remake](docs/images/reve.jpg) | |
+| **[Vivid Experiment](vividexp/) by Doomsday** | | |
+| ![Vivid Experiment remake](docs/images/vividexp.jpg) | | |
 
 ## The demos
 
@@ -43,6 +45,7 @@ meets clone, 320×200 in true colour).
 | [**clone meets clone**](clone/) | Acme and Fudge | Takeover '98, May 1998 | 64k intro, winner of the PC 64k intro competition | [remake](clone/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures, title and names and upscaled textures |
 | [**Inside**](inside/) | CNCD | The Gathering '96, April 1996 | PC demo, winner of the PC demo competition | [remake](inside/remake/), ported from the executable routine by routine and checked against an emulator capture, with a redrawn title, names and photos and upscaled textures |
 | [**Reve**](reve/) | Pulse | The Party '95, December 1995 | PC demo, 5th in the PC demo competition | [remake](reve/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures, title and names and upscaled textures |
+| [**Vivid Experiment**](vividexp/) | Doomsday | Assembly '96, August 1996 | PC demo, 3rd in the PC demo competition | [remake](vividexp/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn lettering, names and a painting |
 
 303 and Paper were coded by Statix, with music by Vic of Acme. JIZZ was coded by Jace, with music by Probe and a
 vector engine by Nix. STARS was coded by KARL and BARTi, with pictures by RA and music by Groo. DOPE was coded by
@@ -156,7 +159,9 @@ texture mapper and grid filler by Craft, the original radial blur by Dune, graph
 Submissive, MXMPlay by Pascal (Niklas Beisert), PMODE/W by Daredevil and Tran. *Inside* is by CNCD: code by Wili,
 Jouni and Juliet, graphics by Destop, music by Yolk and Legend, additional graphics by Santtu, DSMI by Otto Chrons
 (Virtual Visions), PMODE/W by Thomas Pytel, the SurRender 3D engine by Hybrid. *Reve* is by Pulse: code by LCA,
-graphics by Antony and AJT, music by Shad. The originals and everything in them
+graphics by Antony and AJT, music by Shad. *Vivid Experiment* is by Doomsday: code by Doom and MRI, graphics by Dice
+and Damac, music by Wode and Swallow, the MIDAS Sound System by Sahara Surfers, PMODE/W by Daredevil and Tran. The
+originals and everything in them
 remain theirs; the redrawn pictures are derived from their artists' work and stay under the same non-commercial
 terms. This project is a non-commercial tribute, not affiliated with them. See
 [NOTICE.md](NOTICE.md).

@@ -28,6 +28,9 @@ not include them, and the license in [LICENSE.md](LICENSE.md) does not cover the
   the SurRender 3D engine by Hybrid.
 - **Reve** by Pulse (The Party '95, 1995; final version 1996): code LCA, graphics Antony and AJT, music Shad. It uses
   LCA's FLAT OS extender, MOD-Player and packer, and the Infiny Loader.
+- **Vivid Experiment** by Doomsday (Assembly '96, 1996): code Doom and MRI, graphics Dice and Damac, music Wode
+  ("Vivid") and Swallow ("Experiment II"). It uses the MIDAS Sound System by Sahara Surfers and PMODE/W by Daredevil
+  and Tran. It also shows photos and pictures by others that the demo does not credit.
 
 The remakes read the original files at run time. You need your own copy of each original release:
 `scripts/fetch-originals.sh` (or `fetch-originals.ps1` on Windows) downloads it from scene.org. The source code
