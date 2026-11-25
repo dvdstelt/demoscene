@@ -370,6 +370,15 @@ def write_redraw(name, red, p, W, H, out_path=None):
         FW, FH = px.shape[1], px.shape[0]
         ow, oh = int(round(FW * k_out)), int(round(FH * SCREEN_ASPECT * k_out))
         out = render(img, (ow, oh), p, (FW / ow, FH / oh), (0, 0, 0), origin=(-CROP_X0, -y0))
+        # only the name's own crop: the stacked upload's other names lie above and below it
+        y1 = name_rows(px)[1]
+        a = np.asarray(out).copy()
+        r0, r1 = int(np.floor(y0 * oh / FH)), int(np.ceil(y1 * oh / FH))
+        c0, c1 = int(np.floor(CROP_X0 * ow / FW)), int(np.ceil((CROP_X0 + CROP_W) * ow / FW))
+        keep = np.zeros(a.shape[:2], bool)
+        keep[r0:r1, c0:c1] = True
+        a[~keep] = 0
+        out = Image.fromarray(a)
     else:
         ow, oh = int(round(W * k_out)), int(round(H * SCREEN_ASPECT * k_out))
         out = render(img, (ow, oh), p, (W / ow, H / oh), (0, 0, 0))
