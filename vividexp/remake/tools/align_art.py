@@ -17,7 +17,10 @@ with, on the 320x200 screen at 4:3, so one original pixel is 1.2 times as tall a
   black (index 0, which the demo draws as the sky or as transparent); the redraw is written as a grey coverage mask
   (L) covering the original's whole frame;
 - groups (names1, names2): three names cropped from their 1280x200 pictures and stacked in one upload, so that they
-  come back in one style; each name is fitted on its own in its part of the redraw.
+  come back in one style; each name is fitted on its own in its part of the redraw;
+- pictures with a transparent index (the bitmap effects' photos, nainen*.raw: index 0): uploaded on a flat key colour
+  that the picture does not use (KEY), and the key is turned into alpha afterwards (as Inside's align_art.py: a pixel
+  is a * c + (1 - a) * key), written as RGBA.
 
 The fit maps redraw pixel coordinates (x, y) to original pixel coordinates (u, v): u = sx * x + tx, v = sy * y + ty,
 comparing both in the original's grid (the redraw area-averaged into it, both blurred so that detail the original
@@ -69,6 +72,17 @@ PICTURES = {
                      what='a woman in grey latex with a horse mask, blond tail and a riding crop, on white, at the right'),
     'synknai3': dict(file='pics/synknai3.pcx', pal='pal/synknai3.pal',
                      what='a woman in a shiny pink dress leaning back with her arms out, on white, at the right'),
+    # photos of people: the last slide, the title, the greetings, and the bitmap effects' photos (mhwanh RAW with
+    # their own palette; index 0 is transparent, key_t: their own colours reach up to 22 along the key's direction)
+    'synknai4': dict(file='pics/synknai4.pcx', pal='pal/synknai4.pal',
+                     what='a photo of a laughing woman in a wet white T-shirt and a red bikini bottom, at the left'),
+    'vivid': dict(file='pics/vivid.pcx', pal='pal/vivid.pal',
+                  what='a photo of a nude woman kneeling on a chequered floor, with the title Vivid Experiment'),
+    'greets': dict(file='pics/greets.pcx', pal='pal/greets.pal',
+                   what='a photo of two women at the left and a list of group names at the right'),
+    'nainen1': dict(file='pics/nainen1.raw', key=0, key_t=40, what='a cut-out photo of a woman, at the left'),
+    'nainen2': dict(file='pics/nainen2.raw', key=0, key_t=40, what='a cut-out photo of a woman, at the right'),
+    'nainen3': dict(file='pics/nainen3.raw', key=0, key_t=40, what='a cut-out photo of a woman, at the left'),
 }
 # Censored areas (original pixel coordinates; measured on the pictures): ellipses (cx, cy, rx, ry), a mosaic of
 # MOSAIC x MOSAIC blocks in the uploads. The remake (src/scenes/pictures_vga.h, kCensor) draws the original's pixels
@@ -76,6 +90,7 @@ PICTURES = {
 CENSOR = {
     'synknai1': [(76.0, 100.0, 24.0, 31.0)],
     'synknai2': [(288.0, 46.0, 18.0, 13.0)],
+    'vivid': [(167.0, 71.0, 22.0, 14.0)],
 }
 MOSAIC = 6
 # The zoom credits' names: 1280x200 pictures with the name around column 640 (notes-core.md 8); the crop: columns
@@ -129,9 +144,32 @@ def name_rows(px):
     return max(0, ys.min() - CROP_M), min(px.shape[0], ys.max() + 1 + CROP_M)
 
 
+def decode_raw(d):
+    """An mhwanh RAW picture: 8-bit pixels and its own palette (8-bit values, read >> 2 as the demo does)."""
+    w, h = d[8] << 8 | d[9], d[10] << 8 | d[11]
+    pal = (np.frombuffer(d[32:800], np.uint8) >> 2).reshape(256, 3).astype(np.float64)
+    return np.frombuffer(d[800:800 + w * h], np.uint8).reshape(h, w), pal
+
+
+def keyed(name):
+    return spec(name).get('key') is not None
+
+
+def background(name):
+    return KEY if keyed(name) else np.zeros(3)
+
+
+def composite(name, rgb, alpha):
+    return rgb * alpha[..., None] + background(name) * (1 - alpha[..., None])
+
+
 def load_original(name):
-    """RGB (h, w, 3) 0..255 and alpha (h, w) 1. A name: its crop."""
+    """RGB (h, w, 3) 0..255 (black where transparent) and alpha (h, w) 0 or 1. A name: its crop."""
     s = spec(name)
+    if s['file'].endswith('.raw'):
+        px, pal = decode_raw(archive_file(s['file']))
+        alpha = (px != s['key']).astype(np.float64) if keyed(name) else np.ones(px.shape)
+        return np.minimum(pal, 63)[px] * 255.0 / 63.0 * alpha[..., None], alpha
     px = decode_pcx(archive_file(s['file']))
     if s.get('name'):
         y0, y1 = name_rows(px)
@@ -145,6 +183,39 @@ def load_original(name):
     pal = np.frombuffer(archive_file(s['pal']), np.uint8).reshape(256, 3).astype(np.float64)
     rgb = np.minimum(pal, 63) * 255.0 / 63.0
     return rgb[px], np.ones(px.shape)
+
+
+def unmix(img, key=KEY, t=0.0):
+    """Keyed redraw (h, w, 3) -> colour (h, w, 3) and alpha (h, w) (Inside's align_art.py): the distance from the key
+    along the key's direction (for blue: B - (R + G) / 2) is (1 - a) times the key's own. With t > 0 the picture has
+    colours of its own along that direction (up to t): those pixels are opaque, and an edge pixel is a mix of the key
+    and the colour of the opaque pixels around it (their mean distance, a Gaussian of 4 pixels)."""
+    kd = key[2] - (key[0] + key[1]) / 2.0
+    d = img[..., 2] - (img[..., 0] + img[..., 1]) / 2.0
+    if t > 0:
+        solid = (d < t).astype(np.float64)
+        w = blur(solid[..., None], 4.0)[..., 0]
+        dc = np.where(w > 1e-3, blur((d * solid)[..., None], 4.0)[..., 0] / np.maximum(w, 1e-3), 0.0)
+        dc = np.minimum(dc, t)
+        a = np.where(solid > 0, 1.0, np.clip((kd - d) / (kd - dc), 0.0, 1.0))
+    else:
+        a = np.clip(1.0 - d / kd, 0.0, 1.0)
+    a = np.clip((a - 0.03) / 0.94, 0.0, 1.0)
+    c = np.where(a[..., None] > 1e-3, (img - (1 - a[..., None]) * key) / np.maximum(a[..., None], 1e-3), 0.0)
+    return np.clip(c, 0, 255), a
+
+
+def normalise_key(red, t=0.0):
+    """Measure the generator's key on the redraw's border (where it is not the photo) and put the picture on the exact
+    KEY."""
+    h, w = red.shape[:2]
+    b = max(2, min(h, w) // 50)
+    border = np.concatenate([red[:b].reshape(-1, 3), red[-b:].reshape(-1, 3), red[:, :b].reshape(-1, 3),
+                             red[:, -b:].reshape(-1, 3)])
+    d = border[:, 2] - (border[:, 0] + border[:, 1]) / 2.0
+    key = np.median(border[d > np.percentile(d, 50)], axis=0)
+    c, a = unmix(red, key, t)
+    return c * a[..., None] + KEY * (1 - a[..., None]), key
 
 
 def censor_mask(name, h, w):
@@ -425,7 +496,11 @@ def write_redraw(name, red, p, W, H, out_path=None):
         out = Image.fromarray(a)
     else:
         ow, oh = int(round(W * k_out)), int(round(H * SCREEN_ASPECT * k_out))
-        out = render(img, (ow, oh), p, (W / ow, H / oh), (0, 0, 0))
+        out = render(img, (ow, oh), p, (W / ow, H / oh), tuple(int(c) for c in background(name)))
+        if keyed(name):
+            c, al = unmix(np.asarray(out, np.float64), KEY, s.get('key_t', 0.0))
+            out = Image.fromarray(np.clip(np.round(np.concatenate([c, al[..., None] * 255.0], axis=2)), 0, 255)
+                                  .astype(np.uint8), 'RGBA')
     if s.get('text'):
         out = out.convert('L')
     out_path = out_path or os.path.join(ART, name + '.png')
@@ -437,8 +512,8 @@ def write_redraw(name, red, p, W, H, out_path=None):
 
 def fit_one(name, red, p0, a):
     rgb, alpha = load_original(name)
-    orig = rgb
-    bg = np.zeros(3)
+    orig = composite(name, rgb, alpha)
+    bg = background(name)
     H, W = alpha.shape
     fit = Fit(orig, bg, red)
     p = refine(fit, coarse_search(fit, p0, a.range, a.uniform), a.uniform)
@@ -446,7 +521,11 @@ def fit_one(name, red, p0, a):
     print('%s: picture %dx%d' % (name, W, H))
     report(p, res, res0, p0)
     if a.match and not spec(name).get('text'):
-        red = colour_match(orig, alpha, red, p)
+        if keyed(name):
+            c, al = unmix(red, KEY, spec(name).get('key_t', 0.0))
+            red = colour_match(orig, alpha, c, p) * al[..., None] + KEY * (1 - al[..., None])
+        else:
+            red = colour_match(orig, alpha, red, p)
         fm = Fit(orig, bg, red)
         fm.prepare(p[0])
         print('  after the colour match: residual %.1f / %.1f / %.2f %% / %.3f' % fm.residual(p))
@@ -455,6 +534,9 @@ def fit_one(name, red, p0, a):
 
 def align(a):
     red = np.asarray(Image.open(a.redraw).convert('RGB'), np.float64)
+    if a.name not in GROUPS and keyed(a.name):
+        red, key = normalise_key(red, spec(a.name).get('key_t', 0.0))
+        print("%s: the redraw's key colour %.1f, %.1f, %.1f" % ((a.name,) + tuple(key)))
     rw, rh = red.shape[1], red.shape[0]
     if a.name in GROUPS:
         rows, CW, CH = group_layout(a.name)
@@ -481,6 +563,7 @@ def upload(a):
         what = ', '.join(spec(n)['what'] for n, _, _ in rows)
     else:
         rgb, alpha = load_original(a.name)
+        rgb = composite(a.name, rgb, alpha)
         c = rgb if a.uncensored else mosaic(a.name, rgb)
         CH, CW = c.shape[:2]
         what = spec(a.name)['what']
@@ -504,14 +587,15 @@ def sheet(a):
     for name in names:
         rgb, alpha = load_original(name)
         H, W = alpha.shape
-        shown = Image.fromarray(np.round(rgb).astype(np.uint8))
+        shown = Image.fromarray(np.round(rgb * alpha[..., None] + 60 * (1 - alpha[..., None])).astype(np.uint8))
         pw = WIDTH // 2
         ph = int(round(pw * H * SCREEN_ASPECT / W))
         pair = Image.new('RGB', (WIDTH, ph), (40, 40, 40))
         pair.paste(shown.resize((pw, ph), Image.NEAREST), (0, 0))
         art = os.path.join(a.art, name + '.png')
         if os.path.exists(art):
-            r = Image.open(art).convert('RGB')
+            r = Image.open(art)
+            r = Image.alpha_composite(Image.new('RGBA', r.size, (60, 60, 60, 255)), r.convert('RGBA')).convert('RGB')
             if spec(name).get('name'):
                 px = decode_pcx(archive_file(spec(name)['file']))
                 y0, y1 = name_rows(px)
