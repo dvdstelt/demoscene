@@ -45,8 +45,7 @@ further unless asked; fixes there should stay minimal.
 Every remake shows high-resolution redraws of its hand-drawn pictures by default, and the original pixels with
 `--original-art`; 303 also shows its video clips restored with SeedVR2
 (`303/remake/art/video/`).
-Photos of real people are not redrawn unless the maintainer asks for a specific picture (Inside's photos of people
-in its sprites parts were, as photos). The redraws are AI redraws made from the original pictures, at the maintainer's request, and
+The redraws are AI redraws made from the original pictures, at the maintainer's request, and
 stay faithful to them: the same composition, pose, proportions, framing, colours and text; only resolution and detail
 change. They live in `<demo>/remake/art/` with a README that names the original artist, how each picture was made
 and how it was aligned. Only pictures that are drawn as they are get a redraw; generated textures, maps and anything
