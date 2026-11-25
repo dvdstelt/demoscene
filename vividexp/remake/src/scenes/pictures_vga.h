@@ -36,6 +36,13 @@
 //     comes from a signed distance field built at start-up from the mask (halved on the GPU, its grey read back), at
 //     the contour where coverage is 1/2, and stays sharp at any scale. A text redraw counts only within two pixels
 //     of the original's letters (index != 0), so that it cannot add letters where the original has none;
+//   - ink pictures without a redraw (the slides' captions: black script anti-aliased in greys on white, indices that
+//     are all greys in the picture's own palette) are drawn from their own pixels as ink on paper: the pixels'
+//     lightness, upsampled four times (Catmull-Rom) and blurred by a third of an original pixel so that the script's
+//     one-pixel hairlines stay joined, is cut at INK_EDGE over one output pixel, and the two sides take the colours
+//     the palette gives the picture's darkest and lightest index. The letters' edges are smooth at any resolution
+//     without a redrawn picture of the text (the captions quote a song's lyrics, which this project does not
+//     reproduce);
 //   - other pictures are colour redraws: under a fade from palette A to B at progress s, the colour is
 //     lerp(A', B', s), where A' is the redraw's colour where A equals the picture's own palette at the original's
 //     index there, and A's colour otherwise (fades from and to black or white become colour lerps; taivas4.pal
@@ -94,7 +101,89 @@ struct Picture {
     Texture footprint;              // a text redraw: where the original has letters, widened by two pixels
     Texture sdf;                    // a magnified text redraw: signed distance to the letters' edge (see sdfFromMask)
     float sdfScale[2] = {1, 1};     // redraw uv -> sdf uv
+    Texture ink;                    // an ink picture: its lightness, upsampled 4x and blurred (see inkField)
+    int inkIndex = 0, paperIndex = 255;   // ... its darkest and lightest index
 };
+
+// An ink picture: every index it uses is nearly grey in its own palette, from near black to near white, and there are
+// few (the captions use 13..22 indices).
+inline bool isInk(const Picture& p) {
+    int n = 0;
+    float lo = 1, hi = 0;
+    for (int i = 0; i < 256; ++i) {
+        if (!p.used[size_t(i)]) continue;
+        const Vec3& g = p.own[size_t(i)];
+        const float l = (g.x + g.y + g.z) / 3;
+        // nearly grey: the captions take the slides' nearest colours, tinted by up to 13 of 63
+        if (std::max({g.x, g.y, g.z}) - std::min({g.x, g.y, g.z}) > 0.25f) return false;
+        lo = std::min(lo, l);
+        hi = std::max(hi, l);
+        ++n;
+    }
+    return n >= 2 && n <= 32 && lo < 0.25f && hi > 0.75f;
+}
+
+// The ink picture's lightness (own palette) upsampled 4x with Catmull-Rom and blurred with a Gaussian of 0.35
+// original pixel, as (4w) x (4h) floats.
+inline std::vector<float> inkField(const Picture& p, int& ow, int& oh) {
+    const int w = p.ix->w, h = p.ix->h, f = 4;
+    ow = w * f;
+    oh = h * f;
+    std::vector<float> lum(size_t(w) * size_t(h));
+    for (size_t i = 0; i < lum.size(); ++i) {
+        const Vec3& g = p.own[p.ix->px[i]];
+        lum[i] = (g.x + g.y + g.z) / 3;
+    }
+    auto cr = [](float t, int k) {   // Catmull-Rom weight of tap k (-1..2) at fraction t
+        float t2 = t * t, t3 = t2 * t;
+        switch (k) {
+            case -1: return 0.5f * (-t3 + 2 * t2 - t);
+            case 0: return 0.5f * (3 * t3 - 5 * t2 + 2);
+            case 1: return 0.5f * (-3 * t3 + 4 * t2 + t);
+            default: return 0.5f * (t3 - t2);
+        }
+    };
+    // upsample rows, then columns (texel n of the original covers [n, n+1): sample at (o + 0.5) / f - 0.5)
+    std::vector<float> a(size_t(ow) * size_t(h)), b(size_t(ow) * size_t(oh));
+    for (int y = 0; y < h; ++y)
+        for (int x = 0; x < ow; ++x) {
+            float u = (float(x) + 0.5f) / float(f) - 0.5f, fl = std::floor(u), t = u - fl;
+            float v = 0;
+            for (int k = -1; k <= 2; ++k)
+                v += cr(t, k) * lum[size_t(y) * size_t(w) + size_t(std::clamp(int(fl) + k, 0, w - 1))];
+            a[size_t(y) * size_t(ow) + size_t(x)] = v;
+        }
+    for (int y = 0; y < oh; ++y) {
+        float u = (float(y) + 0.5f) / float(f) - 0.5f, fl = std::floor(u), t = u - fl;
+        for (int x = 0; x < ow; ++x) {
+            float v = 0;
+            for (int k = -1; k <= 2; ++k)
+                v += cr(t, k) * a[size_t(std::clamp(int(fl) + k, 0, h - 1)) * size_t(ow) + size_t(x)];
+            b[size_t(y) * size_t(ow) + size_t(x)] = v;
+        }
+    }
+    // Gaussian, sigma = 0.35 original pixel, separable, edges extended
+    const float sigma = 0.35f * float(f);
+    const int r = int(std::ceil(3 * sigma));
+    std::vector<float> kw(size_t(2 * r + 1));
+    float sum = 0;
+    for (int k = -r; k <= r; ++k) sum += kw[size_t(k + r)] = std::exp(-0.5f * float(k * k) / (sigma * sigma));
+    for (float& k : kw) k /= sum;
+    a.assign(b.size(), 0.0f);
+    for (int y = 0; y < oh; ++y)
+        for (int x = 0; x < ow; ++x) {
+            float v = 0;
+            for (int k = -r; k <= r; ++k) v += kw[size_t(k + r)] * b[size_t(y) * size_t(ow) + size_t(std::clamp(x + k, 0, ow - 1))];
+            a[size_t(y) * size_t(ow) + size_t(x)] = v;
+        }
+    for (int y = 0; y < oh; ++y)
+        for (int x = 0; x < ow; ++x) {
+            float v = 0;
+            for (int k = -r; k <= r; ++k) v += kw[size_t(k + r)] * a[size_t(std::clamp(y + k, 0, oh - 1)) * size_t(ow) + size_t(x)];
+            b[size_t(y) * size_t(ow) + size_t(x)] = v;
+        }
+    return b;
+}
 
 // The fade the DAC is in: palette a -> b at progress s (a == b: a palette that holds), and the palette drawn with.
 struct Fade {
@@ -196,7 +285,10 @@ uniform sampler2D tab;    // unit 2, per index: rows 0 / 1 the fade's palettes A
 uniform sampler2D art;    // unit 3: the redraw
 uniform sampler2D sdf;    // unit 4: signed distance to the redraw's letters' edge (texels, + inside)
 uniform sampler2D foot;   // unit 5: 1 within two pixels of the original's letters (text redraws)
-uniform int source;       // 0 the original pixels, 1 a colour redraw, 2 a text redraw (grey: coverage and level)
+uniform sampler2D ink;    // unit 6: an ink picture's smoothed lightness (4 texels per picture pixel)
+uniform int source;       // 0 the original pixels, 1 a colour redraw, 2 a text redraw (grey: coverage and level),
+                          // 3 an ink picture
+uniform int inkIndex, paperIndex;
 uniform int mode;         // 0 opaque, 1 index 0 transparent, 2 added to the colours under it
 uniform int useSdf;
 uniform vec4 clipRect;    // x0, y0, x1, y1 (VGA): where the command drew
@@ -260,7 +352,13 @@ void main() {
     vec2 dx = dFdx(pr), dy = dFdy(pr);
     vec2 p = clamp(pr, srcRect.xy, srcRect.zw);
     vec4 c;
-    if (source == 2) {
+    if (source == 3) {
+        // ink on paper: the smoothed lightness cut at the edge over one output pixel
+        const float INK_EDGE = 0.8;
+        float t = texture(ink, p / picSize).r;
+        float k = clamp((t - INK_EDGE) / max(fwidth(t), 1e-3) + 0.5, 0.0, 1.0);
+        c = vec4(mix(palColor(pal, uint(inkIndex)), palColor(pal, uint(paperIndex)), k), 1.0);
+    } else if (source == 2) {
         vec2 uv = p / picSize;
         vec4 a = textureGrad(art, uv, dx / picSize, dy / picSize);
         float fp = texture(foot, uv).r;
@@ -347,6 +445,7 @@ public:
         for (auto& [k, p] : pics_) {
             p->sdf.destroy();
             p->footprint.destroy();
+            p->ink.destroy();
         }
     }
     Memory(const Memory&) = delete;
@@ -400,6 +499,18 @@ private:
                 q->levelGrey[k] = q->own[size_t(u[k])].x;
             }
             if (q->art) buildFootprint(*q);
+        } else if (!q->art && isInk(*q)) {
+            float lo = 2, hi = -1;
+            for (int i = 0; i < 256; ++i) {
+                if (!q->used[size_t(i)]) continue;
+                const Vec3& g = q->own[size_t(i)];
+                const float l = (g.x + g.y + g.z) / 3;
+                if (l < lo) { lo = l; q->inkIndex = i; }
+                if (l > hi) { hi = l; q->paperIndex = i; }
+            }
+            int ow = 0, oh = 0;
+            std::vector<float> field = inkField(*q, ow, oh);
+            q->ink.createRaw(ow, oh, GL_R32F, GL_RED, GL_FLOAT, field.data(), true, false, false);
         }
         p = std::move(q);
         return *p;
@@ -637,7 +748,7 @@ private:
 
     // A picture through a quad: mode 0 opaque, 1 index 0 transparent, 2 added (`op` gives the indices under it).
     void drawPicture(Ctx& c, Picture& p, int mode, const Quad& q, const Fade& f, const Op* op) {
-        int source = !p.art ? 0 : p.levels > 0 ? 2 : mode == 2 ? 0 : 1;
+        int source = p.ink.id && mode == 0 ? 3 : !p.art ? 0 : p.levels > 0 ? 2 : mode == 2 ? 0 : 1;
         if (source == 1 || mode == 2) {
             std::vector<float> tab(256 * 3 * 4, 0.0f);
             if (source == 1)
@@ -662,6 +773,8 @@ private:
         gl::BindTexture(GL_TEXTURE_2D, p.sdf.id);
         gl::ActiveTexture(GL_TEXTURE0 + 5);
         gl::BindTexture(GL_TEXTURE_2D, p.footprint.id);
+        gl::ActiveTexture(GL_TEXTURE0 + 6);
+        gl::BindTexture(GL_TEXTURE_2D, p.ink.id);
         gl::ActiveTexture(GL_TEXTURE0);
         shader_.set("idx", 0);
         shader_.set("pal", 1);
@@ -669,6 +782,9 @@ private:
         shader_.set("art", 3);
         shader_.set("sdf", 4);
         shader_.set("foot", 5);
+        shader_.set("ink", 6);
+        shader_.set("inkIndex", p.inkIndex);
+        shader_.set("paperIndex", p.paperIndex);
         shader_.set("source", source);
         shader_.set("mode", mode);
         shader_.set("useSdf", p.sdf.id != 0 && mode == 1 ? 1 : 0);

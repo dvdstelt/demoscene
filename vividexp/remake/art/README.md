@@ -41,7 +41,9 @@ sky's index), so they are kept as coverage masks and the remake does the arithme
 
 - The photos of people: the title picture `vivid.pcx` and the greetings picture `greets.pcx` (photos of women), and
   the photos of women in the bitmap effects (`nainen1..3.raw`).
-- The captions `synktxt1..4.pcx`: they quote a song's lyrics, which this project does not reproduce.
+- The captions `synktxt1..4.pcx`: they quote a song's lyrics, which this project does not reproduce. The remake
+  sharpens them when it draws them instead: their own pixels' lightness, upsampled and cut at a threshold, gives
+  smooth script at any resolution (`src/scenes/pictures_vga.h`, "ink pictures").
 - The slides' pin-ups `synknai1..4.pcx`: two show nudity and were not sent to an image generator (as Inside's nude
   was not), and the third looks like a retouched photo of a real woman; the four are shown together, so all of them
   keep their original pixels.

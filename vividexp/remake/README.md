@@ -117,7 +117,9 @@ refreshes.
 - **Pictures.** The texts over the sky are the original's index arithmetic (the text's level added to the sky's
   index, shown through two palettes) evaluated as a blend in colour, so they work with the redrawn lettering. The
   zooming names are drawn at the continuous scale of the original's formula, their edges from a distance field of
-  the redrawn letters. The other pictures are drawn as they are, from the redraw or the original pixels.
+  the redrawn letters. The slides' captions, black script on white that is not redrawn (it quotes a song's lyrics),
+  are drawn from their own pixels as ink: their lightness, upsampled and cut at a threshold, gives smooth letters at
+  any resolution. The other pictures are drawn as they are, from the redraw or the original pixels.
 - **Bitmap effects.** Eighteen of the nineteen per-pixel tables are the formulas they were made from (distances,
   angles, wobbles, mirrored and tiled copies), evaluated per output pixel; the textures are filtered in colour. The
   offsets carry over from run to run as in the original.
