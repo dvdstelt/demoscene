@@ -353,6 +353,7 @@ colours.'
   --loop            restart at the end
   --info            show the time, music position and part in the window title
   --original-art    show the original pixels instead of the redrawn pictures
+  --censor          cover the nude parts of the pictures with a mosaic
   --data DIR        the folder with the original VIVID.EXE, EXPRMNT1.XM and EXPRMNT2.XM
   --art DIR         the folder with the redrawn pictures"
 else

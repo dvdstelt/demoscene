@@ -38,8 +38,9 @@ machine; each remake's README lists such differences.
 A new demo gets all three videos without a change to the script if its program is
 `<demo>/remake/build/<demo>-remake`, its `--video` renders the whole production by default, and its
 `re/frames2mp4.py` takes `full.frames OUT --size WxH --vcodec "..."` and starts at the remake's time 0. The script's
-three small tables (`remake_bin`, `remake_range`, `capture_args`) hold the exceptions: 303's program is `acme303`,
-Paper's `--video` counts 70 Hz ticks, and DOPE's converter counts program time.
+small tables (`remake_bin`, `remake_range`, `remake_options`, `capture_args`) hold the exceptions: 303's program is
+`acme303`, Paper's `--video` counts 70 Hz ticks, Vivid Experiment's videos cover the nude parts of its pictures with a
+mosaic (`--censor`; its comparison video shows the capture as it is), and DOPE's converter counts program time.
 
 By hand, every remake renders a video itself:
 

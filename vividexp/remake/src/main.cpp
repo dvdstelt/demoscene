@@ -27,6 +27,7 @@ constexpr int kAudioRate = 48000;
 struct Options {
     std::string exePath, artPath;
     bool art = true;
+    bool censor = false;
     bool windowed = false;
     int winW = 1280, winH = 960;
     double start = 0;       // music time (s)
@@ -52,6 +53,7 @@ void usage() {
         "                      program, its parents or the current dir, or in an 'original' folder there)\n"
         "  --art DIR           the redrawn pictures (default: an 'art' folder next to the program or in its parents, or remake/art there)\n"
         "  --original-art      show the original's pixels instead of the redraws\n"
+        "  --censor            cover the nude parts of the pictures with a mosaic (for a video to be published)\n"
         "  --window            run in a window instead of fullscreen\n"
         "  --size WxH          window size (default 1280x960)\n"
         "  --start SECONDS     start position in seconds of music time (or --refresh R: at refresh R of the capture)\n"
@@ -163,6 +165,7 @@ bool parse(int argc, char** argv, Options& o) {
         if (a == "--data" || a == "--exe") o.exePath = next();
         else if (a == "--art") o.artPath = next();
         else if (a == "--original-art") o.art = false;
+        else if (a == "--censor") o.censor = true;
         else if (a == "--window") o.windowed = true;
         else if (a == "--size") std::sscanf(next().c_str(), "%dx%d", &o.winW, &o.winH);
         else if (a == "--start") o.start = std::atof(next().c_str());
@@ -373,6 +376,7 @@ int main(int argc, char** argv) {
     Demo demo;
     Demo::Options dopt;
     dopt.art = opt.art;
+    dopt.censor = opt.censor;
     dopt.artDir = opt.art ? findArt(opt.artPath) : "";
     if (opt.art && dopt.artDir.empty()) SDL_Log("no art folder found: showing the original's pixels");
     else if (opt.art) SDL_Log("art: %s", dopt.artDir.c_str());

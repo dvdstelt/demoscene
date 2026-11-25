@@ -51,6 +51,12 @@ remake_range() {
     paper) echo "--from 0 --to 12235" ;;   # 70 Hz ticks: the whole intro
   esac
 }
+# options of the remake's --video for a video that is to be published
+remake_options() {
+  case $1 in
+    vividexp) echo "--censor" ;;   # the nude parts of the pictures as a mosaic (the comparison's capture is not)
+  esac
+}
 # frames2mp4.py options that make the capture's video start at the remake's time 0
 capture_args() {
   case $1 in
@@ -67,7 +73,8 @@ remake() {  # <demo> [original]
   local help; help=$("$bin" --help 2>&1 || true)
   if ! grep -q -- --video <<<"$help"; then echo "$d/remake has no --video option"; return 1; fi
   # shellcheck disable=SC2046
-  "$bin" $(variant "${2:-}") --video "$OUT/$d-remake$(suffix "${2:-}")-2160p60.mp4" $(remake_range "$d") \
+  "$bin" $(variant "${2:-}") $(remake_options "$d") --video "$OUT/$d-remake$(suffix "${2:-}")-2160p60.mp4" \
+         $(remake_range "$d") \
          --fps "$FPS" --shotsize "$SIZE" --vcodec "$VCODEC"
 }
 

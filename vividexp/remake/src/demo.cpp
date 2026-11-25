@@ -201,6 +201,7 @@ bool Demo::init(const VividExe& exe, const Soundtrack& music, int w, int h, cons
     ctx.music = &music;
     ctx.scenes = &scenes_;
     ctx.pictures = &pictures_;
+    ctx.censor = o.censor;
     if (!timeline_.build(exe, music, err)) return false;
     ctx.timeline = &timeline_;
     if (!ctx.imageShader.build(kImageVS, kImageFS, "image") || !ctx.flatShader.build(kImageVS, kFlatFS, "flat")) {

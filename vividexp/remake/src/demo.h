@@ -135,6 +135,9 @@ struct Ctx {
 
     // ---- pictures (pictures.h): the original's pixels through the palette, or a redraw (art/<name>.png).
     bool art() const { return pictures && pictures->useArt(); }
+    // --censor: the nude parts of the pictures (the pin-ups and the title picture) are shown as a mosaic, for a video
+    // that is to be published; by default they show the original's pixels.
+    bool censor = false;
 
     // Borrow a scratch target: same size as the frame times `scale`, RGBA16F unless fmt says otherwise.
     TargetPool::Lease temp(bool depth = false, float scale = 1.0f, GLenum fmt = GL_RGBA16F);
@@ -176,6 +179,7 @@ public:
     struct Options {
         std::string artDir;   // the redraws (empty: none)
         bool art = true;      // false: --original-art
+        bool censor = false;  // --censor
     };
     bool init(const VividExe& exe, const Soundtrack& music, int w, int h, const Options& o, std::string* err);
     void resize(int w, int h);
