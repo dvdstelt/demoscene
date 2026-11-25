@@ -20,10 +20,39 @@
 #pragma GCC diagnostic pop
 #endif
 
+namespace {
+Image decodePng(const std::string& path) {
+    Image im;
+    int w = 0, h = 0, n = 0;
+    if (uint8_t* d = stbi_load(path.c_str(), &w, &h, &n, 4)) {
+        im.w = w;
+        im.h = h;
+        im.rgba.assign(d, d + size_t(w) * size_t(h) * 4);
+        stbi_image_free(d);
+    } else {
+        SDL_Log("cannot read %s: %s", path.c_str(), stbi_failure_reason());
+    }
+    return im;
+}
+}  // namespace
+
 void PictureStore::init(const VividExe* exe, std::string artDir, bool useArt) {
     exe_ = exe;
     artDir_ = std::move(artDir);
     useArt_ = useArt && !artDir_.empty();
+    decoding_.clear();
+    if (!useArt_) return;
+    // decode every redraw in the art folder on worker threads while the scenes initialise
+    int count = 0;
+    if (char** names = SDL_GlobDirectory(artDir_.c_str(), "*.png", 0, &count)) {
+        for (int i = 0; i < count; ++i) {
+            std::string file = names[i];
+            std::string name = file.substr(0, file.size() - 4);
+            std::string path = artDir_ + "/" + file;
+            decoding_[name] = std::async(std::launch::async, decodePng, path).share();
+        }
+        SDL_free(names);
+    }
 }
 
 std::string PictureStore::artName(const std::string& file) {
@@ -59,20 +88,14 @@ const Texture* PictureStore::redraw(const std::string& file) {
     auto it = redraws_.find(file);
     if (it != redraws_.end()) return it->second.get();
     std::unique_ptr<Texture> tex;
-    std::string path = redrawPath(artName(file));
-    if (!path.empty()) {
-        int w = 0, h = 0, n = 0;
-        if (uint8_t* d = stbi_load(path.c_str(), &w, &h, &n, 4)) {
-            Image im;
-            im.w = w;
-            im.h = h;
-            im.rgba.assign(d, d + size_t(w) * size_t(h) * 4);
-            stbi_image_free(d);
+    auto dec = decoding_.find(artName(file));
+    if (useArt_ && dec != decoding_.end()) {
+        const Image& im = dec->second.get();
+        if (im.w > 0) {
             tex = std::make_unique<Texture>();
             tex->create(im, false, true);
-        } else {
-            SDL_Log("cannot read %s: %s", path.c_str(), stbi_failure_reason());
         }
+        decoding_.erase(dec);
     }
     Texture* raw = tex.get();
     redraws_[file] = std::move(tex);
@@ -85,4 +108,6 @@ void PictureStore::release() {
     indices_.clear();
     redraws_.clear();
     indexed_.clear();
+    for (auto& [k, f] : decoding_) f.wait();
+    decoding_.clear();
 }

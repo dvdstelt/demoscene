@@ -7,6 +7,7 @@
 // (each scene's notes say how). `name` is the archive file's base name without its extension ("alkutext" for
 // pics/alkutext.pcx). --original-art turns the redraws off.
 #pragma once
+#include <future>
 #include <map>
 #include <memory>
 #include <string>
@@ -32,7 +33,8 @@ public:
     const vivid::Indexed& indexed(const std::string& file);
     // ... uploaded as GL_R8UI (cached; needs the GL context).
     const Texture& indices(const std::string& file);
-    // The redraw as an RGBA8 texture, linear and mipmapped (cached; nullptr when art is off or there is none).
+    // The redraw as an RGBA8 texture, linear and mipmapped (cached; nullptr when art is off or there is none). The
+    // art folder's PNGs are decoded on worker threads from init() on, so the first call only uploads.
     const Texture* redraw(const std::string& file);
     void release();
 
@@ -42,4 +44,5 @@ private:
     bool useArt_ = true;
     std::map<std::string, std::unique_ptr<vivid::Indexed>> indexed_;
     std::map<std::string, std::unique_ptr<Texture>> indices_, redraws_;
+    std::map<std::string, std::shared_future<Image>> decoding_;   // art name -> the PNG being decoded
 };
