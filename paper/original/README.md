@@ -1,11 +1,5 @@
-# Original Paper file goes here
+# The original Paper release
 
-This folder is where the remake looks for `PAPER.EXE` (63,845 bytes) from the original release of *Paper* by
-Psychic Link. It is not part of this repository: it belongs to its authors. Get it from scene.org with
+This folder holds the original release of *Paper* by Psychic Link (Wired '96, November 1996), as it is in [`paper.zip`](https://files.scene.org/view/parties/1996/wired96/in64/paper.zip) on scene.org. The remake reads its files from here at run time, and the release downloads include them. They belong to their authors ([NOTICE.md](../../NOTICE.md)); the repository's license does not cover them.
 
-```
-scripts/fetch-originals.sh paper      # Linux / macOS
-powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 paper # Windows
-```
-
-or copy it here yourself. Everything in this folder except this README is ignored by Git.
+The remake reads `PAPER.EXE` (63,845 bytes). The release also holds `PAPER.NFO` and `FILE_ID.DIZ`.

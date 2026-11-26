@@ -3,3 +3,6 @@
 *.bat text eol=crlf
 *.png binary
 *.jpg binary
+# The original releases in <demo>/original/ are kept byte for byte (their text files have DOS line endings)
+*/original/** -text -diff
+*/original/README.md text eol=lf diff

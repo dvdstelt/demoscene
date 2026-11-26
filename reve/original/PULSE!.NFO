@@ -1,0 +1,292 @@
+ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
+ÛÛÛÛÛÛÛÛÛÛÛÛÛÛßßÛÛÛÛÛÛÛÛÛÛÛÛßßÛÛÛÛÛÛÛÛÛÛßßÛÛÛÛÛÛÛßßÛÛÛÛÛÛÛÛßßÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
+ÛÛÛÛÛÛÛÛÛÛ ÜÜÜÜİßßßßßßß ÜÜÜÜÜİßßßßß ÜÜÜÜÜİÛÛÛÛÛÛ ŞÜÜÜÜÜÜÜÜ ŞÜÜÜÜÜÜÜÜ ÛÛÛÛÛÛÛÛÛÛ
+ÛÛÛÛÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛÛÛÛ ÛÛÛÛÛİÛÛÛÛÛ ÛÛÛÛÛİÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛÛ
+ÛÛÛÛÛÛÛÛÛÛ ÛÛÛÛİÜÜÜÜÜÜŞ ÛÛÛÛÛİÛÛÛÛÛ ÛÛÛÛÛİßßßßßß İÛÛÛÛÛÛÛÛ İÛÛÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛÛ
+ÛÛÛÛÛÛÛÛÛÛ ÛÛÛÛİÛÛÛÛÛÛŞ ÛÛÛÛÛİÛÛÛÛÛ ÛÛÛÛÛİÛÛÛÛÛÛ İßßßßßßßß İßßßßßßßß ÛÛÛÛÛÛÛÛÛÛ
+ÛÛÛÛÛÛÛÛÛÛ ÛÛÛÛİÛÛÛÛÛÛÛ ÛÛÛÛÛİÛÛÛÛÛ ÛÛÛÛÛİÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛÛÛ
+ÛÛÛÛÛÛÛÛÛÛ ÛÛÛÛİÛÛÛÛÛÛÛ ÛÛÛÛÛİÛÛÛÛÛ ÛÛÛÛÛİÛÛÛÛÛÛ ÜÜÜÜÜÜÜÜŞ İÜÜÜÜÜÜÜÜ ÛÛÛÛÛÛÛÛÛÛ
+ÛÛÛÛÛÛÛÛÛÛ ÛÛÛÛİßßßßßßİ ÛÛÛÛÛİÛÛÛÛÛ ÛÛÛÛÛİÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛŞ İÛÛÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛÛ
+ÛÛÛÛÛÛÛÛÛÛ ÛÛÛÛİÛÛÛÛÛÜÜ ÛÛÛÛÛÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛ ÛkLÛÛÛÛÛÛÛ
+ÛÛÛÛÛÛÛÛÛÛ ßßßßİÛÛÛÛÛÛÛÜÜÜÜÜÜŞßßßßß ÜÜÜÜÜŞßßßßßß ßßßßßßßßİÜŞßßßßßßßß ÛÛÛÛÛÛÛÛÛÛ
+ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÜÜÛÛÛÛÛÛÛÛÛÛÛÛÛÜÜÛÛÛÛÛÛÛÛÛÛÜÜÛÛÛÛÛÛÛÛÛÛÛÛÛÜÜÛÜÜÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+±±İ REQUIEREMENTS Ş±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+Minimum hardware: DX4 100 MHz based systems with a Local Bus video card.
+If you want to enjoy "REVE" by Pulse, you should run it on a Pentium machine
+with a Gravis Ultrasound compatible sound-card.
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+±±İ INFOS Ş±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+REVE, The return by Pulse in 1996
+
+This is the final version of our demo which made #5 at The Party 5. It is
+quite different as the party version was made almost all at the party place
+and we weren't satisfied with the result. Several stupid bugs are removed.
+
+the command line parameters are:
+REVE options
+options = DPMI          : to force the DPMI protocol if available instead of
+                          the Emm-Import protocol use this switch if you don't
+                          want to have problems under Operating Systems
+                          different from good old DOS.
+          NOSOUND       : to run the demo without music (is it still a demo ?)
+                          use this switch if the demo hangs at the beginning,
+                          probably due to a failure in the sound-card detection.
+
+(the followings are only valid for SB compatible sound-cards)
+          MONO          : if you want the music to be mixed in mono instead of
+                          stereo (runs faster in mono).
+          8BIT          : to force internal 8 bit sound-mixing (faster, but
+                          lower quality).
+          MIX:nn        : to force a mixing frequency of nn kHz. Remember it is
+                          in Kilo-Hertz!
+                          ie: if you want a mixing rate of 16 Khz:
+                                     type REVE MIX:16
+
+For instance, if you have a poor 486, with a Sound-Blaster Pro, and if you want
+the demo to run faster, you should enter:
+REVE MONO 8BIT MIX:14
+
+Attention: by default, the mixing quality will be the best available from your
+sound card:
+
+SB 1.0 : MONO 22 KHz
+SB 2.n : MONO 22 KHz
+SB Pro : STEREO 22 KHz (default)
+         MONO 44 KHz (if you enter the MONO parameter)
+SB 16  : STEREO 45 KHz
+
+So, if you have a 486 DX2 66 MHz with an SB16, then the demo will run, by
+default, very slowly because the music will be mixed at 45 KHz in stereo, which
+costs a lot for this kind of machines! Therefore, in such a situation, you
+should decrease the mixing quality (by choosing a mono and lower rate mixing).
+
+If you have a Gravis Ultrasound compatible sound-card, you needn't worry: the
+mixing is done by the hardware (and the resulting quality is so good!!!!!!!!!).
+Therefore, the time needed to play the music can be neglicted.
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+±±İ MEMBERS Ş±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  members of the POLISH section of Pulse are:
+
+        Akira.................Swapper, Bad News
+        Camel.................Coder
+        Lazur.................Gfx-Artist
+        Scorpik...............Musician
+        Sebl..................Coder
+        Sketch................Gfx-Artist
+        Unreal................Coder
+        Xtd...................Musician
+
+  members of the FRENCH section of Pulse are:
+
+        AJT...................3D, Gfx-Artist
+        Antony................Gfx-Artist
+        Gandalf...............Sysop/PR
+        ICE...................Coder
+        LCA...................Coder
+        Made..................Gfx-Artist
+        Niko..................Gfx-Artist
+        Paranoia..............Coder
+        Shad..................Musician
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+±±İ DISTRIBUTION SITES Ş±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  You should be able to find our releases on those fine BBS:
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+±İ COUNTRY Ş±³±±±±±±İ NamE Ş±±±±±±³±±±±İ NumbeR Ş±±±±³±±±±±±İ SysoP Ş±±±±±±
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ FRANCE      ³ A.C.E              ³ +33-1-45887548   ³ Gandalf/PULSE
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ BELGIUM     ³ Velvet Demosite    ³ +32-3-3851594    ³ sdog/The Natives
+ BELGIUM     ³ Genesis            ³ +32-2-2453498    ³ Darkness/Imphobia
+ BELGIUM     ³ Court Of Justice   ³ +32-3-4482173    ³ The Orme/Azure Sky
+ BRAZIL      ³ Altconn BBS        ³ +55-11-816-2031  ³ Starf0x
+ FINLAND     ³ Amorphous          ³ Unred construct. ³ Amorphous
+ FINLAND     ³ CloudCity          ³ +358-0-3403721   ³ Distance/Orange
+ GERMANY     ³ Nirvana            ³ +49(0)62453056   ³ Raytrayza
+ HUNGARY     ³ Dune II            ³ +36-76-492351    ³ Shock
+ NETHERLANDS ³ Quazar             ³ +31-70-3912113   ³ Diablo/Witan
+ NORWAY      ³ CountZero          ³ +47-55-122962    ³ Yitzhaq/Proxima
+ SWEDEN      ³ The Portal         ³ +46-26-196363    ³ Coyote/PHMA
+ SWISS       ³ Neutral Zone       ³ +41-32-418860    ³ Locotus/LSP
+ SWISS       ³ Underworld BBS     ³ +41-22-7769331   ³ Synoptic/Blacktron
+ YUGOSLAVIA  ³ Exctasy BBS        ³ +381-22-53884    ³ Dragon
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  You can also find them on internet on this site:
+
+                       ftp.arosnet.se   in  \demo\pulse
+
+               Mailswapping contacts should be directed to:
+
+                               Akira / Pulse
+                               Adam Antoniuk
+                                Klodzka 39a
+                               04-913 Warsaw
+                               úP O L A N Dú
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+±±İ HOW TO CONTACT US? Ş±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  If You want to join us as coder/gfx-artist/musician, You should
+  contact Antony or Unreal, but we want to make it clear : we
+  are not searching for members from outside of France or Poland.
+  If You think You have chance anyway, feel free to try (we won't bite :)
+
+  If You want Your BBS or FTP to become distro, contact Gandalf.
+
+  General purpose email: pulse@ace.epita.fr (messages will be forwarded to
+                                             members by email or snailmail)
+
+  Snail mail:
+
+    (french coordinator)    (Pulse telecom ;)   (polish coordinator)
+    Antony Squizatto        Christophe Yvon     Wojtek W. Podgorski
+    (Antony)                (Gandalf)           (Unreal)
+    4, Impasse P. Degeyter  30 rue Michal       Bulwar Ikara 15/43
+    15000 Aurillac          75013 PARIS         54-130 Wroclaw
+    FRANCE                  FRANCE              POLAND
+
+   Phones:
+
+                Ajt         Stephane    +33 1 60 751633
+                Akira       Adam        +48 22 6126811
+                Antony      Antony      +33 71 637753
+                Camel       Marek       +48 531 73605
+                Gandalf     Christophe  +33 1 45813140
+                LCA         Cedric      +33 72 122994
+                Made        Carlos      +33 1 43560751
+                Niko        Niko        +33 67 109361
+                Scorpik     Adam        +48 71 515422
+                Shad        Carl        +33 1 45692348
+                Unreal      Wojtek      +48 71 515807
+
+   Email:
+                Ajt         sthibert@worldnet.net
+                Gandalf     yvon@sept.fr
+                LCA         100723.2464@compuserve.com
+                Niko        niko@crit2.univ-montp2.fr
+                Paranoia    alexi@distorsion.cnam.fr
+                Scorpik     longsoft@zalbix.wroc.pl
+                SebL        sebL@p7.f70.n480.z2.fidonet.org
+                Unreal      podgorsk@unix.ok.ae.wroc.pl
+
+   Please also check out AJT's http:
+
+                http:/www.worldnet.net/~sthibert/
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+±±İ GREETINGS Ş±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+AjT' Handshakes :
+
+Mme AjT/Dom(MWB)/Rixed(MWB)/Ferem(MWB)/Tuttle(MWB)/PC Maniac(MWB)
+GhostFellow(MWB)Z(Kloon)/Tyby(Kloon) /O'Menor & ses Lens Flares
+Impact Studios /Vermoutte Family (welcome Manon!)
+ATI Paris 8/Rez (Eclipse)/Nooon/Stephane (PC-Addict)
+Zeb (Orange)/Mario/Tikal/Haplo/Ukko (Zuul Dezing)/Aegis Corp/
+Zuul (Lithium)/Darkness (Imphobia)/Realtech/Bedrael/Mogar/HMD/Assylum
+A tous ceux qui ont la chance d'aimer ce qu'ils font .
+A tous ceux dont la mere suce des Boucs .
+A tous ceux qui tentent de faire autre chose que des vaisseaux en RT.
+A tous ceux qui participent au HaRbAnKaL Project !
+(http://www.worldnet.net/~sthibert)
+A tous ceux qui reflechissent avec leur sexe .
+
+Contact : sthibert@worldnet.net
+EDEN BBS / ACE BBS
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Antony:
+Contact me:
+        Antony SQUIZATTO
+        4, Impasse P. Degeyter
+        15000 Aurillac
+        FRANCE
+        Tel: (+33) 71-63-77-53 (parents)
+        Tel: (+33) 73-27-99-66 (student)
+
+Heu...
+.....
+Jeanne Calment is good for you. Watch out for our next demo featuring sexy shots
+of Jeanne. Where are the artists?
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Shad:
+Contact me:
+        Carl ALLEGRE
+        22, Avenue du General Leclerc
+        94470 Boissy St-Leger
+        FRANCE
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Niko:
+Contact me:
+        Nicolas CARRE
+        4, Rue des Sources du Rieumassel
+        34790 Grabels
+        FRANCE
+        Tel: (+33) 67-10-93-61
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Ice:
+Contact me:
+        Daniel GROTH
+        46, Chemin de Bellevue
+        38640 Claix
+        FRANCE
+        Tel: (+33) 76-98-31-69
+        email: dgroth@curie.imag.fr
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Lca:
+Contact me:
+        Cedric BERMOND
+        13, Avenue Georges Pompidou
+        69003 Lyon
+        FRANCE
+        Tel: (+33) 72-12-29-94
+        email: cbermond@serveur.dtr.fr
+
+Lca sends a 'coucou!' to:
+Everybody at Adeline
+Ra, Barti, Karl from NoooN
+Sigfrid, Walken, Gengis, Kej, Mike, Clawz from Impact Studios
+Doh, Pib, Napoleon and everybody from Dreamdealers
+Gary Copper, Kyle and everybody from Mentasm
+Light Show, Rez, Hacker Croll and everybody from Eclipse
+Oxbab and everybody from Oxygene
+Zeb, Hoplite, Lemming and everybody from Orange (I love you!)
+Everybody from Coma (I do like your demos)
+Darkness, Lord Cyrix, Patriot, Torin from the incredible world of Sysops
+Kroc, Moog, Sam, Black Label, Double C, Katana, Execom, Knor
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+Gandalf!
+contact me: yvon@sept.fr or christophe.yvon@ace.epita.fr
+
+hellos to all my friends on the scene, especially on #demofr and #coders, and
+all the users of ACE.
+big thanks to Zebig/Speed and Karl/NoooN for their help with ACE CDs.
+special word for Quick/warm inside and LightShow/Eclipse.
+Remember: we are all naboks.
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±İ <EOF> Ş±±
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+[file_id and ascii logo by Kloy/AEgis. Thanks man!]
+
+
