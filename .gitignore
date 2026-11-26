@@ -13,6 +13,7 @@ dope-remake
 clone-remake
 inside-remake
 reve-remake
+okean-remake
 test_music
 jizz-texdump
 jizz-textest
@@ -81,6 +82,17 @@ reve/re/*.jpg
 reve/re/dump/
 reve/re/snaps/
 reve/re/unpacked/
+okean/re/*.bin
+okean/re/*.log
+okean/re/*.jpg
+okean/re/*.time
+okean/re/dump/
+okean/re/snaps/
+okean/re/unpacked/
+okean/re/models/**/*.npy
+okean/re/models/**/*.jpg
+okean/re/models/**/*.hooks
+okean/re/models/**/runs/
 
 # Media: videos go to YouTube, audio renders stay local
 *.mp4

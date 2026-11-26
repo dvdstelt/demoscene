@@ -2,7 +2,7 @@
 # Packages a build of a remake as a release download: a MinGW build as a zip for Windows, a Linux build as a
 # tar.gz.
 #
-#   scripts/package.sh <303|paper|jizz|stars|dope|clone|inside|reve> <windows|linux> [BUILD_DIR] [OUT_DIR]
+#   scripts/package.sh <303|paper|jizz|stars|dope|clone|inside|reve|okean> <windows|linux> [BUILD_DIR] [OUT_DIR]
 #
 # BUILD_DIR defaults to <repo>/<demo>/remake/build-win for Windows and <repo>/<demo>/remake/build for Linux (as in
 # the remakes' READMEs), OUT_DIR to <repo>/out. Writes OUT_DIR/<demo>-remake-windows-x64.zip or
@@ -26,7 +26,7 @@
 set -euo pipefail
 
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
-usage="usage: $0 <303|paper|jizz|stars|dope|clone|inside|reve> <windows|linux> [BUILD_DIR] [OUT_DIR]"
+usage="usage: $0 <303|paper|jizz|stars|dope|clone|inside|reve|okean> <windows|linux> [BUILD_DIR] [OUT_DIR]"
 
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 demo=${1:-}
@@ -40,6 +40,7 @@ dope)  program=dope-remake ;;
 clone) program=clone-remake ;;
 inside) program=inside-remake ;;
 reve)  program=reve-remake ;;
+okean) program=okean-remake ;;
 *)     die "$usage" ;;
 esac
 case "$os" in
@@ -336,6 +337,23 @@ colours.'
   --info            show the time, music position and part in the window title
   --original-art    show the original pixels instead of the redrawn pictures
   --data DIR        the folder with the original REVE.EXE
+  --art DIR         the folder with the redrawn pictures"
+elif [ "$demo" = okean ]; then
+    title="The Sea Robot of Love by Orange - high resolution remake for $platform"
+    about='A re-implementation of "The Sea Robot of Love", the 64k intro by Orange (code hoplite and dune, music
+dune, font and graphics der piipo) that placed 3rd in the PC 64k intro competition at The Party '"'"'95. It plays
+the original'"'"'s effects, timing and music, rendered at any resolution in true colour instead of 320x200 in 256
+colours.'
+    zipfile=okean.zip
+    needed="KORSO2.EXE (65,358 bytes)"
+    options="  --window          run in a window instead of fullscreen
+  --size 1280x960   window size
+  --start SECONDS   start position
+  --ss 2            render at twice the resolution and downsample (antialiasing)
+  --loop            restart at the end
+  --info            show the time, music position and part in the window title
+  --original-art    show the original pixels instead of the redrawn pictures
+  --data DIR        the folder with the original KORSO2.EXE
   --art DIR         the folder with the redrawn pictures"
 else
     title="Paper by Psychic Link - high resolution remake for $platform"
