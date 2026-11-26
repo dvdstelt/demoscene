@@ -1,11 +1,5 @@
-# Original JIZZ file goes here
+# The original JIZZ release
 
-This folder is where the remake looks for `JIZZ.EXE` (63,960 bytes) from the original release of *JIZZ* by The
-Black Lotus. It is not part of this repository: it belongs to its authors. Get it from scene.org with
+This folder holds the original release of *JIZZ* by The Black Lotus (Wired '97, 1997), as it is in [`jizz.zip`](https://files.scene.org/view/demos/groups/tbl/pc/jizz.zip) on scene.org, without the `scene.org` banner that scene.org adds to its downloads. The remake reads its files from here at run time, and the release downloads include them. They belong to their authors ([NOTICE.md](../../NOTICE.md)); the repository's license does not cover them.
 
-```
-scripts/fetch-originals.sh jizz      # Linux / macOS
-powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 jizz # Windows
-```
-
-or copy it here yourself. Everything in this folder except this README is ignored by Git.
+The remake reads `JIZZ.EXE` (63,960 bytes). The release also holds `JIZZ.DOC` and `FILE_ID.DIZ`.

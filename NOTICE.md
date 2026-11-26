@@ -3,8 +3,7 @@
 ## The original productions
 
 This repository contains remakes of demoscene productions made by other people. The originals, including their
-code, graphics, music, samples, vocals and text, are the work and property of their authors. This repository does
-not include them, and the license in [LICENSE.md](LICENSE.md) does not cover them.
+code, graphics, music, samples, vocals and text, are the work and property of their authors. This repository and its release downloads include each original release, complete and unchanged as it is on scene.org (in `<demo>/original/`), because the remakes read their data from it; the license in [LICENSE.md](LICENSE.md) does not cover them.
 
 - **303** by Acme (X'97, 1997): code Statix, music and vocals Vic, graphics and design Aap, with Harlequin as the
   breakdancer.
@@ -13,7 +12,7 @@ not include them, and the license in [LICENSE.md](LICENSE.md) does not cover the
 - **JIZZ** by The Black Lotus (Wired '97, 1997): code, design and graphics Jace, music Probe, vector engine and
   metaballs Nix, VESA code Ballein, "jizz" logo Sjaak of Trepaan. It uses the DOS32 extender by Adam Seychell and
   MXMPlay by Niklas Beisert. Its documentation allows copying it for non-commercial use only, in its complete and
-  original form; this repository does not include or change it.
+  original form; this repository includes it that way and does not change it.
 - **DOPE** by Complex (The Gathering '95, 1995): code jmagic, graphics and music jugi, music replay routine Phantom
   of Sonic PC (GUS part adapted by jmagic), routine boxes sketched by jugi and pixelled by Reward, Media Labs logo
   Reward; 3D objects by jugi and M. Hakulinen. It uses PMODE by Tran.
@@ -34,8 +33,7 @@ not include them, and the license in [LICENSE.md](LICENSE.md) does not cover the
   ("Vivid") and Swallow ("Experiment II"). It uses the MIDAS Sound System by Sahara Surfers and PMODE/W by Daredevil
   and Tran. It also shows photos and pictures by others that the demo does not credit.
 
-The remakes read the original files at run time. You need your own copy of each original release:
-`scripts/fetch-originals.sh` (or `fetch-originals.ps1` on Windows) downloads it from scene.org. The source code
+The remakes read the original files at run time, from the original release in `<demo>/original/` (in a download: the `original` folder next to the program). The source code
 here is a re-implementation written from an analysis of the originals. Data such as images, music, meshes, tables
 and text is never copied into it.
 

@@ -45,17 +45,11 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
-Download the "DOPE remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases),
-unpack it, run `fetch-originals.ps1` (Windows) or `./fetch-originals.sh` (Linux) in its folder to get the original
-files, and start `dope-remake`. Or build it yourself:
+Download the "DOPE remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack it and start `dope-remake`: the download includes the original release. Or build it yourself; the original release is in [`original/`](original/):
 
-1. Get the original: `scripts/fetch-originals.sh dope` from the repository root (Windows:
-   `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 dope`), or download
-   [`clx_dope.zip`](https://files.scene.org/view/demos/groups/complex/clx_dope.zip) from scene.org and unpack
-   `DOPE.EXE` and `DOPE.MOD` into `dope/original/`.
-2. Build: `cmake -S dope/remake -B dope/remake/build -G Ninja && cmake --build dope/remake/build`. It needs SDL3,
+1. Build: `cmake -S dope/remake -B dope/remake/build -G Ninja && cmake --build dope/remake/build`. It needs SDL3,
    and CMake downloads it if it is missing.
-3. Run: `dope/remake/build/dope-remake`. It starts fullscreen; add `--window` for a window, and `--original-art` to
+2. Run: `dope/remake/build/dope-remake`. It starts fullscreen; add `--window` for a window, and `--original-art` to
    see the original pixels instead of the redrawn pictures.
 
 The remake reads everything from `DOPE.EXE` and `DOPE.MOD`: it unpacks the seven parts as their packer does, and

@@ -44,17 +44,11 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
-Download the "Inside remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases),
-unpack it, run `fetch-originals.ps1` (Windows) or `./fetch-originals.sh` (Linux) in its folder to get the original
-files, and start `inside-remake`. Or build it yourself:
+Download the "Inside remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack it and start `inside-remake`: the download includes the original release. Or build it yourself; the original release is in [`original/`](original/):
 
-1. Get the original: `scripts/fetch-originals.sh inside` from the repository root (Windows:
-   `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 inside`), or download
-   [`inside.zip`](https://files.scene.org/view/parties/1996/gathering96/demo/inside.zip) from scene.org, unpack
-   the two zips inside it, and put `INSIDE.EXE`, `INSIDE.DAT`, `EYE.AMF` and `SDIGUS.DSD` into `inside/original/`.
-2. Build: `cmake -S inside/remake -B inside/remake/build -G Ninja && cmake --build inside/remake/build`. It needs
+1. Build: `cmake -S inside/remake -B inside/remake/build -G Ninja && cmake --build inside/remake/build`. It needs
    SDL3, and CMake downloads it if it is missing.
-3. Run: `inside/remake/build/inside-remake`. It starts fullscreen; add `--window` for a window.
+2. Run: `inside/remake/build/inside-remake`. It starts fullscreen; add `--window` for a window.
 
 The remake reads everything from the original files: it unpacks `INSIDE.EXE` as PMODE/W does and `INSIDE.DAT` as
 the demo does, reads the pictures, palettes, shade tables, objects and the parts' parameters by name and address,

@@ -49,18 +49,11 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
-Download the "clone meets clone remake" for Windows or Linux from
-[Releases](https://github.com/dvdstelt/demoscene/releases), unpack it, run `fetch-originals.ps1` (Windows) or
-`./fetch-originals.sh` (Linux) in its folder to get the original files, and start `clone-remake`. Or build it
-yourself:
+Download the "clone meets clone remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack it and start `clone-remake`: the download includes the original release. Or build it yourself; the original release is in [`original/`](original/):
 
-1. Get the original: `scripts/fetch-originals.sh clone` from the repository root (Windows:
-   `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 clone`), or download
-   [`acme_cln.zip`](https://files.scene.org/view/demos/groups/fudge/acme_cln.zip) from scene.org and unpack
-   `CLONE.EXE` into `clone/original/`.
-2. Build: `cmake -S clone/remake -B clone/remake/build -G Ninja && cmake --build clone/remake/build`. It needs SDL3,
+1. Build: `cmake -S clone/remake -B clone/remake/build -G Ninja && cmake --build clone/remake/build`. It needs SDL3,
    and CMake downloads it if it is missing.
-3. Run: `clone/remake/build/clone-remake`. It starts fullscreen; add `--window` for a window, and `--original-art`
+2. Run: `clone/remake/build/clone-remake`. It starts fullscreen; add `--window` for a window, and `--original-art`
    to see the original pixels instead of the redrawn pictures.
 
 The remake reads everything from `CLONE.EXE`: it unpacks the program as its loader does, builds the module and its

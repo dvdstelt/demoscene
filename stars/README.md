@@ -40,15 +40,11 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
-Download the "STARS remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases),
-unpack it, run `fetch-originals.ps1` (Windows) or `./fetch-originals.sh` (Linux) in its folder to get the original
-files, and start `stars-remake`. Or build it yourself:
+Download the "STARS remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack it and start `stars-remake`: the download includes the original release. Or build it yourself; the original release is in [`original/`](original/):
 
-1. Get the original: download [`nooonstf.zip`](https://files.scene.org/view/demos/groups/nooon/nooonstf.zip) from
-   scene.org and unpack `STARS.EXE` into `stars/original/`.
-2. Build: `cmake -S stars/remake -B stars/remake/build -G Ninja && cmake --build stars/remake/build`. It needs
+1. Build: `cmake -S stars/remake -B stars/remake/build -G Ninja && cmake --build stars/remake/build`. It needs
    SDL3, and CMake downloads it if it is missing.
-3. Run: `stars/remake/build/stars-remake`. It starts fullscreen; add `--window` for a window, and
+2. Run: `stars/remake/build/stars-remake`. It starts fullscreen; add `--window` for a window, and
    `--original-art` to see the original pixels instead of the redrawn pictures.
 
 The remake reads everything from `STARS.EXE`: the program image (decrypted and decompressed as its loader does it),

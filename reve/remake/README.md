@@ -5,9 +5,7 @@ came 5th in the PC demo competition at The Party 1995, in its final version of M
 at any resolution in true colour, instead of 320×200 in 256 colours, with the original's motion, timing and music,
 and with high-resolution redraws of its pictures, title and names (or the original pixels, `--original-art`).
 
-The remake reads everything from the original file. It is not included: get it with
-`scripts/fetch-originals.sh reve` (or `.ps1` on Windows) from the repository root, which puts it in
-`reve/original/`.
+The remake reads everything from the original file, in the original release in [`reve/original/`](../original/).
 
 | what | where | how it is used |
 |------|-------|----------------|

@@ -43,18 +43,11 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
-Download the "The Sea Robot of Love remake" for Windows or Linux from
-[Releases](https://github.com/dvdstelt/demoscene/releases), unpack it, run `fetch-originals.ps1` (Windows) or
-`./fetch-originals.sh` (Linux) in its folder to get the original file, and start `okean-remake`. Or build it
-yourself:
+Download the "The Sea Robot of Love remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack it and start `okean-remake`: the download includes the original release. Or build it yourself; the original release is in [`original/`](original/):
 
-1. Get the original: `scripts/fetch-originals.sh okean` from the repository root (Windows:
-   `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 okean`), or download
-   [`okean.zip`](https://files.scene.org/view/demos/groups/orange/okean.zip) from scene.org and put `KORSO2.EXE` into
-   `okean/original/`.
-2. Build: `cmake -S okean/remake -B okean/remake/build -G Ninja && cmake --build okean/remake/build`. It needs SDL3,
+1. Build: `cmake -S okean/remake -B okean/remake/build -G Ninja && cmake --build okean/remake/build`. It needs SDL3,
    and CMake downloads it if it is missing.
-3. Run: `okean/remake/build/okean-remake`. It starts fullscreen; add `--window` for a window.
+2. Run: `okean/remake/build/okean-remake`. It starts fullscreen; add `--window` for a window.
 
 The remake reads everything from the original file: it unpacks `KORSO2.EXE` as the packer's stub does, reads the
 tables, palettes, meshes, maps, the font and the texts by address, and plays the module inside it with a port of the

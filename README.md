@@ -64,24 +64,14 @@ YouTube videos of the remakes (4K, 60 fps) are coming. Until then, build and run
 
 ## Run a remake
 
-The remakes need the original release files, which are not included here; they remain the property of their
-authors. The fetch scripts download them from [scene.org](https://www.scene.org/) and check them.
+Each remake reads the files of its original release at run time. They come with it: `<demo>/original/` in this repository and the `original` folder in each download hold the original release as it is on [scene.org](https://www.scene.org/). They remain the property of their authors ([NOTICE.md](NOTICE.md)).
 
-**Download**: [Releases](https://github.com/dvdstelt/demoscene/releases) has each remake for Windows (a zip) and for
-Linux (a tar.gz, for 64-bit Linux with glibc 2.34 or newer). Unpack it, and in that folder run
-
-```
-powershell -ExecutionPolicy Bypass -File fetch-originals.ps1
-```
-
-on Windows, or `./fetch-originals.sh` on Linux. Then start the remake: `<demo>-remake` (for example
-`paper-remake`; 303's is `acme303`), with `.exe` on Windows.
+**Download**: [Releases](https://github.com/dvdstelt/demoscene/releases) has each remake for Windows (a zip) and for Linux (a tar.gz, for 64-bit Linux with glibc 2.34 or newer). Unpack it and start the remake: `<demo>-remake` (for example `paper-remake`; 303's is `acme303`), with `.exe` on Windows.
 
 **Build it yourself** (Linux, or Windows with CMake and a compiler):
 
 ```
 git clone https://github.com/dvdstelt/demoscene && cd demoscene
-scripts/fetch-originals.sh
 cmake -S paper/remake -B paper/remake/build -G Ninja && cmake --build paper/remake/build
 paper/remake/build/paper-remake
 ```
@@ -133,7 +123,7 @@ time.
 ```
 303/  paper/  ...      one folder per production (the table above lists them)
   README.md           about the original, versions, how to run
-  original/           put the original files here (not in Git)
+  original/           the original release, as it is on scene.org
   remake/             the current remake (CMake project)
   remake/build/       your build of it (not in Git); scripts/render-videos.sh uses it
   remake/art/         the redrawn pictures
@@ -141,7 +131,7 @@ time.
   re/                 reverse-engineering notes and scripts
   docs/               making-of, the original's techniques, images
 docs/                 how it was made, tools, redrawing pictures, rendering the videos
-scripts/              fetch the originals, package releases, render videos
+scripts/              package releases, the build workflow's steps, render videos
 out/  videos/         release downloads and rendered videos, made by those scripts (not in Git)
 AGENTS.md             instructions for AI coding agents working on this repository
 ```

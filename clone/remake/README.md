@@ -6,8 +6,7 @@ the PC 64k intro competition at Takeover '98. It runs on Linux and Windows at an
 (the original already draws in true colour), with the original's motion, timing and music, and with high-resolution
 redraws of Aap's pictures (or the original pixels, `--original-art`).
 
-The remake reads everything from the original `CLONE.EXE` (63,994 bytes). It is not included: unpack
-`acme_cln.zip` from scene.org into `clone/original/` (see [`../original/README.md`](../original/)).
+The remake reads everything from the original `CLONE.EXE` (63,994 bytes), in the original release in [`clone/original/`](../original/).
 
 | what | where in the exe | how it is used |
 |------|------------------|----------------|

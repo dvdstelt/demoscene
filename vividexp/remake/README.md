@@ -5,9 +5,7 @@ Damac, music Wode and Swallow) that placed 3rd in the PC demo competition at Ass
 Windows at any resolution in true colour, instead of 320×200 in 256 colours, with the original's motion, timing and
 music, and with high-resolution redraws of its pictures (or the original pixels, `--original-art`).
 
-The remake reads everything from the original files. They are not included: get them with
-`scripts/fetch-originals.sh vividexp` (or `.ps1` on Windows) from the repository root, which puts them in
-`vividexp/original/`.
+The remake reads everything from the original files, in the original release in [`vividexp/original/`](../original/).
 
 | what | where | how it is used |
 |------|-------|----------------|

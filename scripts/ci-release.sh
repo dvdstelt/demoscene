@@ -50,13 +50,12 @@ trap 'rm -f "$notes"' EXIT
     printf 'A high-resolution remake of %s, version %s.\n\n' "$about" "$version"
     printf -- '- **Windows** (64-bit): `%s`\n' "$(basename "${files[0]}")"
     printf -- '- **Linux** (64-bit): `%s`\n\n' "$(basename "${files[1]}")"
-    printf 'The original files are not included; they belong to their authors. Unpack the download and run '
-    printf '`fetch-originals.ps1` (Windows) or `./fetch-originals.sh` (Linux) in its folder to download them from '
-    printf 'scene.org, then start the program. README.txt in the download has the details and the options.\n'
+    printf 'Unpack the download and start the program. It includes the files of the original release, which the '
+    printf 'remake reads and which belong to their authors. README.txt in the download has the details and the options.\n'
     if [ -n "$prev" ]; then
         printf '\n## Changes since %s\n\n' "$prev"
         changes=$(git -C "$repo" log --no-merges --format='- %s' "$prev..$tag" -- \
-            "$demo/remake" scripts/package.sh scripts/fetch-originals.sh scripts/fetch-originals.ps1)
+            "$demo/remake" "$demo/original" scripts/package.sh)
         printf '%s\n' "${changes:-- No changes to the remake itself.}"
     fi
 } >"$notes"

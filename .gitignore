@@ -19,16 +19,16 @@ test_music
 jizz-texdump
 jizz-textest
 
-# The original productions belong to their authors and are never committed.
-# Put them in <demo>/original/ (scripts/fetch-originals.sh does that).
-*/original/*
-!*/original/README.md
 *.EXE
 *.exe
 *.PAK
 *.pak
 *.LZW
 *.lzw
+# ... except the original releases, which are committed as they are in <demo>/original/ (without scene.org's banner,
+# which scene.org adds to its downloads)
+!*/original/*
+*/original/scene.org
 
 # Captures, dumps and other files generated from the originals
 *.frames

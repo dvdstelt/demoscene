@@ -12,8 +12,9 @@
 # changed since $BEFORE (push) or $BASE (pull request):
 #   - a file in <demo>/remake/ (303/remake-v1/ for 303-v1), except its Markdown files other than art/README.md,
 #     which goes into the download;
-#   - every project when the workflow, these scripts or the fetch scripts changed, or when the changes cannot be
-#     told (a new branch with no common history, a force push).
+#   - a file of the original release in <demo>/original/, which goes into the download;
+#   - every project when the workflow or these scripts changed, or when the changes cannot be told (a new branch
+#     with no common history, a force push).
 # A change to anything else (the documentation, the reverse-engineering notes) builds nothing; a release tag always
 # packages the current files.
 #
@@ -43,13 +44,14 @@ release="" version=""
 project_of() {  # changed file -> project it belongs to, "all", or nothing
     local top=${1%%/*} rest=${1#*/}
     case "$1" in
-    .github/workflows/* | scripts/ci-*.sh | scripts/package.sh | scripts/fetch-originals.*)
+    .github/workflows/* | scripts/ci-*.sh | scripts/package.sh)
         echo all; return 0 ;;
     esac
     case "$demos" in *" $top "*) ;; *) return 0 ;; esac
     case "$rest" in
     remake/art/README.md) echo "$top" ;;
     *.md) ;;
+    original/*) echo "$top" ;;   # the release downloads include the original release
     remake/*) echo "$top" ;;
     remake-v1/*) if [ "$top" = 303 ]; then echo 303-v1; fi ;;
     esac

@@ -5,9 +5,7 @@ dune, font and graphics der piipo) that came 3rd in the PC intro competition at 
 Windows at any resolution in true colour, instead of 320×200 in 256 colours, with the original's motion, timing and
 music, and with a high-resolution redraw of der piipo's font (or the original pixels, `--original-art`).
 
-The remake reads everything from the original program. It is not included: get it with
-`scripts/fetch-originals.sh okean` (or `.ps1` on Windows) from the repository root, which puts it in
-`okean/original/`.
+The remake reads everything from the original program, in the original release in [`okean/original/`](../original/).
 
 | what | where | how it is used |
 |------|-------|----------------|

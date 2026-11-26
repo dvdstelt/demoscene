@@ -28,15 +28,11 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
-Download the "303 remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack
-it, run `fetch-originals.ps1` (Windows) or `./fetch-originals.sh` (Linux) in its folder to get the original files, and
-start `acme303`. Or build it yourself:
+Download the "303 remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack it and start `acme303`: the download includes the original release. Or build it yourself; the original release is in [`original/`](original/):
 
-1. Get the original files: `scripts/fetch-originals.sh 303` from the repository root (Windows:
-   `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 303`), or copy them into `303/original/`.
-2. Build: `cmake -S 303/remake -B 303/remake/build -G Ninja && cmake --build 303/remake/build`
+1. Build: `cmake -S 303/remake -B 303/remake/build -G Ninja && cmake --build 303/remake/build`
    (needs SDL3 and libopenmpt; CMake downloads them if they are missing).
-3. Run: `303/remake/build/acme303` (fullscreen; `--window` for a window).
+2. Run: `303/remake/build/acme303` (fullscreen; `--window` for a window).
 
 [`remake/README.md`](remake/README.md) has all options, keys and build details per platform.
 

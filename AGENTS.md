@@ -12,12 +12,12 @@ composition, colours and music, rendered at any resolution in true colour.
 ```
 <demo>/
   README.md        about the original, how to watch/run, which versions exist
-  original/        the original release (git-ignored, except its README)
+  original/        the original release as it is in its scene.org zip, committed byte for byte, and its README
   remake/          the current remake: CMake project, src/, tools/, README.md (build + fidelity details)
   re/              reverse-engineering notes (notes-*.md: pseudo-C with every constant) and helper scripts
   docs/            making-of.md, images/
 docs/              how-it-was-made.md, reverse-engineering.md, videos.md
-scripts/           fetch-originals.(sh|ps1), package.sh, ci-*.sh (the build workflow's steps), render-videos.sh
+scripts/           package.sh, ci-*.sh (the build workflow's steps), render-videos.sh
 ```
 
 303 also has `remake-v1/`, the first version rebuilt by eye from a video. It is kept as a record: do not develop it
@@ -25,11 +25,7 @@ further unless asked; fixes there should stay minimal.
 
 ## Hard rules
 
-1. **Never commit the originals** or anything generated from them: executables, PAK/LZW files, unpacked images,
-   memory dumps, emulator captures (`*.frames`, `*.ticks`, `*.gus`, `*.dram`), audio renders, videos, frame dumps.
-   `.gitignore` covers the usual names; check `git status` before committing. The exceptions are a few small
-   screenshots in `<demo>/docs/images/` for the documentation, and the redrawn pictures in `<demo>/remake/art/`
-   (below).
+1. **Commit the original release, never anything generated from it.** `<demo>/original/` holds the files of the original release as they are in its scene.org zip (without the `scene.org` banner that scene.org adds), so a clone and every download run without scene.org; `.gitattributes` keeps them byte for byte, and the downloads include them. Never commit anything generated from them: unpacked images, memory dumps, emulator captures (`*.frames`, `*.ticks`, `*.gus`, `*.dram`), audio renders, videos, frame dumps. `.gitignore` covers the usual names; check `git status` before committing. The exceptions are a few small screenshots in `<demo>/docs/images/` for the documentation, and the redrawn pictures in `<demo>/remake/art/` (below).
 2. **Never copy data from the originals into the source.** Tables, palettes, images, meshes, strings, lyrics,
    coordinates and music are read from the original files at run time, by address or by file name (see
    `paper/remake/src/exe.h`). Allowed in source: code constants (multipliers, loop counts, addresses and offsets,
@@ -139,7 +135,7 @@ constants. Write plainly; describe what is there, not how good it is.
 
 ## Adding a new demo
 
-Create `<demo>/` with the layout above, add the original's files and checksums to `scripts/fetch-originals.*`, a row
+Create `<demo>/` with the layout above, commit the original release in `<demo>/original/` with a README that names its scene.org zip and the files the remake reads (with their checksums), add a row
 to the table in the root README, the demo to the project lists in `scripts/ci-plan.sh`, `scripts/ci-build.sh` and
 `scripts/ci-release.sh`, and a packaging entry to `scripts/package.sh`. Start from the Paper remake's framework
 (`demo.*`, `render.*`, `gl.*`). `scripts/render-videos.sh` finds the new demo by itself if the program is

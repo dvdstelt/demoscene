@@ -4,8 +4,7 @@ A C++/OpenGL re-implementation of Acme's *303*, the PC demo that won the X'97 de
 (code: Statix, music and vocals: Vic, graphics/design: Aap). It runs on Linux and Windows at any
 resolution in true colour, instead of 320×200 in 256 colours, and it plays the original soundtrack.
 
-The remake loads the original data files directly. They are not included: get them with
-`scripts/fetch-originals.sh 303` (or `.ps1` on Windows) from the repository root, which puts them in `303/original/`.
+The remake loads the original data files directly, from the original release in [`303/original/`](../original/).
 
 | file | contents | how it is used |
 |------|----------|----------------|
