@@ -30,15 +30,11 @@ Links: [pouet.net](https://www.pouet.net/prod.php?which=75) · [demozoo](https:/
 
 ## Run it
 
-Download the "Paper remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases),
-unpack it, run `fetch-originals.ps1` (Windows) or `./fetch-originals.sh` (Linux) in its folder to get the original
-files, and start `paper-remake`. Or build it yourself:
+Download the "Paper remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack it and start `paper-remake`: the download includes the original release. Or build it yourself; the original release is in [`original/`](original/):
 
-1. Get the original: `scripts/fetch-originals.sh paper` from the repository root (Windows:
-   `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 paper`), or copy `PAPER.EXE` into `paper/original/`.
-2. Build: `cmake -S paper/remake -B paper/remake/build -G Ninja && cmake --build paper/remake/build`. It needs
+1. Build: `cmake -S paper/remake -B paper/remake/build -G Ninja && cmake --build paper/remake/build`. It needs
    SDL3, and CMake downloads it if it is missing.
-3. Run: `paper/remake/build/paper-remake`. It starts fullscreen; add `--window` for a window.
+2. Run: `paper/remake/build/paper-remake`. It starts fullscreen; add `--window` for a window.
 
 The remake reads everything from `PAPER.EXE`: the program image (unpacked with its own PKLITE decoder), the tune and
 samples, the font, the images, the 3D objects, the camera paths and the random seed. Nothing from the intro is

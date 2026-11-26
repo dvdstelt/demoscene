@@ -43,17 +43,11 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
-Download the "Reve remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases),
-unpack it, run `fetch-originals.ps1` (Windows) or `./fetch-originals.sh` (Linux) in its folder to get the original
-file, and start `reve-remake`. Or build it yourself:
+Download the "Reve remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack it and start `reve-remake`: the download includes the original release. Or build it yourself; the original release is in [`original/`](original/):
 
-1. Get the original: `scripts/fetch-originals.sh reve` from the repository root (Windows:
-   `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 reve`), or download
-   [`pls_revf.zip`](https://files.scene.org/view/demos/groups/pulse/pls_revf.zip) from scene.org and put `REVE.EXE`
-   into `reve/original/`. The party version (`pls_reve.zip`) is a different program and does not work.
-2. Build: `cmake -S reve/remake -B reve/remake/build -G Ninja && cmake --build reve/remake/build`. It needs SDL3,
+1. Build: `cmake -S reve/remake -B reve/remake/build -G Ninja && cmake --build reve/remake/build`. It needs SDL3,
    and CMake downloads it if it is missing.
-3. Run: `reve/remake/build/reve-remake`. It starts fullscreen; add `--window` for a window.
+2. Run: `reve/remake/build/reve-remake`. It starts fullscreen; add `--window` for a window.
 
 The remake reads everything from `REVE.EXE`: it unpacks the archive as the extender does, relocates the demo
 program, reads the pictures, palettes, tables, 3D worlds and the parts' parameters by name and address, and plays the

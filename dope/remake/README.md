@@ -6,9 +6,7 @@ that won the PC demo competition at The Gathering '95. It runs on Linux and Wind
 instead of 320×200 with 256 colours, with the original's motion, timing and music, and with high-resolution redraws
 of the hand-drawn pictures (or the original pixels, `--original-art`).
 
-The remake reads everything from the original `DOPE.EXE` (584,133 bytes) and `DOPE.MOD` (957,334 bytes). They are
-not included: unpack `clx_dope.zip` from scene.org into `dope/original/` (see
-[`../original/README.md`](../original/)).
+The remake reads everything from the original `DOPE.EXE` (584,133 bytes) and `DOPE.MOD` (957,334 bytes), in the original release in [`dope/original/`](../original/).
 
 | what | where | how it is used |
 |------|-------|----------------|

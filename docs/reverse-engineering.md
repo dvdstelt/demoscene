@@ -7,7 +7,7 @@ The tools used to take the originals apart, and how to run them. They are writte
 pip install capstone unicorn numpy pillow
 ```
 
-All of them read the original files from `<demo>/original/` (see `scripts/fetch-originals.sh`).
+All of them read the original files from the original release in `<demo>/original/`.
 
 ## 303 (Watcom C/C++, DOS/4GW, LE executable)
 

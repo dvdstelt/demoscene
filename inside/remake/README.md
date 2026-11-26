@@ -6,9 +6,7 @@ Linux and Windows at any resolution in true colour, instead of 320×200 in 256 c
 timing and music, and with high-resolution redraws of its title, the names in the credits and the photos of people
 (or the original pixels, `--original-art`).
 
-The remake reads everything from the original files. They are not included: get them with
-`scripts/fetch-originals.sh inside` (or `.ps1` on Windows) from the repository root, which puts them in
-`inside/original/`.
+The remake reads everything from the original files, in the original release in [`inside/original/`](../original/).
 
 | what | where | how it is used |
 |------|-------|----------------|

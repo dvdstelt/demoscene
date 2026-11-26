@@ -43,18 +43,11 @@ A 4K video of the remake is coming to YouTube.
 
 ## Run it
 
-Download the "Vivid Experiment remake" for Windows or Linux from
-[Releases](https://github.com/dvdstelt/demoscene/releases), unpack it, run `fetch-originals.ps1` (Windows) or
-`./fetch-originals.sh` (Linux) in its folder to get the original files, and start `vividexp-remake`. Or build it
-yourself:
+Download the "Vivid Experiment remake" for Windows or Linux from [Releases](https://github.com/dvdstelt/demoscene/releases), unpack it and start `vividexp-remake`: the download includes the original release. Or build it yourself; the original release is in [`original/`](original/):
 
-1. Get the original: `scripts/fetch-originals.sh vividexp` from the repository root (Windows:
-   `powershell -ExecutionPolicy Bypass -File scripts\fetch-originals.ps1 vividexp`), or download
-   [`vividexp.zip`](https://files.scene.org/view/parties/1996/assembly96/demo/vividexp.zip) from scene.org and put
-   `VIVID.EXE`, `EXPRMNT1.XM` and `EXPRMNT2.XM` into `vividexp/original/`.
-2. Build: `cmake -S vividexp/remake -B vividexp/remake/build -G Ninja && cmake --build vividexp/remake/build`. It
+1. Build: `cmake -S vividexp/remake -B vividexp/remake/build -G Ninja && cmake --build vividexp/remake/build`. It
    needs SDL3, and CMake downloads it if it is missing.
-3. Run: `vividexp/remake/build/vividexp-remake`. It starts fullscreen; add `--window` for a window.
+2. Run: `vividexp/remake/build/vividexp-remake`. It starts fullscreen; add `--window` for a window.
 
 The remake reads everything from the original files: it unpacks `VIVID.EXE` as PMODE/W does, reads the scripts, pictures, palettes, tables, objects and splines from its archives by name and the rest by address, and plays the two modules with a port of MIDAS's XM player on a model of the GUS. Nothing from the demo is copied into the source. Its pictures are shown as high-resolution redraws from `remake/art/`, three of the slides' pin-ups in versions that differ from the original ([`remake/art/README.md`](remake/art/README.md)); add `--original-art` to see the original pixels. The slides' captions are drawn sharper from their own pixels. [`remake/README.md`](remake/README.md) lists the options and the build details per platform.
 

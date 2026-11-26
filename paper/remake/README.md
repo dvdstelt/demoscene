@@ -6,8 +6,7 @@ released at Wired '96. It runs on Linux and Windows at any resolution in true co
 the logo page: the pencil sketch and the inked logo of the word "Paper", and the text "present the" / "intro" (or
 the original pixels, `--original-art`).
 
-The remake reads everything from the original `PAPER.EXE` (63,845 bytes). It is not included: get it with
-`scripts/fetch-originals.sh paper` (or `.ps1` on Windows) from the repository root, which puts it in `paper/original/`.
+The remake reads everything from the original `PAPER.EXE` (63,845 bytes), in the original release in [`paper/original/`](../original/).
 
 | what | where in the exe | how it is used |
 |------|------------------|----------------|

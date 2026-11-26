@@ -6,8 +6,7 @@ at any resolution in true colour, instead of 320×200 in hicolor, with the origi
 with high-resolution redraws of its two pictures, Sjaak's "jizz" logo and Jace's "~JIZZ~ TBL'97" (or the original
 pixels, `--original-art`).
 
-The remake reads everything from the original `JIZZ.EXE` (63,960 bytes). It is not included: get it with
-`scripts/fetch-originals.sh jizz` (or `.ps1` on Windows) from the repository root, which puts it in `jizz/original/`.
+The remake reads everything from the original `JIZZ.EXE` (63,960 bytes), in the original release in [`jizz/original/`](../original/).
 
 | what | where in the exe | how it is used |
 |------|------------------|----------------|
