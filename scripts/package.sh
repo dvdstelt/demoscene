@@ -7,9 +7,8 @@
 # BUILD_DIR defaults to <repo>/<demo>/remake/build-win for Windows and <repo>/<demo>/remake/build for Linux (as in
 # the remakes' READMEs), OUT_DIR to <repo>/out. Writes OUT_DIR/<demo>-remake-windows-x64.zip or
 # OUT_DIR/<demo>-remake-linux-x64.tar.gz with one folder of the same name inside: the program, README.txt, the
-# script that fetches the originals (fetch-originals.ps1 or fetch-originals.sh), the licenses, an empty original/
-# folder for the original files, and the art/ folder with the redrawn pictures (from <repo>/<demo>/remake/art),
-# which the program finds next to itself.
+# licenses, the original/ folder with the original release (from <repo>/<demo>/original, byte for byte) and the art/
+# folder with the redrawn pictures (from <repo>/<demo>/remake/art), which the program finds next to itself.
 #
 # Windows: every DLL the program needs that is not part of Windows is shipped next to it. Fails if one is neither
 # a Windows system DLL nor found in BUILD_DIR or the MinGW sysroot.
@@ -84,6 +83,17 @@ rm -rf "$stage" "$out/$name.zip" "$out/$name.tar.gz"
 mkdir -p "$stage/original" "$stage/licenses"
 cp "$build/$program" "$stage/"
 "$strip" --strip-all "$stage/$program"
+
+# ---------------------------------------------------------------- the original release
+# The program reads it from original/ next to itself. Copied as it is: no line-ending conversion, which would change
+# the release's own text files. Not this repository's README.md, nor scene.org's banner where a download left one.
+n=0
+for f in "$repo/$demo/original"/*; do
+    [ -f "$f" ] || continue
+    case "$(basename "$f")" in README.md | scene.org) continue ;; esac
+    cp "$f" "$stage/original/"; n=$((n + 1))
+done
+[ "$n" -gt 0 ] || die "no original files in $repo/$demo/original"
 
 # ---------------------------------------------------------------- Windows: DLLs
 # DLLs that come with Windows (lower case). Anything else must be shipped.
@@ -213,13 +223,7 @@ their detail to the colours it computes from the original'"'"'s, and --original-
 '
 fi
 
-# ---------------------------------------------------------------- fetch script and README
-if [ "$os" = windows ]; then
-    text "$repo/scripts/fetch-originals.ps1" "$stage/fetch-originals.ps1"
-else
-    cp "$repo/scripts/fetch-originals.sh" "$stage/fetch-originals.sh"
-fi
-
+# ---------------------------------------------------------------- README
 source_url="${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-dvdstelt/demoscene}"
 version_line=""
 if [ -n "${VERSION:-}" ]; then version_line="Version: $VERSION"; fi
@@ -394,19 +398,11 @@ fi
 
 if [ "$os" = windows ]; then
     requirements=""
-    fetch='To download them from scene.org and check them, open PowerShell in this folder and run
-
-    powershell -ExecutionPolicy Bypass -File fetch-originals.ps1
-
-Then start '"$program"'.'
+    start="Start $program."
     options_title="Options (from a command prompt or a shortcut)"
 else
     requirements="It needs 64-bit Linux with glibc $glibc or newer, and OpenGL 3.3."
-    fetch='To download them from scene.org and check them, open a terminal in this folder and run
-
-    ./fetch-originals.sh
-
-(it needs curl or wget, and unzip). Then start ./'"$program"'.'
+    start="Start ./$program."
     options_title="Options (on the command line)"
 fi
 
@@ -417,16 +413,16 @@ fi
     if [ -n "$version_line" ]; then printf '\n%s\n' "$version_line"; fi
     cat <<EOF
 
+$start
+
 The original files
 ------------------
-The remake reads the files of the original MS-DOS release ($zipfile on scene.org) at run time. They are
-not included: they belong to their authors. Put
+The remake reads the files of the original MS-DOS release at run time:
 
     $needed
 
-in the "original" folder next to $program (or next to $program itself).
-
-$fetch
+The "original" folder holds that release as it is in $zipfile on scene.org. Its files belong to their
+authors (NOTICE.txt); the remake's license does not cover them.
 $art_note
 Keys
 ----
@@ -452,7 +448,7 @@ if [ "$os" = windows ]; then
     archive=$out/$name.zip
 else
     chmod -R u=rwX,go=rX "$stage"
-    chmod 755 "$stage/$program" "$stage/fetch-originals.sh"
+    chmod 755 "$stage/$program"
     (cd "$out" && tar --owner=0 --group=0 --numeric-owner -czf "$name.tar.gz" "$name")
     archive=$out/$name.tar.gz
 fi
