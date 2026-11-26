@@ -434,8 +434,7 @@ as colour images, the palette applied first; 2 × 2: as index values, the sum lo
 ### 7.2 The photos (`nainen1..3.raw`)
 
 Photos of women, 320 × 200 full-screen, drawn at 1:1 over the effect (#1 and #3 at the left, #2 at the right); index
-0 is transparent, 64 colours at palette 192..255. They are photos of real people: not redrawn; the remake shows the
-original pixels with the index-0 mask.
+0 is transparent, 64 colours at palette 192..255. The remake shows their redraws (`art/nainen1..3.png`, RGBA) with the palette's fade fitted per refresh as a gain and offset of their colours; with `--original-art` the original pixels with the index-0 mask.
 
 ### 7.3 DTABLE (part II)
 

@@ -45,7 +45,7 @@ meets clone, 320×200 in true colour).
 | [**clone meets clone**](clone/) | Acme and Fudge | Takeover '98, May 1998 | 64k intro, winner of the PC 64k intro competition | [remake](clone/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures, title and names and upscaled textures |
 | [**Inside**](inside/) | CNCD | The Gathering '96, April 1996 | PC demo, winner of the PC demo competition | [remake](inside/remake/), ported from the executable routine by routine and checked against an emulator capture, with a redrawn title, names and photos and upscaled textures |
 | [**Reve**](reve/) | Pulse | The Party '95, December 1995 | PC demo, 5th in the PC demo competition | [remake](reve/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures, title and names and upscaled textures |
-| [**Vivid Experiment**](vividexp/) | Doomsday | Assembly '96, August 1996 | PC demo, 3rd in the PC demo competition | [remake](vividexp/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn lettering, names and a painting |
+| [**Vivid Experiment**](vividexp/) | Doomsday | Assembly '96, August 1996 | PC demo, 3rd in the PC demo competition | [remake](vividexp/remake/), ported from the executable routine by routine and checked against an emulator capture, with redrawn pictures, photos, lettering and names |
 
 303 and Paper were coded by Statix, with music by Vic of Acme. JIZZ was coded by Jace, with music by Probe and a
 vector engine by Nix. STARS was coded by KARL and BARTi, with pictures by RA and music by Groo. DOPE was coded by

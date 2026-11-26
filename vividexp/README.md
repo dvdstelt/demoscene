@@ -21,8 +21,7 @@ II starts with glossy hearts flying over a star cluster, then a bump-mapped map 
 blended texture tunnels, a flight over a bump-mapped landscape, an ice-like relief, tumbling blobs over a sunset, the
 word "doomsday" bump-mapped in water and the greetings. It lasts 6 minutes 35 seconds.
 
-The demo shows photos of women, two of them nude or nearly, and sexualised pin-ups (Demozoo tags it nsfw). The
-remake shows them as the demo does; `--censor` covers their nude parts with a mosaic, and the video uses it.
+The demo shows photos of women, two of them nude or nearly, and sexualised pin-ups (Demozoo tags it nsfw). The remake shows them redrawn, as the demo does (the first pin-up's redraw covers her chest); `--censor` covers the nude parts with a mosaic, and the video uses it.
 
 Links: [pouet.net](https://www.pouet.net/prod.php?which=2167) · [demozoo](https://demozoo.org/productions/10152/) ·
 [Assembly '96 results](https://ftp.scene.org/pub/parties/1996/assembly96/info/a96resul.txt) ·
@@ -57,12 +56,7 @@ yourself:
    needs SDL3, and CMake downloads it if it is missing.
 3. Run: `vividexp/remake/build/vividexp-remake`. It starts fullscreen; add `--window` for a window.
 
-The remake reads everything from the original files: it unpacks `VIVID.EXE` as PMODE/W does, reads the scripts,
-pictures, palettes, tables, objects and splines from its archives by name and the rest by address, and plays the two
-modules with a port of MIDAS's XM player on a model of the GUS. Nothing from the demo is copied into the source. The
-opening's lettering, the credits' names and the winged man are shown as high-resolution redraws from
-`remake/art/`; add `--original-art` to see the original pixels. The photos, the pin-ups and their captions are
-always the original's. [`remake/README.md`](remake/README.md) lists the options and the build details per platform.
+The remake reads everything from the original files: it unpacks `VIVID.EXE` as PMODE/W does, reads the scripts, pictures, palettes, tables, objects and splines from its archives by name and the rest by address, and plays the two modules with a port of MIDAS's XM player on a model of the GUS. Nothing from the demo is copied into the source. Its pictures are shown as high-resolution redraws from `remake/art/`, three of the slides' pin-ups in versions that differ from the original ([`remake/art/README.md`](remake/art/README.md)); add `--original-art` to see the original pixels. The slides' captions are drawn sharper from their own pixels. [`remake/README.md`](remake/README.md) lists the options and the build details per platform.
 
 ## How close is it?
 

@@ -3,8 +3,7 @@
 A C++/OpenGL re-implementation of *Vivid Experiment*, the PC demo by Doomsday (code Doom and MRI, graphics Dice and
 Damac, music Wode and Swallow) that placed 3rd in the PC demo competition at Assembly 1996. It runs on Linux and
 Windows at any resolution in true colour, instead of 320×200 in 256 colours, with the original's motion, timing and
-music, and with high-resolution redraws of its lettering, the credits' names and the winged man (or the original
-pixels, `--original-art`).
+music, and with high-resolution redraws of its pictures (or the original pixels, `--original-art`).
 
 The remake reads everything from the original files. They are not included: get them with
 `scripts/fetch-originals.sh vividexp` (or `.ps1` on Windows) from the repository root, which puts them in
@@ -34,10 +33,7 @@ vividexp-remake [--window] [--size 1280x960] [--start SECONDS] [--ss 2] [--loop]
 
 Keys: `Esc` quit, `Space` pause, `←/→` seek ±5 s, `↓/↑` seek ±30 s, `F`/`F11` toggle fullscreen.
 `--ss 2` renders at twice the resolution and downsamples. `--info` shows the time, music position and scene in the
-title bar. `--original-art` shows the original pixels of the lettering, the names and the winged man instead of the
-redraws. `--censor` covers the nude parts of the title picture and of two of the slides' pin-ups with a mosaic, for
-a video that is to be published (`scripts/render-videos.sh` uses it); without it, the pictures are shown as the
-original shows them.
+title bar. `--original-art` shows the original pixels instead of the redraws. `--censor` covers the nude parts of the title picture and of the slides' pin-ups with a mosaic, for a video that is to be published (`scripts/render-videos.sh` uses it): on the redraws those of the title picture and of the second pin-up (the first one's redraw covers her chest), on the original pixels those of the title picture and of the first two pin-ups. Without it, nothing is covered.
 
 Offline: `--wav out.wav` writes the soundtrack; `--shots 10,62.5 --shotdir DIR --shotsize WxH` writes the frames at
 those music times (seconds) to PNG; `--video out.mp4 [--from T0 --to T1] [--fps 60] [--shotsize WxH]` renders the
@@ -121,7 +117,7 @@ refreshes.
   zooming names are drawn at the continuous scale of the original's formula, their edges from a distance field of
   the redrawn letters. The slides' captions, black script on white that is not redrawn (it quotes a song's lyrics),
   are drawn from their own pixels as ink: their lightness, upsampled and cut at a threshold, gives smooth letters at
-  any resolution. The other pictures are drawn as they are, from the redraw or the original pixels.
+  any resolution. The other pictures are drawn as they are, from the redraw or the original pixels; under a fade a redraw takes the fade's colours where the palette is no longer the picture's own. The bitmap effects' photos are their redraws (RGBA) over the effect, with the palette's fade fitted per refresh as a gain and offset of their colours.
 - **Bitmap effects.** Eighteen of the nineteen per-pixel tables are the formulas they were made from (distances,
   angles, wobbles, mirrored and tiled copies), evaluated per output pixel; the textures are filtered in colour. The
   offsets carry over from run to run as in the original.
@@ -137,6 +133,8 @@ Speed: the whole demo at 2560 × 1920 takes a median of 3.2 ms per frame on an i
 frames under 5.3 ms); start-up, with the unpacking, the soundtrack and every scene's tables, about 0.5 s.
 
 ### Known differences
+
+- **Redrawn pictures.** The redraws add detail the 320 × 200 pictures do not have: faces, hair, skin, the star cluster's faint stars, the sunset's clouds. Three of the slides' pin-ups are versions the maintainer chose that differ from the original (`art/README.md`): in the first the catsuit covers her chest, and her pose, face and drawing style differ; the second's face shows under the mask and her latex covers her chest; the fourth's face, hair and lighting differ.
 
 - **No load times.** The remake runs every script command in no time, as an infinitely fast PC would. In the capture
   the 3D scenes' initialisation took 5 and 14 refreshes, and a few pictures' decoding a refresh, so those scenes

@@ -75,25 +75,14 @@ a median of 3.2 ms per frame for the whole demo on an integrated GPU.
 
 ## The redraws
 
-The demo shows four kinds of picture as they are: its own lettering, borrowed art, photos of people, and captions.
+The demo shows four kinds of picture as they are: its own lettering, borrowed art, photos, and captions. All but the captions are redrawn, from the original pixels; [`remake/art/README.md`](../remake/art/README.md) has the prompts, the attempts and the fits.
 
-- **Redrawn**: the opening's lettering (`alkutext.pcx`), the six names of the credits, and the winged man at the end
-  of part I, with ChatGPT's image generation from the original pixels (`remake/tools/align_art.py` makes the uploads
-  and fits the redraws). The lettering and the names came right at the first attempt, the names three to an upload;
-  they are kept as coverage masks, because the demo draws them through its palette arithmetic, and the zoom draws the
-  names from a distance field of the redraw, so their edges stay sharp when a letter fills the screen. The winged man,
-  a fantasy painting in Boris Vallejo's style, came back a little redder and darker and was matched to the original's
-  colours.
-- **Not redrawn**: the photos of women in the title picture, the greetings and the bitmap effects (photos of real
-  people); the slides' pin-ups; and the captions on the slides, which quote a song's lyrics. I wanted the pin-ups in
-  high resolution too, censored for YouTube, so the first went to ChatGPT with its nude part covered by a mosaic.
-  ChatGPT refused it for its similarity to third-party content: the pin-ups are a professional illustrator's work that
-  the demo copied, so they keep their pixels. The captions are drawn sharper instead from their own pixels: their
-  lightness, scaled up and cut at a threshold, gives smooth script at any resolution.
-- **Censoring.** For the YouTube video, `--censor` covers the nude parts of the title picture and of two pin-ups with
-  a mosaic of 6 × 6 original pixels; the remake shows the pictures as the demo does unless it is given.
-
-[`remake/art/README.md`](../remake/art/README.md) has the prompts, the attempts and the fits.
+- **ChatGPT first.** The opening's lettering (`alkutext.pcx`), the six names of the credits, the winged man at the end of part I, the three backgrounds (the opening's sky, the star cluster behind the hearts, the sunset behind the blobs), the greetings, the bitmap effects' cut-out photos and one of the slides' pin-ups came back from ChatGPT at the first attempt (`remake/tools/align_art.py` makes the uploads and fits the redraws). The lettering and the names are kept as coverage masks, because the demo draws them through its palette arithmetic, and the zoom draws the names from a distance field of the redraw, so their edges stay sharp when a letter fills the screen. The cut-out photos went up on a flat blue that becomes their transparency again.
+- **Photos of people.** At first the remake kept them as they were; I removed that rule from the project's agent instructions, because I wanted every picture of the demo in high resolution.
+- **Refusals.** ChatGPT refused three of the pin-ups and the title photo, for nudity or for their similarity to third-party content. The rule is not to reword a prompt to get past a refusal, so they went to Comfy Cloud with Qwen-Image-Edit-2511, as STARS's picture 13 did, without the mosaic. One run gave each of the four with and without a style reference; with a reference they stayed closer to the original, without one they were sharper.
+- **My choice.** For the first pin-up I took the version whose catsuit covers her chest, because the remake is to be shown on YouTube; it is not faithful to the original (her pose, face and style differ). For the others I took the sharper versions without a reference, and the title photo was tinted back to its orange.
+- **Censoring.** For the YouTube video, `--censor` covers the title photo's breast and the second pin-up's chest (bare in the original, latex in the redraw) with a mosaic of 6 × 6 original pixels in the redraw's colours; the remake shows the pictures uncovered unless it is given.
+- **Not redrawn.** The captions on the slides quote a song's lyrics, so they are drawn sharper from their own pixels instead: their lightness, scaled up and cut at a threshold, gives smooth script at any resolution.
 
 ## Decisions
 

@@ -511,8 +511,7 @@ those indices during its fades).
 | `pics/siipiman.pcx` (1) | 320 × 200, 254 indices | painting of a winged man against a yellow sky | `siipiman.pal` | end of part I, full screen |
 | `pics/greets.pcx` (2) | 320 × 200, indices 0..63 | photo of two women (left) and a list of group names (right, drawn text) | `pal/greets.pal` (3) | end of part II, full screen |
 
-None is read through tables or mapped on geometry. Photos of people (vivid, greets) are not to be redrawn unless the
-maintainer asks; the sky looks like a photo of clouds (no people).
+None is read through tables or mapped on geometry. All of them except the captions are redrawn (`remake/art/README.md`); the sky looks like a photo of clouds.
 
 ## 9. The clock
 
