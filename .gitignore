@@ -14,6 +14,7 @@ clone-remake
 inside-remake
 reve-remake
 okean-remake
+vividexp-remake
 test_music
 jizz-texdump
 jizz-textest
@@ -93,6 +94,19 @@ okean/re/models/**/*.npy
 okean/re/models/**/*.jpg
 okean/re/models/**/*.hooks
 okean/re/models/**/runs/
+vividexp/re/*.bin
+vividexp/re/*.log
+vividexp/re/*.jpg
+vividexp/re/*.time
+vividexp/re/*.script
+vividexp/re/dump/
+vividexp/re/snaps*/
+vividexp/re/unpacked/
+vividexp/re/models/**/*.npy
+vividexp/re/models/**/*.jpg
+vividexp/re/models/**/*.wav
+vividexp/re/models/**/runs/
+vividexp/re/models/**/dump/
 
 # Media: videos go to YouTube, audio renders stay local
 *.mp4

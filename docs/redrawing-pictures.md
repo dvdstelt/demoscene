@@ -41,7 +41,7 @@ redraw keeps what the effect needs; the decompiling notes say how each picture i
   with explicit shapes measured on the picture (fill it with the level around it), look at every upload before it
   goes out to make sure no part of the face is left, map the redraw's flat areas exactly onto the original's levels,
   and draw the original's photo pixels over the redraw;
-- a photo of people, drawn as it is, only when I ask for that picture (Inside's sprites: four cut-out photos):
+- a photo of people, drawn as it is (Inside's sprites: four cut-out photos):
   upload it on a key colour it does not use and ask for "a sharp, detailed photograph of exactly this picture",
   naming the straight edges where the photo is cut off so that the generator does not complete the bodies. Do not
   colour-match the result to a 256-colour photo (it makes flat light areas blotchy). The faces come back as the

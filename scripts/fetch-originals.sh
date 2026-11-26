@@ -12,6 +12,7 @@
 #   scripts/fetch-originals.sh inside   only Inside by CNCD (The Gathering '96)
 #   scripts/fetch-originals.sh reve     only Reve by Pulse (The Party '95; final version 1996)
 #   scripts/fetch-originals.sh okean    only The Sea Robot of Love by Orange (The Party '95)
+#   scripts/fetch-originals.sh vividexp only Vivid Experiment by Doomsday (Assembly '96)
 #
 # In the repository the files go into <repo>/<demo>/original/. Anywhere else (next to
 # a released program) they go into an original/ folder next to this script, and without an argument only the
@@ -118,6 +119,17 @@ demo_info() {
             "KORSO2.EXE   a18d2212b1b95eb153a9b7709154da9614698bf4c3d88df74b420befd4fdef64"
         )
         ;;
+    vividexp)
+        title="Vivid Experiment by Doomsday (Assembly '96, 1996)"
+        zip_name=vividexp.zip
+        zip_path=parties/1996/assembly96/demo/vividexp.zip
+        program=vividexp-remake
+        files=(
+            "VIVID.EXE    f60040bb29b830482202eed85490e16c858494e7f2b4146dc3255ba3ccf2bf28"
+            "EXPRMNT1.XM  1aab58c9bbd8697a86ff80564f5cd95e4918c2ee6f83aa41eaee54ccf2b8080b"
+            "EXPRMNT2.XM  b78cef2f737647ce27d9d0636f93aca84e1e1d9376fda3dca2321e6c0cc48362"
+        )
+        ;;
     *) return 1 ;;
     esac
     # scene.org itself, two https mirrors, then the scene.org redirector (picks any mirror)
@@ -129,7 +141,7 @@ demo_info() {
     )
 }
 
-all_demos=(303 paper jizz stars dope clone inside reve okean)
+all_demos=(303 paper jizz stars dope clone inside reve okean vividexp)
 
 # ---------------------------------------------------------------- tools
 usage() {  # the comment at the top of this file
@@ -268,7 +280,7 @@ fetch_demo() {  # demo
 demos=()
 for arg in "$@"; do
     case "$arg" in
-    303 | paper | jizz | stars | dope | clone | inside | reve | okean) demos+=("$arg") ;;
+    303 | paper | jizz | stars | dope | clone | inside | reve | okean | vividexp) demos+=("$arg") ;;
     all) demos+=("${all_demos[@]}") ;;
     -h | --help) usage; exit 0 ;;
     *) fail "unknown argument '$arg'"; usage >&2; exit 2 ;;

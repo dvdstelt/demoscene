@@ -28,7 +28,8 @@ clone) name="clone meets clone"; about="*clone meets clone*, the 64k intro by Ac
 inside) name="Inside";           about="*Inside* by CNCD, the PC demo that won at The Gathering '96" ;;
 reve)  name="Reve";              about="*Reve* by Pulse, the PC demo that placed 5th at The Party '95 (final version 1996)" ;;
 okean) name="The Sea Robot of Love"; about="*The Sea Robot of Love*, the 64k intro by Orange that placed 3rd at The Party '95" ;;
-*) die "$tag is not <demo>-v<version> for one of 303, paper, jizz, stars, dope, clone, inside, reve, okean" ;;
+vividexp) name="Vivid Experiment"; about="*Vivid Experiment* by Doomsday, the PC demo that placed 3rd at Assembly '96" ;;
+*) die "$tag is not <demo>-v<version> for one of 303, paper, jizz, stars, dope, clone, inside, reve, okean, vividexp" ;;
 esac
 [ "$version" != "$tag" ] && [ -n "$version" ] || die "$tag has no version after -v"
 

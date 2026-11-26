@@ -3,7 +3,7 @@
 # $GITHUB_OUTPUT:
 #
 #   projects=["paper","jizz"]   the projects to build, as JSON (303, 303-v1, paper, jizz, stars, dope, clone,
-#                               inside, reve, okean)
+#                               inside, reve, okean, vividexp)
 #   release=paper               the demo to publish, for a release tag; empty otherwise
 #   version=1.0                 the release's version, from the tag; empty otherwise
 #
@@ -22,8 +22,8 @@ set -euo pipefail
 
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
-all=(303 303-v1 paper jizz stars dope clone inside reve okean)
-demos=" 303 paper jizz stars dope clone inside reve okean "
+all=(303 303-v1 paper jizz stars dope clone inside reve okean vividexp)
+demos=" 303 paper jizz stars dope clone inside reve okean vividexp "
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo"
 

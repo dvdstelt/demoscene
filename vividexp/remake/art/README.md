@@ -1,0 +1,60 @@
+# Redrawn pictures
+
+High-resolution redraws of the pictures *Vivid Experiment* draws as they are, made from the original pictures. The remake shows them by default; `--original-art` shows the original pixels. Most are faithful to the original: the same composition, letters, proportions and framing, with only the resolution and the detail changed. Three of the slides' pin-ups are the maintainer's choice among several versions and differ more (see "The pin-ups"). They are derived from the work of Doomsday's graphicians (Dice and Damac) and of the photographers and illustrators whose pictures the demo used, uncredited; they stay under the same non-commercial terms as the rest of this project (see [NOTICE.md](../../../NOTICE.md)). The recipe is [docs/redrawing-pictures.md](../../../docs/redrawing-pictures.md).
+
+`tools/align_art.py --upload NAME` makes the picture to upload (the original's pixels scaled up with nearest-neighbour to the 4:3 screen, 5 × 6 per pixel; `--uncensored` without the mosaic over the nude parts); `tools/align_art.py NAME REDRAW.png` fits the redraw onto the original (a scale in x and y and an offset) and writes it here, covering exactly the original's frame. The numbers below are its residual: the RMS colour difference (0..255) in the original's grid, the share of pixels where one picture is background and the other is not, and the correlation of the detail (1.000 = every shape in place).
+
+## The pictures
+
+| file | original | shows | made | fit |
+|---|---|---|---|---|
+| `alkutext.png` | `pics/alkutext.pcx`, 320 × 200 | the opening's white lettering ("a doomsday production", "in the year 1996", "at assembly", the labels "coding", "graphics", "music", and the unused "called"), as a grey coverage mask | ChatGPT, 25 November 2026, first attempt | RMS 11.3, background 0.79 %, correlation 0.994 |
+| `doom.png`, `mri.png`, `dice.png` | `pics/doom.pcx`, `mri.pcx`, `dice.pcx`, 1280 × 200 | the credits' names in white serif capitals, as coverage masks covering the whole 1280 × 200 picture | ChatGPT, 25 November 2026, first attempt; the three names in one upload | RMS 7.7 / 6.3 / 6.5, correlation 0.998 each |
+| `damac.png`, `swallow.png`, `wode.png` | `pics/damac.pcx`, `swallow.pcx`, `wode.pcx`, 1280 × 200 | the same | ChatGPT, 25 November 2026, first attempt; one upload | RMS 26.9 / 31.7 / 18.8, correlation 0.951 / 0.953 / 0.977 (the letters 3 % lower than the original's: an overlay shows every letter in place within a pixel) |
+| `siipiman.png` | `pics/siipiman.pcx`, 320 × 200 | the end of part I: a painting of a muscular winged man flying up against a yellow sun and an orange sky, a small winged figure top left, rocks bottom right | ChatGPT, 25 November 2026, first attempt (its own conversation); colours matched to the original's (`--match`: the redraw was a little redder and darker) | RMS 24.8, background 0.97 %, correlation 0.870 (the painting's detail is new; every part is in place) |
+| `taivas.png` | `pics/taivas.pcx`, 320 × 200 | the opening's sky: a photo of cloudy evening clouds in purple and pink between black bands | ChatGPT, 25 November 2026, first attempt; `--match` | RMS 5.9, background 3.21 %, correlation 0.953 |
+| `watback.png` | `water/watback.pcx`, 320 × 200 | part II's star cluster behind the hearts: a photo of bright pink stars and nebulae | ChatGPT, first attempt; `--match` | RMS 5.9, background 14.20 %, correlation 0.969 (every bright star and nebula in place; the redraw adds many faint stars and its glows are smaller) |
+| `back.png` | `gen2/back.pcx`, 320 × 200 | the sunset behind the tumbling blobs: a lake with a tree line, a wooded hill and dark clouds | ChatGPT, first attempt; `--match` | RMS 11.2, background 1.52 %, correlation 0.894 (shore, hill and reflections in place; the clouds are redrawn in their own detail) |
+| `greets.png` | `pics/greets.pcx`, 320 × 200 | the greetings: a photo of two women and the list of group names | ChatGPT, first attempt; not colour-matched (a photo in 64 colours, see the recipe) | RMS 16.0, background 2.61 %, correlation 0.983 (every name letter for letter, the logos in place) |
+| `nainen1.png`, `nainen2.png`, `nainen3.png` | `pics/nainen1..3.raw`, 320 × 200, index 0 transparent | the bitmap effects' cut-out photos of women | ChatGPT, first attempts, uploaded on a flat blue key that is turned into alpha (RGBA; the blue left in partly transparent hair is held to max(R, G), and the transparent pixels carry the photo's own colours for filtering) | RMS 14.1 / 15.1 / 13.9, background 0.46 / 1.04 / 0.33 %, correlation 0.929 / 0.939 / 0.915 |
+| `synknai3.png` | `pics/synknai3.pcx`, 320 × 200 | a slide: an airbrushed pin-up of a woman in a shiny pink dress leaning back | ChatGPT, first attempt; `--match` | RMS 8.1, background 0.00 %, correlation 0.957 |
+| `vivid.png` | `pics/vivid.pcx`, 320 × 200 | the title picture: a sepia photo of a nude woman kneeling on a chequered floor, with the title | Comfy Cloud, run 1, without a reference; `--nofit --tint` | RMS 8.3, background 1.47 %, correlation 0.987 |
+| `synknai1.png` | `pics/synknai1.pcx` | a slide: a woman in a black catsuit with cat ears and a tail | Comfy Cloud, run 1, without a reference; `--nofit` | RMS 51.8, correlation 0.159: not faithful (see below) |
+| `synknai2.png` | `pics/synknai2.pcx` | a slide: a woman in grey latex with a mask, a blond tail and a riding crop | Comfy Cloud, run 1, without a reference; `--nofit` | RMS 26.6, correlation 0.586 |
+| `synknai4.png` | `pics/synknai4.pcx` | a slide: a laughing woman in a wet white T-shirt with a red "I ♥ DSD" label | Comfy Cloud, run 1, without a reference; `--nofit` | RMS 23.1, correlation 0.709 |
+
+## ChatGPT
+
+The text prompt (one conversation for the lettering and the names, so they share a style): a 320 × 200 artwork (the names: 560 × 233, three names cropped from their pictures and stacked) from the 1996 MS-DOS demo *Vivid Experiment* by Doomsday, scaled up with nearest-neighbour; "make a faithful high-resolution redraw: the same composition and framing, every word at exactly the same position and size, exactly the same text letter for letter, the same typeface, line breaks and letter spacing; pure white letters with smooth, crisp anti-aliased edges on a pure black background; only the resolution and the detail change; do not add, remove or move anything, do not crop or zoom; no shadows, glow, outlines or texture".
+
+The winged man's prompt: the same request for "a detailed fantasy painting", naming what must stay where it is (the fists, the wings and each group of feathers, the sun, the small figure, the rocks) and asking to remove the pixelation and the colour banding. The demo does not say who painted it; Demozoo tags the production with Boris Vallejo, and the picture is in his style. The man's face is the generator's reading of a few pixels.
+
+The backgrounds and the photos: "make a sharp, detailed, high-resolution photograph of exactly this picture", describing the picture and naming what must stay (the clouds and the black bands; every star and nebula; the tree line, the hill and the reflections; the two women, the logos and the ten lines of names letter for letter), "only the resolution and the detail change: remove the pixelation and the colour banding; do not add, remove or move anything, do not crop or zoom". The cut-out photos were uploaded on flat blue, naming the frame edges that cut the women off, so that the generator does not complete the bodies. The slides' pin-ups: "a faithful high-resolution redraw in the same airbrushed illustration style", naming the pose and the parts that must stay. The faces in the photos are the generator's reading of a few pixels.
+
+ChatGPT refused four pictures (25 November 2026), and none was reworded: `synknai1` with its nude part covered by a mosaic ("similarity to third-party content"), `synknai2` without the mosaic and the title picture even with it ("may violate our content policies"), and `synknai4` ("guardrails around nudity, sexuality, or erotic content"). With a mosaic, `synknai2` was redrawn; that version is not used.
+
+The text pictures are drawn by the demo through palette arithmetic (notes-core.md 7: the text's level added to the sky's index), so they are kept as coverage masks and the remake does the arithmetic in colour.
+
+## Comfy Cloud
+
+The four refused pictures were redrawn on [Comfy Cloud](https://cloud.comfy.org) with Qwen-Image-Edit-2511, as in the recipe, uploaded without the mosaic at the maintainer's request. Two runs of the free tier:
+
+- Run 1 ([`re/comfyui/vividexp-redraw-1.json`](../../re/comfyui/vividexp-redraw-1.json)): each of the four pictures twice, seed 1303, once with a style reference (ChatGPT's `synknai3` for the pin-ups, its `greets` for the title photo) and once without.
+- Run 2 ([`re/comfyui/vividexp-redraw-2.json`](../../re/comfyui/vividexp-redraw-2.json)): `synknai1` with two references (ChatGPT's `synknai3` and run 1's `synknai2` with a reference) and three seeds. The figure came out close to the original, but each result added figures from the references to the empty half of the frame; not used.
+
+Picture 1 is the upload resized with Lanczos to 1408 × 1056 and blurred with a 1.2-pixel Gaussian; the references are 1024 × 768. The prompt: "Redraw Picture 1 as a high-resolution illustration [in exactly the same painting style as Picture 2]: a polished, photorealistic airbrushed pin-up illustration with smooth glossy shaded skin and soft highlights, finely detailed hair with many thin strands, crisp clean edges, on a plain white background" (the title photo: "a sharp, detailed, high-resolution photograph: a sepia-toned studio photograph with fine detail and a little film grain"), then "Picture 1 is low-resolution pixel art of … Keep everything in Picture 1 exactly as it is:" with a list of the picture's parts, the frame edges and the colours, then "Every part stays at the same position and size in the frame. Only the resolution and the detail change: remove the pixelation. Do not add, remove or move anything, do not crop or zoom." The negative prompt: "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, mosaic, censored, extra limbs, extra fingers, deformed, border around the figure, halo, glow", plus what each picture tempted the model to change. The graphs hold every prompt.
+
+With a reference, `synknai2` and `synknai4` came out faithful (correlation 0.994 each), the title photo too (0.978), and `synknai1` soft and moved. Without a reference, the results are sharper and the pin-ups changed more. The maintainer chose:
+
+- `synknai1`: the version without a reference, in which the catsuit covers her chest, for the YouTube video. Her pose, proportions, face and drawing style differ from the original's; she is in the same place and the slide's captions fall where they did.
+- `synknai2`, `synknai4`: the versions without a reference. `synknai2`'s face shows under the mask and her latex covers her chest; `synknai4`'s face, hair and lighting differ.
+- the title photo: the version without a reference, tinted back to the original's orange (`--tint`: the generator made it grey-brown; `--match` made the bright skin blotchy).
+
+These four are placed over the frame as the generator drew them (`--nofit`): the model kept the figures in place, and a fit of a changed figure would only stretch it.
+
+## Not redrawn
+
+- The captions `synktxt1..4.pcx`: they quote a song's lyrics, which this project does not reproduce. The remake sharpens them when it draws them instead: their own pixels' lightness, upsampled and cut at a threshold, gives smooth script at any resolution (`src/scenes/pictures_vga.h`, "ink pictures").
+- Everything an effect reads through palette indices or tables: the height pictures and light pictures of the bump mapping, the bitmap effects' textures, the 3D scenes' maps and textures.
+
+`--censor` covers the nude parts of the title picture and of `synknai2` with a mosaic of 6 × 6 original pixels, in the redraws' own colours (and those of `synknai1` too with `--original-art`); without it, nothing is covered.

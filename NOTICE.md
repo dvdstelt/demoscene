@@ -30,14 +30,17 @@ not include them, and the license in [LICENSE.md](LICENSE.md) does not cover the
   LCA's FLAT OS extender, MOD-Player and packer, and the Infiny Loader.
 - **The Sea Robot of Love** by Orange (The Party '95, 1995): programming hoplite and dune, sound effects and music
   dune, font and graphics der piipo. It uses PMODE by Tran, the player by Phantom and the 50 Hz mode by liket.
+- **Vivid Experiment** by Doomsday (Assembly '96, 1996): code Doom and MRI, graphics Dice and Damac, music Wode
+  ("Vivid") and Swallow ("Experiment II"). It uses the MIDAS Sound System by Sahara Surfers and PMODE/W by Daredevil
+  and Tran. It also shows photos and pictures by others that the demo does not credit.
 
 The remakes read the original files at run time. You need your own copy of each original release:
 `scripts/fetch-originals.sh` (or `fetch-originals.ps1` on Windows) downloads it from scene.org. The source code
 here is a re-implementation written from an analysis of the originals. Data such as images, music, meshes, tables
 and text is never copied into it.
 
-The remakes also include redrawn versions of the originals' hand-drawn pictures, and of Inside's photos of people
-(in each `<demo>/remake/art/`): high-resolution AI redraws made from the original pictures, faithful to them, and
+The remakes also include redrawn versions of the originals' hand-drawn pictures, and of Inside's and Vivid Experiment's photos of people
+(in each `<demo>/remake/art/`): high-resolution AI redraws made from the original pictures, faithful to them (three of Vivid Experiment's pin-ups are versions the maintainer chose that differ more), and
 shown instead of the original pixels unless `--original-art` is given. Inside's remake also includes 4× upscales of
 its textures, made with Real-ESRGAN. 303's remake also includes its video clips
 restored at high resolution with an AI video model (`303/remake/art/video/`), shown the same way. They are derived

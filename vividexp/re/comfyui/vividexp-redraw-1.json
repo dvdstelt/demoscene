@@ -1,0 +1,5979 @@
+{
+ "config": {},
+ "extra": {
+  "VHS_KeepIntermediate": true,
+  "VHS_MetadataImage": true,
+  "VHS_latentpreview": false,
+  "VHS_latentpreviewrate": 0,
+  "ds": {
+   "offset": [
+    0,
+    0
+   ],
+   "scale": 0.5
+  },
+  "frontendVersion": "1.61.0"
+ },
+ "groups": [],
+ "id": "361cdbfe-bbf9-4ed2-a82f-7b888a6974db",
+ "last_link_id": 174,
+ "last_node_id": 98,
+ "links": [
+  [
+   1,
+   1,
+   0,
+   4,
+   0,
+   "MODEL"
+  ],
+  [
+   2,
+   4,
+   0,
+   5,
+   0,
+   "MODEL"
+  ],
+  [
+   3,
+   7,
+   0,
+   8,
+   0,
+   "IMAGE"
+  ],
+  [
+   4,
+   3,
+   0,
+   8,
+   1,
+   "VAE"
+  ],
+  [
+   5,
+   9,
+   0,
+   10,
+   0,
+   "IMAGE"
+  ],
+  [
+   6,
+   3,
+   0,
+   10,
+   1,
+   "VAE"
+  ],
+  [
+   7,
+   11,
+   0,
+   12,
+   0,
+   "IMAGE"
+  ],
+  [
+   8,
+   3,
+   0,
+   12,
+   1,
+   "VAE"
+  ],
+  [
+   9,
+   13,
+   0,
+   14,
+   0,
+   "IMAGE"
+  ],
+  [
+   10,
+   3,
+   0,
+   14,
+   1,
+   "VAE"
+  ],
+  [
+   11,
+   15,
+   0,
+   16,
+   0,
+   "IMAGE"
+  ],
+  [
+   12,
+   3,
+   0,
+   16,
+   1,
+   "VAE"
+  ],
+  [
+   13,
+   17,
+   0,
+   18,
+   0,
+   "IMAGE"
+  ],
+  [
+   14,
+   3,
+   0,
+   18,
+   1,
+   "VAE"
+  ],
+  [
+   15,
+   2,
+   0,
+   19,
+   0,
+   "CLIP"
+  ],
+  [
+   16,
+   7,
+   0,
+   19,
+   2,
+   "IMAGE"
+  ],
+  [
+   17,
+   15,
+   0,
+   19,
+   3,
+   "IMAGE"
+  ],
+  [
+   18,
+   19,
+   0,
+   20,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   19,
+   8,
+   0,
+   20,
+   1,
+   "LATENT"
+  ],
+  [
+   20,
+   20,
+   0,
+   21,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   21,
+   16,
+   0,
+   21,
+   1,
+   "LATENT"
+  ],
+  [
+   22,
+   21,
+   0,
+   22,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   23,
+   2,
+   0,
+   23,
+   0,
+   "CLIP"
+  ],
+  [
+   24,
+   7,
+   0,
+   23,
+   2,
+   "IMAGE"
+  ],
+  [
+   25,
+   15,
+   0,
+   23,
+   3,
+   "IMAGE"
+  ],
+  [
+   26,
+   23,
+   0,
+   24,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   27,
+   8,
+   0,
+   24,
+   1,
+   "LATENT"
+  ],
+  [
+   28,
+   24,
+   0,
+   25,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   29,
+   16,
+   0,
+   25,
+   1,
+   "LATENT"
+  ],
+  [
+   30,
+   25,
+   0,
+   26,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   31,
+   5,
+   0,
+   27,
+   0,
+   "MODEL"
+  ],
+  [
+   32,
+   22,
+   0,
+   27,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   33,
+   26,
+   0,
+   27,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   34,
+   6,
+   0,
+   27,
+   3,
+   "LATENT"
+  ],
+  [
+   35,
+   27,
+   0,
+   28,
+   0,
+   "LATENT"
+  ],
+  [
+   36,
+   3,
+   0,
+   28,
+   1,
+   "VAE"
+  ],
+  [
+   37,
+   28,
+   0,
+   29,
+   0,
+   "IMAGE"
+  ],
+  [
+   38,
+   2,
+   0,
+   30,
+   0,
+   "CLIP"
+  ],
+  [
+   39,
+   7,
+   0,
+   30,
+   2,
+   "IMAGE"
+  ],
+  [
+   40,
+   30,
+   0,
+   31,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   41,
+   8,
+   0,
+   31,
+   1,
+   "LATENT"
+  ],
+  [
+   42,
+   31,
+   0,
+   32,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   43,
+   2,
+   0,
+   33,
+   0,
+   "CLIP"
+  ],
+  [
+   44,
+   7,
+   0,
+   33,
+   2,
+   "IMAGE"
+  ],
+  [
+   45,
+   33,
+   0,
+   34,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   46,
+   8,
+   0,
+   34,
+   1,
+   "LATENT"
+  ],
+  [
+   47,
+   34,
+   0,
+   35,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   48,
+   5,
+   0,
+   36,
+   0,
+   "MODEL"
+  ],
+  [
+   49,
+   32,
+   0,
+   36,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   50,
+   35,
+   0,
+   36,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   51,
+   6,
+   0,
+   36,
+   3,
+   "LATENT"
+  ],
+  [
+   52,
+   36,
+   0,
+   37,
+   0,
+   "LATENT"
+  ],
+  [
+   53,
+   3,
+   0,
+   37,
+   1,
+   "VAE"
+  ],
+  [
+   54,
+   37,
+   0,
+   38,
+   0,
+   "IMAGE"
+  ],
+  [
+   55,
+   2,
+   0,
+   39,
+   0,
+   "CLIP"
+  ],
+  [
+   56,
+   9,
+   0,
+   39,
+   2,
+   "IMAGE"
+  ],
+  [
+   57,
+   15,
+   0,
+   39,
+   3,
+   "IMAGE"
+  ],
+  [
+   58,
+   39,
+   0,
+   40,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   59,
+   10,
+   0,
+   40,
+   1,
+   "LATENT"
+  ],
+  [
+   60,
+   40,
+   0,
+   41,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   61,
+   16,
+   0,
+   41,
+   1,
+   "LATENT"
+  ],
+  [
+   62,
+   41,
+   0,
+   42,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   63,
+   2,
+   0,
+   43,
+   0,
+   "CLIP"
+  ],
+  [
+   64,
+   9,
+   0,
+   43,
+   2,
+   "IMAGE"
+  ],
+  [
+   65,
+   15,
+   0,
+   43,
+   3,
+   "IMAGE"
+  ],
+  [
+   66,
+   43,
+   0,
+   44,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   67,
+   10,
+   0,
+   44,
+   1,
+   "LATENT"
+  ],
+  [
+   68,
+   44,
+   0,
+   45,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   69,
+   16,
+   0,
+   45,
+   1,
+   "LATENT"
+  ],
+  [
+   70,
+   45,
+   0,
+   46,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   71,
+   5,
+   0,
+   47,
+   0,
+   "MODEL"
+  ],
+  [
+   72,
+   42,
+   0,
+   47,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   73,
+   46,
+   0,
+   47,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   74,
+   6,
+   0,
+   47,
+   3,
+   "LATENT"
+  ],
+  [
+   75,
+   47,
+   0,
+   48,
+   0,
+   "LATENT"
+  ],
+  [
+   76,
+   3,
+   0,
+   48,
+   1,
+   "VAE"
+  ],
+  [
+   77,
+   48,
+   0,
+   49,
+   0,
+   "IMAGE"
+  ],
+  [
+   78,
+   2,
+   0,
+   50,
+   0,
+   "CLIP"
+  ],
+  [
+   79,
+   9,
+   0,
+   50,
+   2,
+   "IMAGE"
+  ],
+  [
+   80,
+   50,
+   0,
+   51,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   81,
+   10,
+   0,
+   51,
+   1,
+   "LATENT"
+  ],
+  [
+   82,
+   51,
+   0,
+   52,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   83,
+   2,
+   0,
+   53,
+   0,
+   "CLIP"
+  ],
+  [
+   84,
+   9,
+   0,
+   53,
+   2,
+   "IMAGE"
+  ],
+  [
+   85,
+   53,
+   0,
+   54,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   86,
+   10,
+   0,
+   54,
+   1,
+   "LATENT"
+  ],
+  [
+   87,
+   54,
+   0,
+   55,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   88,
+   5,
+   0,
+   56,
+   0,
+   "MODEL"
+  ],
+  [
+   89,
+   52,
+   0,
+   56,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   90,
+   55,
+   0,
+   56,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   91,
+   6,
+   0,
+   56,
+   3,
+   "LATENT"
+  ],
+  [
+   92,
+   56,
+   0,
+   57,
+   0,
+   "LATENT"
+  ],
+  [
+   93,
+   3,
+   0,
+   57,
+   1,
+   "VAE"
+  ],
+  [
+   94,
+   57,
+   0,
+   58,
+   0,
+   "IMAGE"
+  ],
+  [
+   95,
+   2,
+   0,
+   59,
+   0,
+   "CLIP"
+  ],
+  [
+   96,
+   11,
+   0,
+   59,
+   2,
+   "IMAGE"
+  ],
+  [
+   97,
+   15,
+   0,
+   59,
+   3,
+   "IMAGE"
+  ],
+  [
+   98,
+   59,
+   0,
+   60,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   99,
+   12,
+   0,
+   60,
+   1,
+   "LATENT"
+  ],
+  [
+   100,
+   60,
+   0,
+   61,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   101,
+   16,
+   0,
+   61,
+   1,
+   "LATENT"
+  ],
+  [
+   102,
+   61,
+   0,
+   62,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   103,
+   2,
+   0,
+   63,
+   0,
+   "CLIP"
+  ],
+  [
+   104,
+   11,
+   0,
+   63,
+   2,
+   "IMAGE"
+  ],
+  [
+   105,
+   15,
+   0,
+   63,
+   3,
+   "IMAGE"
+  ],
+  [
+   106,
+   63,
+   0,
+   64,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   107,
+   12,
+   0,
+   64,
+   1,
+   "LATENT"
+  ],
+  [
+   108,
+   64,
+   0,
+   65,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   109,
+   16,
+   0,
+   65,
+   1,
+   "LATENT"
+  ],
+  [
+   110,
+   65,
+   0,
+   66,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   111,
+   5,
+   0,
+   67,
+   0,
+   "MODEL"
+  ],
+  [
+   112,
+   62,
+   0,
+   67,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   113,
+   66,
+   0,
+   67,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   114,
+   6,
+   0,
+   67,
+   3,
+   "LATENT"
+  ],
+  [
+   115,
+   67,
+   0,
+   68,
+   0,
+   "LATENT"
+  ],
+  [
+   116,
+   3,
+   0,
+   68,
+   1,
+   "VAE"
+  ],
+  [
+   117,
+   68,
+   0,
+   69,
+   0,
+   "IMAGE"
+  ],
+  [
+   118,
+   2,
+   0,
+   70,
+   0,
+   "CLIP"
+  ],
+  [
+   119,
+   11,
+   0,
+   70,
+   2,
+   "IMAGE"
+  ],
+  [
+   120,
+   70,
+   0,
+   71,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   121,
+   12,
+   0,
+   71,
+   1,
+   "LATENT"
+  ],
+  [
+   122,
+   71,
+   0,
+   72,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   123,
+   2,
+   0,
+   73,
+   0,
+   "CLIP"
+  ],
+  [
+   124,
+   11,
+   0,
+   73,
+   2,
+   "IMAGE"
+  ],
+  [
+   125,
+   73,
+   0,
+   74,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   126,
+   12,
+   0,
+   74,
+   1,
+   "LATENT"
+  ],
+  [
+   127,
+   74,
+   0,
+   75,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   128,
+   5,
+   0,
+   76,
+   0,
+   "MODEL"
+  ],
+  [
+   129,
+   72,
+   0,
+   76,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   130,
+   75,
+   0,
+   76,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   131,
+   6,
+   0,
+   76,
+   3,
+   "LATENT"
+  ],
+  [
+   132,
+   76,
+   0,
+   77,
+   0,
+   "LATENT"
+  ],
+  [
+   133,
+   3,
+   0,
+   77,
+   1,
+   "VAE"
+  ],
+  [
+   134,
+   77,
+   0,
+   78,
+   0,
+   "IMAGE"
+  ],
+  [
+   135,
+   2,
+   0,
+   79,
+   0,
+   "CLIP"
+  ],
+  [
+   136,
+   13,
+   0,
+   79,
+   2,
+   "IMAGE"
+  ],
+  [
+   137,
+   17,
+   0,
+   79,
+   3,
+   "IMAGE"
+  ],
+  [
+   138,
+   79,
+   0,
+   80,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   139,
+   14,
+   0,
+   80,
+   1,
+   "LATENT"
+  ],
+  [
+   140,
+   80,
+   0,
+   81,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   141,
+   18,
+   0,
+   81,
+   1,
+   "LATENT"
+  ],
+  [
+   142,
+   81,
+   0,
+   82,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   143,
+   2,
+   0,
+   83,
+   0,
+   "CLIP"
+  ],
+  [
+   144,
+   13,
+   0,
+   83,
+   2,
+   "IMAGE"
+  ],
+  [
+   145,
+   17,
+   0,
+   83,
+   3,
+   "IMAGE"
+  ],
+  [
+   146,
+   83,
+   0,
+   84,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   147,
+   14,
+   0,
+   84,
+   1,
+   "LATENT"
+  ],
+  [
+   148,
+   84,
+   0,
+   85,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   149,
+   18,
+   0,
+   85,
+   1,
+   "LATENT"
+  ],
+  [
+   150,
+   85,
+   0,
+   86,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   151,
+   5,
+   0,
+   87,
+   0,
+   "MODEL"
+  ],
+  [
+   152,
+   82,
+   0,
+   87,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   153,
+   86,
+   0,
+   87,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   154,
+   6,
+   0,
+   87,
+   3,
+   "LATENT"
+  ],
+  [
+   155,
+   87,
+   0,
+   88,
+   0,
+   "LATENT"
+  ],
+  [
+   156,
+   3,
+   0,
+   88,
+   1,
+   "VAE"
+  ],
+  [
+   157,
+   88,
+   0,
+   89,
+   0,
+   "IMAGE"
+  ],
+  [
+   158,
+   2,
+   0,
+   90,
+   0,
+   "CLIP"
+  ],
+  [
+   159,
+   13,
+   0,
+   90,
+   2,
+   "IMAGE"
+  ],
+  [
+   160,
+   90,
+   0,
+   91,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   161,
+   14,
+   0,
+   91,
+   1,
+   "LATENT"
+  ],
+  [
+   162,
+   91,
+   0,
+   92,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   163,
+   2,
+   0,
+   93,
+   0,
+   "CLIP"
+  ],
+  [
+   164,
+   13,
+   0,
+   93,
+   2,
+   "IMAGE"
+  ],
+  [
+   165,
+   93,
+   0,
+   94,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   166,
+   14,
+   0,
+   94,
+   1,
+   "LATENT"
+  ],
+  [
+   167,
+   94,
+   0,
+   95,
+   0,
+   "CONDITIONING"
+  ],
+  [
+   168,
+   5,
+   0,
+   96,
+   0,
+   "MODEL"
+  ],
+  [
+   169,
+   92,
+   0,
+   96,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   170,
+   95,
+   0,
+   96,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   171,
+   6,
+   0,
+   96,
+   3,
+   "LATENT"
+  ],
+  [
+   172,
+   96,
+   0,
+   97,
+   0,
+   "LATENT"
+  ],
+  [
+   173,
+   3,
+   0,
+   97,
+   1,
+   "VAE"
+  ],
+  [
+   174,
+   97,
+   0,
+   98,
+   0,
+   "IMAGE"
+  ]
+ ],
+ "nodes": [
+  {
+   "flags": {},
+   "id": 1,
+   "inputs": [],
+   "mode": 0,
+   "order": 1,
+   "outputs": [
+    {
+     "links": [
+      1
+     ],
+     "name": "MODEL",
+     "type": "MODEL"
+    }
+   ],
+   "pos": [
+    0,
+    0
+   ],
+   "properties": {
+    "Node name for S&R": "UNETLoader"
+   },
+   "size": [
+    270,
+    82
+   ],
+   "type": "UNETLoader",
+   "widgets_values": [
+    "qwen_image_edit_2511_fp8mixed.safetensors",
+    "default"
+   ],
+   "widgets_values_named": {
+    "unet_name": "qwen_image_edit_2511_fp8mixed.safetensors",
+    "weight_dtype": "default"
+   }
+  },
+  {
+   "flags": {},
+   "id": 2,
+   "inputs": [],
+   "mode": 0,
+   "order": 2,
+   "outputs": [
+    {
+     "links": [
+      15,
+      23,
+      38,
+      43,
+      55,
+      63,
+      78,
+      83,
+      95,
+      103,
+      118,
+      123,
+      135,
+      143,
+      158,
+      163
+     ],
+     "name": "CLIP",
+     "type": "CLIP"
+    }
+   ],
+   "pos": [
+    0,
+    200
+   ],
+   "properties": {
+    "Node name for S&R": "CLIPLoader"
+   },
+   "size": [
+    270,
+    106
+   ],
+   "type": "CLIPLoader",
+   "widgets_values": [
+    "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+    "qwen_image",
+    "default"
+   ],
+   "widgets_values_named": {
+    "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+    "device": "default",
+    "type": "qwen_image"
+   }
+  },
+  {
+   "flags": {},
+   "id": 3,
+   "inputs": [],
+   "mode": 0,
+   "order": 3,
+   "outputs": [
+    {
+     "links": [
+      4,
+      6,
+      8,
+      10,
+      12,
+      14,
+      36,
+      53,
+      76,
+      93,
+      116,
+      133,
+      156,
+      173
+     ],
+     "name": "VAE",
+     "type": "VAE"
+    }
+   ],
+   "pos": [
+    0,
+    400
+   ],
+   "properties": {
+    "Node name for S&R": "VAELoader"
+   },
+   "size": [
+    270,
+    58
+   ],
+   "type": "VAELoader",
+   "widgets_values": [
+    "qwen_image_vae.safetensors"
+   ],
+   "widgets_values_named": {
+    "vae_name": "qwen_image_vae.safetensors"
+   }
+  },
+  {
+   "flags": {},
+   "id": 4,
+   "inputs": [
+    {
+     "link": 1,
+     "name": "model",
+     "type": "MODEL"
+    }
+   ],
+   "mode": 0,
+   "order": 4,
+   "outputs": [
+    {
+     "links": [
+      2
+     ],
+     "name": "MODEL",
+     "type": "MODEL"
+    }
+   ],
+   "pos": [
+    400,
+    0
+   ],
+   "properties": {
+    "Node name for S&R": "ModelSamplingAuraFlow"
+   },
+   "size": [
+    270,
+    82
+   ],
+   "type": "ModelSamplingAuraFlow",
+   "widgets_values": [
+    3.1,
+    "flow"
+   ],
+   "widgets_values_named": {
+    "sampling": "flow",
+    "shift": 3.1
+   }
+  },
+  {
+   "flags": {},
+   "id": 5,
+   "inputs": [
+    {
+     "link": 2,
+     "name": "model",
+     "type": "MODEL"
+    }
+   ],
+   "mode": 0,
+   "order": 5,
+   "outputs": [
+    {
+     "links": [
+      31,
+      48,
+      71,
+      88,
+      111,
+      128,
+      151,
+      168
+     ],
+     "name": "patched_model",
+     "type": "MODEL"
+    }
+   ],
+   "pos": [
+    800,
+    0
+   ],
+   "properties": {
+    "Node name for S&R": "CFGNorm"
+   },
+   "size": [
+    270,
+    82
+   ],
+   "type": "CFGNorm",
+   "widgets_values": [
+    1,
+    false
+   ],
+   "widgets_values_named": {
+    "pre_cfg": false,
+    "strength": 1
+   }
+  },
+  {
+   "flags": {},
+   "id": 6,
+   "inputs": [],
+   "mode": 0,
+   "order": 6,
+   "outputs": [
+    {
+     "links": [
+      34,
+      51,
+      74,
+      91,
+      114,
+      131,
+      154,
+      171
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    0,
+    600
+   ],
+   "properties": {
+    "Node name for S&R": "EmptySD3LatentImage"
+   },
+   "size": [
+    270,
+    106
+   ],
+   "type": "EmptySD3LatentImage",
+   "widgets_values": [
+    1408,
+    1056,
+    1
+   ],
+   "widgets_values_named": {
+    "batch_size": 1,
+    "height": 1056,
+    "width": 1408
+   }
+  },
+  {
+   "flags": {},
+   "id": 7,
+   "inputs": [],
+   "mode": 0,
+   "order": 7,
+   "outputs": [
+    {
+     "links": [
+      3,
+      16,
+      24,
+      39,
+      44
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    },
+    {
+     "links": null,
+     "name": "MASK",
+     "type": "MASK"
+    }
+   ],
+   "pos": [
+    0,
+    800
+   ],
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "size": [
+    282.798828125,
+    102
+   ],
+   "type": "LoadImage",
+   "widgets_values": [
+    "vx_synknai1.png",
+    "image"
+   ],
+   "widgets_values_named": {
+    "image": "5d50db4897167e96a88ed8c8b559c6c70967b8a256e2060627deb47f6292d5a5.png",
+    "upload": "image"
+   },
+   "title": "synknai1"
+  },
+  {
+   "flags": {},
+   "id": 8,
+   "inputs": [
+    {
+     "link": 3,
+     "name": "pixels",
+     "type": "IMAGE"
+    },
+    {
+     "link": 4,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 8,
+   "outputs": [
+    {
+     "links": [
+      19,
+      27,
+      41,
+      46
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    400,
+    800
+   ],
+   "properties": {
+    "Node name for S&R": "VAEEncode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEEncode"
+  },
+  {
+   "flags": {},
+   "id": 9,
+   "inputs": [],
+   "mode": 0,
+   "order": 9,
+   "outputs": [
+    {
+     "links": [
+      5,
+      56,
+      64,
+      79,
+      84
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    },
+    {
+     "links": null,
+     "name": "MASK",
+     "type": "MASK"
+    }
+   ],
+   "pos": [
+    0,
+    1160
+   ],
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "size": [
+    282.798828125,
+    102
+   ],
+   "type": "LoadImage",
+   "widgets_values": [
+    "vx_synknai2.png",
+    "image"
+   ],
+   "widgets_values_named": {
+    "image": "5d50db4897167e96a88ed8c8b559c6c70967b8a256e2060627deb47f6292d5a5.png",
+    "upload": "image"
+   },
+   "title": "synknai2"
+  },
+  {
+   "flags": {},
+   "id": 10,
+   "inputs": [
+    {
+     "link": 5,
+     "name": "pixels",
+     "type": "IMAGE"
+    },
+    {
+     "link": 6,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 10,
+   "outputs": [
+    {
+     "links": [
+      59,
+      67,
+      81,
+      86
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    400,
+    1160
+   ],
+   "properties": {
+    "Node name for S&R": "VAEEncode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEEncode"
+  },
+  {
+   "flags": {},
+   "id": 11,
+   "inputs": [],
+   "mode": 0,
+   "order": 11,
+   "outputs": [
+    {
+     "links": [
+      7,
+      96,
+      104,
+      119,
+      124
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    },
+    {
+     "links": null,
+     "name": "MASK",
+     "type": "MASK"
+    }
+   ],
+   "pos": [
+    0,
+    1520
+   ],
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "size": [
+    282.798828125,
+    102
+   ],
+   "type": "LoadImage",
+   "widgets_values": [
+    "vx_synknai4.png",
+    "image"
+   ],
+   "widgets_values_named": {
+    "image": "5d50db4897167e96a88ed8c8b559c6c70967b8a256e2060627deb47f6292d5a5.png",
+    "upload": "image"
+   },
+   "title": "synknai4"
+  },
+  {
+   "flags": {},
+   "id": 12,
+   "inputs": [
+    {
+     "link": 7,
+     "name": "pixels",
+     "type": "IMAGE"
+    },
+    {
+     "link": 8,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 12,
+   "outputs": [
+    {
+     "links": [
+      99,
+      107,
+      121,
+      126
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    400,
+    1520
+   ],
+   "properties": {
+    "Node name for S&R": "VAEEncode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEEncode"
+  },
+  {
+   "flags": {},
+   "id": 13,
+   "inputs": [],
+   "mode": 0,
+   "order": 13,
+   "outputs": [
+    {
+     "links": [
+      9,
+      136,
+      144,
+      159,
+      164
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    },
+    {
+     "links": null,
+     "name": "MASK",
+     "type": "MASK"
+    }
+   ],
+   "pos": [
+    0,
+    1880
+   ],
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "size": [
+    282.798828125,
+    102
+   ],
+   "type": "LoadImage",
+   "widgets_values": [
+    "vx_vivid.png",
+    "image"
+   ],
+   "widgets_values_named": {
+    "image": "5d50db4897167e96a88ed8c8b559c6c70967b8a256e2060627deb47f6292d5a5.png",
+    "upload": "image"
+   },
+   "title": "vivid"
+  },
+  {
+   "flags": {},
+   "id": 14,
+   "inputs": [
+    {
+     "link": 9,
+     "name": "pixels",
+     "type": "IMAGE"
+    },
+    {
+     "link": 10,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 14,
+   "outputs": [
+    {
+     "links": [
+      139,
+      147,
+      161,
+      166
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    400,
+    1880
+   ],
+   "properties": {
+    "Node name for S&R": "VAEEncode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEEncode"
+  },
+  {
+   "flags": {},
+   "id": 15,
+   "inputs": [],
+   "mode": 0,
+   "order": 15,
+   "outputs": [
+    {
+     "links": [
+      11,
+      17,
+      25,
+      57,
+      65,
+      97,
+      105
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    },
+    {
+     "links": null,
+     "name": "MASK",
+     "type": "MASK"
+    }
+   ],
+   "pos": [
+    0,
+    2240
+   ],
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "size": [
+    282.798828125,
+    102
+   ],
+   "type": "LoadImage",
+   "widgets_values": [
+    "vx_ref_synknai3.png",
+    "image"
+   ],
+   "widgets_values_named": {
+    "image": "5d50db4897167e96a88ed8c8b559c6c70967b8a256e2060627deb47f6292d5a5.png",
+    "upload": "image"
+   },
+   "title": "ref_synknai3"
+  },
+  {
+   "flags": {},
+   "id": 16,
+   "inputs": [
+    {
+     "link": 11,
+     "name": "pixels",
+     "type": "IMAGE"
+    },
+    {
+     "link": 12,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 16,
+   "outputs": [
+    {
+     "links": [
+      21,
+      29,
+      61,
+      69,
+      101,
+      109
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    400,
+    2240
+   ],
+   "properties": {
+    "Node name for S&R": "VAEEncode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEEncode"
+  },
+  {
+   "flags": {},
+   "id": 17,
+   "inputs": [],
+   "mode": 0,
+   "order": 17,
+   "outputs": [
+    {
+     "links": [
+      13,
+      137,
+      145
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    },
+    {
+     "links": null,
+     "name": "MASK",
+     "type": "MASK"
+    }
+   ],
+   "pos": [
+    0,
+    2600
+   ],
+   "properties": {
+    "Node name for S&R": "LoadImage"
+   },
+   "size": [
+    282.798828125,
+    102
+   ],
+   "type": "LoadImage",
+   "widgets_values": [
+    "vx_ref_greets.png",
+    "image"
+   ],
+   "widgets_values_named": {
+    "image": "5d50db4897167e96a88ed8c8b559c6c70967b8a256e2060627deb47f6292d5a5.png",
+    "upload": "image"
+   },
+   "title": "ref_greets"
+  },
+  {
+   "flags": {},
+   "id": 18,
+   "inputs": [
+    {
+     "link": 13,
+     "name": "pixels",
+     "type": "IMAGE"
+    },
+    {
+     "link": 14,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 18,
+   "outputs": [
+    {
+     "links": [
+      141,
+      149
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    400,
+    2600
+   ],
+   "properties": {
+    "Node name for S&R": "VAEEncode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEEncode"
+  },
+  {
+   "flags": {},
+   "id": 19,
+   "inputs": [
+    {
+     "link": 15,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 16,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": 17,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 19,
+   "outputs": [
+    {
+     "links": [
+      18
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    0
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "Redraw Picture 1 as a high-resolution illustration in exactly the same painting style as Picture 2: a polished, photorealistic airbrushed pin-up illustration with smooth glossy shaded skin and soft highlights, finely detailed hair with many thin strands, crisp clean edges, on a plain white background. Picture 1 is low-resolution pixel art of an airbrushed pin-up. Keep everything in Picture 1 exactly as it is: the composition and framing, with the figure at the left and the rest of the frame plain white; her pose, crouching low and turned towards the viewer with her head tilted; her proportions; her face and eyes; her long curly black hair with the two pointed black cat ears; the glossy black catsuit open down the front, showing her bare breasts; her arms; the long black tail curling up at the left; the small hand-written signature above her head, right of the ears; the folds and highlights of the catsuit; and all colours. Her bare chest stays bare, as in Picture 1. Her edges meet the white background directly. Every part stays at the same position and size in the frame. Only the resolution and the detail change: remove the pixelation. Do not add, remove or move anything, do not crop or zoom. Do not take the pink dress, the face, the hair or the pose from Picture 2."
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 20,
+   "inputs": [
+    {
+     "link": 18,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 19,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 20,
+   "outputs": [
+    {
+     "links": [
+      20
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    0
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 21,
+   "inputs": [
+    {
+     "link": 20,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 21,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 21,
+   "outputs": [
+    {
+     "links": [
+      22
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1700,
+    0
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 22,
+   "inputs": [
+    {
+     "link": 22,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 22,
+   "outputs": [
+    {
+     "links": [
+      32
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    0
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 23,
+   "inputs": [
+    {
+     "link": 23,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 24,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": 25,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 23,
+   "outputs": [
+    {
+     "links": [
+      26
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    340
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, mosaic, censored, extra limbs, extra fingers, deformed, border around the figure, halo, glow, clothes over the chest, bra, pink dress, blonde hair"
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 24,
+   "inputs": [
+    {
+     "link": 26,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 27,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 24,
+   "outputs": [
+    {
+     "links": [
+      28
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    340
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 25,
+   "inputs": [
+    {
+     "link": 28,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 29,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 25,
+   "outputs": [
+    {
+     "links": [
+      30
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1700,
+    340
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 26,
+   "inputs": [
+    {
+     "link": 30,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 26,
+   "outputs": [
+    {
+     "links": [
+      33
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    340
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 27,
+   "inputs": [
+    {
+     "link": 31,
+     "name": "model",
+     "type": "MODEL"
+    },
+    {
+     "link": 32,
+     "name": "positive",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 33,
+     "name": "negative",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 34,
+     "name": "latent_image",
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 27,
+   "outputs": [
+    {
+     "links": [
+      35
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    2400,
+    0
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "size": [
+    270,
+    262
+   ],
+   "type": "KSampler",
+   "widgets_values": [
+    1303,
+    "fixed",
+    30,
+    4,
+    "euler",
+    "simple",
+    1
+   ],
+   "widgets_values_named": {
+    "cfg": 4,
+    "control_after_generate": "randomize",
+    "denoise": 1,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "seed": 1303,
+    "steps": 30
+   }
+  },
+  {
+   "flags": {},
+   "id": 28,
+   "inputs": [
+    {
+     "link": 35,
+     "name": "samples",
+     "type": "LATENT"
+    },
+    {
+     "link": 36,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 28,
+   "outputs": [
+    {
+     "links": [
+      37
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    2800,
+    0
+   ],
+   "properties": {
+    "Node name for S&R": "VAEDecode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEDecode"
+  },
+  {
+   "flags": {},
+   "id": 29,
+   "inputs": [
+    {
+     "link": 37,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 29,
+   "outputs": [
+    {
+     "links": null,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    3100,
+    0
+   ],
+   "properties": {},
+   "size": [
+    270,
+    58
+   ],
+   "type": "SaveImage",
+   "widgets_values": [
+    "vx_synknai1_ref"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "stars13_A_s1303"
+   }
+  },
+  {
+   "flags": {},
+   "id": 30,
+   "inputs": [
+    {
+     "link": 38,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 39,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 30,
+   "outputs": [
+    {
+     "links": [
+      40
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    700
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "Redraw Picture 1 as a high-resolution illustration: a polished, photorealistic airbrushed pin-up illustration with smooth glossy shaded skin and soft highlights, finely detailed hair with many thin strands, crisp clean edges, on a plain white background. Picture 1 is low-resolution pixel art of an airbrushed pin-up. Keep everything in Picture 1 exactly as it is: the composition and framing, with the figure at the left and the rest of the frame plain white; her pose, crouching low and turned towards the viewer with her head tilted; her proportions; her face and eyes; her long curly black hair with the two pointed black cat ears; the glossy black catsuit open down the front, showing her bare breasts; her arms; the long black tail curling up at the left; the small hand-written signature above her head, right of the ears; the folds and highlights of the catsuit; and all colours. Her bare chest stays bare, as in Picture 1. Her edges meet the white background directly. Every part stays at the same position and size in the frame. Only the resolution and the detail change: remove the pixelation. Do not add, remove or move anything, do not crop or zoom."
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 31,
+   "inputs": [
+    {
+     "link": 40,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 41,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 31,
+   "outputs": [
+    {
+     "links": [
+      42
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    700
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 32,
+   "inputs": [
+    {
+     "link": 42,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 32,
+   "outputs": [
+    {
+     "links": [
+      49
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    700
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 33,
+   "inputs": [
+    {
+     "link": 43,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 44,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 33,
+   "outputs": [
+    {
+     "links": [
+      45
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    1040
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, mosaic, censored, extra limbs, extra fingers, deformed, border around the figure, halo, glow, clothes over the chest, bra, pink dress, blonde hair"
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 34,
+   "inputs": [
+    {
+     "link": 45,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 46,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 34,
+   "outputs": [
+    {
+     "links": [
+      47
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    1040
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 35,
+   "inputs": [
+    {
+     "link": 47,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 35,
+   "outputs": [
+    {
+     "links": [
+      50
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    1040
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 36,
+   "inputs": [
+    {
+     "link": 48,
+     "name": "model",
+     "type": "MODEL"
+    },
+    {
+     "link": 49,
+     "name": "positive",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 50,
+     "name": "negative",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 51,
+     "name": "latent_image",
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 36,
+   "outputs": [
+    {
+     "links": [
+      52
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    2400,
+    700
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "size": [
+    270,
+    262
+   ],
+   "type": "KSampler",
+   "widgets_values": [
+    1303,
+    "fixed",
+    30,
+    4,
+    "euler",
+    "simple",
+    1
+   ],
+   "widgets_values_named": {
+    "cfg": 4,
+    "control_after_generate": "randomize",
+    "denoise": 1,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "seed": 1303,
+    "steps": 30
+   }
+  },
+  {
+   "flags": {},
+   "id": 37,
+   "inputs": [
+    {
+     "link": 52,
+     "name": "samples",
+     "type": "LATENT"
+    },
+    {
+     "link": 53,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 37,
+   "outputs": [
+    {
+     "links": [
+      54
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    2800,
+    700
+   ],
+   "properties": {
+    "Node name for S&R": "VAEDecode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEDecode"
+  },
+  {
+   "flags": {},
+   "id": 38,
+   "inputs": [
+    {
+     "link": 54,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 38,
+   "outputs": [
+    {
+     "links": null,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    3100,
+    700
+   ],
+   "properties": {},
+   "size": [
+    270,
+    58
+   ],
+   "type": "SaveImage",
+   "widgets_values": [
+    "vx_synknai1_noref"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "stars13_A_s1303"
+   }
+  },
+  {
+   "flags": {},
+   "id": 39,
+   "inputs": [
+    {
+     "link": 55,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 56,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": 57,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 39,
+   "outputs": [
+    {
+     "links": [
+      58
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    1400
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "Redraw Picture 1 as a high-resolution illustration in exactly the same painting style as Picture 2: a polished, photorealistic airbrushed pin-up illustration with smooth glossy shaded skin and soft highlights, finely detailed hair with many thin strands, crisp clean edges, on a plain white background. Picture 1 is low-resolution pixel art of an airbrushed pin-up. Keep everything in Picture 1 exactly as it is: the composition and framing, with the figure at the right and the rest of the frame plain white; her pose, standing on the toes of her gold shoes with one knee raised and her head tilted back; her proportions; the dark grey mask with two pointed ears over her head, and her face as it shows in it; her long blond ponytail and the long blond tail; the glossy dark grey latex bodysuit, open over her bare breasts; the laced corset at her waist; the riding crop held across her body; the folds and highlights of the latex; and all colours. Her bare chest stays bare, as in Picture 1. Her edges meet the white background directly. Every part stays at the same position and size in the frame. Only the resolution and the detail change: remove the pixelation. Do not add, remove or move anything, do not crop or zoom. Do not take the pink dress, the face, the hair or the pose from Picture 2."
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 40,
+   "inputs": [
+    {
+     "link": 58,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 59,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 40,
+   "outputs": [
+    {
+     "links": [
+      60
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    1400
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 41,
+   "inputs": [
+    {
+     "link": 60,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 61,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 41,
+   "outputs": [
+    {
+     "links": [
+      62
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1700,
+    1400
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 42,
+   "inputs": [
+    {
+     "link": 62,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 42,
+   "outputs": [
+    {
+     "links": [
+      72
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    1400
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 43,
+   "inputs": [
+    {
+     "link": 63,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 64,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": 65,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 43,
+   "outputs": [
+    {
+     "links": [
+      66
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    1740
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, mosaic, censored, extra limbs, extra fingers, deformed, border around the figure, halo, glow, clothes over the chest, bra, pink dress, visible eyes outside the mask"
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 44,
+   "inputs": [
+    {
+     "link": 66,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 67,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 44,
+   "outputs": [
+    {
+     "links": [
+      68
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    1740
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 45,
+   "inputs": [
+    {
+     "link": 68,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 69,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 45,
+   "outputs": [
+    {
+     "links": [
+      70
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1700,
+    1740
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 46,
+   "inputs": [
+    {
+     "link": 70,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 46,
+   "outputs": [
+    {
+     "links": [
+      73
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    1740
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 47,
+   "inputs": [
+    {
+     "link": 71,
+     "name": "model",
+     "type": "MODEL"
+    },
+    {
+     "link": 72,
+     "name": "positive",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 73,
+     "name": "negative",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 74,
+     "name": "latent_image",
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 47,
+   "outputs": [
+    {
+     "links": [
+      75
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    2400,
+    1400
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "size": [
+    270,
+    262
+   ],
+   "type": "KSampler",
+   "widgets_values": [
+    1303,
+    "fixed",
+    30,
+    4,
+    "euler",
+    "simple",
+    1
+   ],
+   "widgets_values_named": {
+    "cfg": 4,
+    "control_after_generate": "randomize",
+    "denoise": 1,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "seed": 1303,
+    "steps": 30
+   }
+  },
+  {
+   "flags": {},
+   "id": 48,
+   "inputs": [
+    {
+     "link": 75,
+     "name": "samples",
+     "type": "LATENT"
+    },
+    {
+     "link": 76,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 48,
+   "outputs": [
+    {
+     "links": [
+      77
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    2800,
+    1400
+   ],
+   "properties": {
+    "Node name for S&R": "VAEDecode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEDecode"
+  },
+  {
+   "flags": {},
+   "id": 49,
+   "inputs": [
+    {
+     "link": 77,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 49,
+   "outputs": [
+    {
+     "links": null,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    3100,
+    1400
+   ],
+   "properties": {},
+   "size": [
+    270,
+    58
+   ],
+   "type": "SaveImage",
+   "widgets_values": [
+    "vx_synknai2_ref"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "stars13_A_s1303"
+   }
+  },
+  {
+   "flags": {},
+   "id": 50,
+   "inputs": [
+    {
+     "link": 78,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 79,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 50,
+   "outputs": [
+    {
+     "links": [
+      80
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    2100
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "Redraw Picture 1 as a high-resolution illustration: a polished, photorealistic airbrushed pin-up illustration with smooth glossy shaded skin and soft highlights, finely detailed hair with many thin strands, crisp clean edges, on a plain white background. Picture 1 is low-resolution pixel art of an airbrushed pin-up. Keep everything in Picture 1 exactly as it is: the composition and framing, with the figure at the right and the rest of the frame plain white; her pose, standing on the toes of her gold shoes with one knee raised and her head tilted back; her proportions; the dark grey mask with two pointed ears over her head, and her face as it shows in it; her long blond ponytail and the long blond tail; the glossy dark grey latex bodysuit, open over her bare breasts; the laced corset at her waist; the riding crop held across her body; the folds and highlights of the latex; and all colours. Her bare chest stays bare, as in Picture 1. Her edges meet the white background directly. Every part stays at the same position and size in the frame. Only the resolution and the detail change: remove the pixelation. Do not add, remove or move anything, do not crop or zoom."
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 51,
+   "inputs": [
+    {
+     "link": 80,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 81,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 51,
+   "outputs": [
+    {
+     "links": [
+      82
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    2100
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 52,
+   "inputs": [
+    {
+     "link": 82,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 52,
+   "outputs": [
+    {
+     "links": [
+      89
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    2100
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 53,
+   "inputs": [
+    {
+     "link": 83,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 84,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 53,
+   "outputs": [
+    {
+     "links": [
+      85
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    2440
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, mosaic, censored, extra limbs, extra fingers, deformed, border around the figure, halo, glow, clothes over the chest, bra, pink dress, visible eyes outside the mask"
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 54,
+   "inputs": [
+    {
+     "link": 85,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 86,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 54,
+   "outputs": [
+    {
+     "links": [
+      87
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    2440
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 55,
+   "inputs": [
+    {
+     "link": 87,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 55,
+   "outputs": [
+    {
+     "links": [
+      90
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    2440
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 56,
+   "inputs": [
+    {
+     "link": 88,
+     "name": "model",
+     "type": "MODEL"
+    },
+    {
+     "link": 89,
+     "name": "positive",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 90,
+     "name": "negative",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 91,
+     "name": "latent_image",
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 56,
+   "outputs": [
+    {
+     "links": [
+      92
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    2400,
+    2100
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "size": [
+    270,
+    262
+   ],
+   "type": "KSampler",
+   "widgets_values": [
+    1303,
+    "fixed",
+    30,
+    4,
+    "euler",
+    "simple",
+    1
+   ],
+   "widgets_values_named": {
+    "cfg": 4,
+    "control_after_generate": "randomize",
+    "denoise": 1,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "seed": 1303,
+    "steps": 30
+   }
+  },
+  {
+   "flags": {},
+   "id": 57,
+   "inputs": [
+    {
+     "link": 92,
+     "name": "samples",
+     "type": "LATENT"
+    },
+    {
+     "link": 93,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 57,
+   "outputs": [
+    {
+     "links": [
+      94
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    2800,
+    2100
+   ],
+   "properties": {
+    "Node name for S&R": "VAEDecode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEDecode"
+  },
+  {
+   "flags": {},
+   "id": 58,
+   "inputs": [
+    {
+     "link": 94,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 58,
+   "outputs": [
+    {
+     "links": null,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    3100,
+    2100
+   ],
+   "properties": {},
+   "size": [
+    270,
+    58
+   ],
+   "type": "SaveImage",
+   "widgets_values": [
+    "vx_synknai2_noref"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "stars13_A_s1303"
+   }
+  },
+  {
+   "flags": {},
+   "id": 59,
+   "inputs": [
+    {
+     "link": 95,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 96,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": 97,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 59,
+   "outputs": [
+    {
+     "links": [
+      98
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    2800
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "Redraw Picture 1 as a high-resolution illustration in exactly the same painting style as Picture 2: a polished, photorealistic airbrushed pin-up illustration with smooth glossy shaded skin and soft highlights, finely detailed hair with many thin strands, crisp clean edges, on a plain white background. Picture 1 is low-resolution pixel art of a photorealistic pin-up. Keep everything in Picture 1 exactly as it is: the composition and framing, with the figure at the left and the rest of the frame plain white; the bottom edge of the frame cuts off her legs; her pose, laughing with her head tilted back and her arms down at her sides; her proportions; her face and dark hair; the wet white cropped T-shirt lifted over the lower curve of her breasts; the red label across the T-shirt showing \"I\", a black heart and the black logo \"DSD\"; the red bikini bottom; and all colours. Her edges meet the white background directly. Every part stays at the same position and size in the frame. Only the resolution and the detail change: remove the pixelation. Do not add, remove or move anything, do not crop or zoom. Do not take the pink dress, the face, the hair or the pose from Picture 2."
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 60,
+   "inputs": [
+    {
+     "link": 98,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 99,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 60,
+   "outputs": [
+    {
+     "links": [
+      100
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    2800
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 61,
+   "inputs": [
+    {
+     "link": 100,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 101,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 61,
+   "outputs": [
+    {
+     "links": [
+      102
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1700,
+    2800
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 62,
+   "inputs": [
+    {
+     "link": 102,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 62,
+   "outputs": [
+    {
+     "links": [
+      112
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    2800
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 63,
+   "inputs": [
+    {
+     "link": 103,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 104,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": 105,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 63,
+   "outputs": [
+    {
+     "links": [
+      106
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    3140
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, mosaic, censored, extra limbs, extra fingers, deformed, border around the figure, halo, glow, nude, extra text, wrong letters, pink dress"
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 64,
+   "inputs": [
+    {
+     "link": 106,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 107,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 64,
+   "outputs": [
+    {
+     "links": [
+      108
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    3140
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 65,
+   "inputs": [
+    {
+     "link": 108,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 109,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 65,
+   "outputs": [
+    {
+     "links": [
+      110
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1700,
+    3140
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 66,
+   "inputs": [
+    {
+     "link": 110,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 66,
+   "outputs": [
+    {
+     "links": [
+      113
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    3140
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 67,
+   "inputs": [
+    {
+     "link": 111,
+     "name": "model",
+     "type": "MODEL"
+    },
+    {
+     "link": 112,
+     "name": "positive",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 113,
+     "name": "negative",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 114,
+     "name": "latent_image",
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 67,
+   "outputs": [
+    {
+     "links": [
+      115
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    2400,
+    2800
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "size": [
+    270,
+    262
+   ],
+   "type": "KSampler",
+   "widgets_values": [
+    1303,
+    "fixed",
+    30,
+    4,
+    "euler",
+    "simple",
+    1
+   ],
+   "widgets_values_named": {
+    "cfg": 4,
+    "control_after_generate": "randomize",
+    "denoise": 1,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "seed": 1303,
+    "steps": 30
+   }
+  },
+  {
+   "flags": {},
+   "id": 68,
+   "inputs": [
+    {
+     "link": 115,
+     "name": "samples",
+     "type": "LATENT"
+    },
+    {
+     "link": 116,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 68,
+   "outputs": [
+    {
+     "links": [
+      117
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    2800,
+    2800
+   ],
+   "properties": {
+    "Node name for S&R": "VAEDecode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEDecode"
+  },
+  {
+   "flags": {},
+   "id": 69,
+   "inputs": [
+    {
+     "link": 117,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 69,
+   "outputs": [
+    {
+     "links": null,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    3100,
+    2800
+   ],
+   "properties": {},
+   "size": [
+    270,
+    58
+   ],
+   "type": "SaveImage",
+   "widgets_values": [
+    "vx_synknai4_ref"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "stars13_A_s1303"
+   }
+  },
+  {
+   "flags": {},
+   "id": 70,
+   "inputs": [
+    {
+     "link": 118,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 119,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 70,
+   "outputs": [
+    {
+     "links": [
+      120
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    3500
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "Redraw Picture 1 as a high-resolution illustration: a polished, photorealistic airbrushed pin-up illustration with smooth glossy shaded skin and soft highlights, finely detailed hair with many thin strands, crisp clean edges, on a plain white background. Picture 1 is low-resolution pixel art of a photorealistic pin-up. Keep everything in Picture 1 exactly as it is: the composition and framing, with the figure at the left and the rest of the frame plain white; the bottom edge of the frame cuts off her legs; her pose, laughing with her head tilted back and her arms down at her sides; her proportions; her face and dark hair; the wet white cropped T-shirt lifted over the lower curve of her breasts; the red label across the T-shirt showing \"I\", a black heart and the black logo \"DSD\"; the red bikini bottom; and all colours. Her edges meet the white background directly. Every part stays at the same position and size in the frame. Only the resolution and the detail change: remove the pixelation. Do not add, remove or move anything, do not crop or zoom."
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 71,
+   "inputs": [
+    {
+     "link": 120,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 121,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 71,
+   "outputs": [
+    {
+     "links": [
+      122
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    3500
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 72,
+   "inputs": [
+    {
+     "link": 122,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 72,
+   "outputs": [
+    {
+     "links": [
+      129
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    3500
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 73,
+   "inputs": [
+    {
+     "link": 123,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 124,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 73,
+   "outputs": [
+    {
+     "links": [
+      125
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    3840
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, mosaic, censored, extra limbs, extra fingers, deformed, border around the figure, halo, glow, nude, extra text, wrong letters, pink dress"
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 74,
+   "inputs": [
+    {
+     "link": 125,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 126,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 74,
+   "outputs": [
+    {
+     "links": [
+      127
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    3840
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 75,
+   "inputs": [
+    {
+     "link": 127,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 75,
+   "outputs": [
+    {
+     "links": [
+      130
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    3840
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 76,
+   "inputs": [
+    {
+     "link": 128,
+     "name": "model",
+     "type": "MODEL"
+    },
+    {
+     "link": 129,
+     "name": "positive",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 130,
+     "name": "negative",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 131,
+     "name": "latent_image",
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 76,
+   "outputs": [
+    {
+     "links": [
+      132
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    2400,
+    3500
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "size": [
+    270,
+    262
+   ],
+   "type": "KSampler",
+   "widgets_values": [
+    1303,
+    "fixed",
+    30,
+    4,
+    "euler",
+    "simple",
+    1
+   ],
+   "widgets_values_named": {
+    "cfg": 4,
+    "control_after_generate": "randomize",
+    "denoise": 1,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "seed": 1303,
+    "steps": 30
+   }
+  },
+  {
+   "flags": {},
+   "id": 77,
+   "inputs": [
+    {
+     "link": 132,
+     "name": "samples",
+     "type": "LATENT"
+    },
+    {
+     "link": 133,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 77,
+   "outputs": [
+    {
+     "links": [
+      134
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    2800,
+    3500
+   ],
+   "properties": {
+    "Node name for S&R": "VAEDecode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEDecode"
+  },
+  {
+   "flags": {},
+   "id": 78,
+   "inputs": [
+    {
+     "link": 134,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 78,
+   "outputs": [
+    {
+     "links": null,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    3100,
+    3500
+   ],
+   "properties": {},
+   "size": [
+    270,
+    58
+   ],
+   "type": "SaveImage",
+   "widgets_values": [
+    "vx_synknai4_noref"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "stars13_A_s1303"
+   }
+  },
+  {
+   "flags": {},
+   "id": 79,
+   "inputs": [
+    {
+     "link": 135,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 136,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": 137,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 79,
+   "outputs": [
+    {
+     "links": [
+      138
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    4200
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "Redraw Picture 1 as a sharp, detailed, high-resolution photograph in exactly the same photographic style as Picture 2: a sepia-toned studio photograph with fine detail and a little film grain. Picture 1 is a low-resolution scan of a sepia-orange photo. Keep everything in Picture 1 exactly as it is: the composition and framing; the nude woman kneeling, curled forward with her head and arms resting on the floor and her long dark hair falling forward; her proportions, her face and her smile; the tattoo on her hip; the two small faint \"DSD\" logo stamps on her skin; the chequered floor in its perspective; the speckled sandy background; the title \"Vivid Experiment\" across the bottom in black serif letters with its faint grey shadow, with exactly these letters and this font; and all colours. Every part stays at the same position and size in the frame. Only the resolution and the detail change: remove the pixelation. Do not add, remove or move anything, do not crop or zoom. Do not take the two women, their clothes or the list of names from Picture 2."
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 80,
+   "inputs": [
+    {
+     "link": 138,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 139,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 80,
+   "outputs": [
+    {
+     "links": [
+      140
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    4200
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 81,
+   "inputs": [
+    {
+     "link": 140,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 141,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 81,
+   "outputs": [
+    {
+     "links": [
+      142
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1700,
+    4200
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 82,
+   "inputs": [
+    {
+     "link": 142,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 82,
+   "outputs": [
+    {
+     "links": [
+      152
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    4200
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 83,
+   "inputs": [
+    {
+     "link": 143,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 144,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": 145,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 83,
+   "outputs": [
+    {
+     "links": [
+      146
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    4540
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, mosaic, censored, extra limbs, extra fingers, deformed, border around the figure, halo, glow, clothes, extra text, wrong letters, misspelled title, two women"
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 84,
+   "inputs": [
+    {
+     "link": 146,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 147,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 84,
+   "outputs": [
+    {
+     "links": [
+      148
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    4540
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 85,
+   "inputs": [
+    {
+     "link": 148,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 149,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 85,
+   "outputs": [
+    {
+     "links": [
+      150
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1700,
+    4540
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 86,
+   "inputs": [
+    {
+     "link": 150,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 86,
+   "outputs": [
+    {
+     "links": [
+      153
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    4540
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 87,
+   "inputs": [
+    {
+     "link": 151,
+     "name": "model",
+     "type": "MODEL"
+    },
+    {
+     "link": 152,
+     "name": "positive",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 153,
+     "name": "negative",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 154,
+     "name": "latent_image",
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 87,
+   "outputs": [
+    {
+     "links": [
+      155
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    2400,
+    4200
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "size": [
+    270,
+    262
+   ],
+   "type": "KSampler",
+   "widgets_values": [
+    1303,
+    "fixed",
+    30,
+    4,
+    "euler",
+    "simple",
+    1
+   ],
+   "widgets_values_named": {
+    "cfg": 4,
+    "control_after_generate": "randomize",
+    "denoise": 1,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "seed": 1303,
+    "steps": 30
+   }
+  },
+  {
+   "flags": {},
+   "id": 88,
+   "inputs": [
+    {
+     "link": 155,
+     "name": "samples",
+     "type": "LATENT"
+    },
+    {
+     "link": 156,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 88,
+   "outputs": [
+    {
+     "links": [
+      157
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    2800,
+    4200
+   ],
+   "properties": {
+    "Node name for S&R": "VAEDecode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEDecode"
+  },
+  {
+   "flags": {},
+   "id": 89,
+   "inputs": [
+    {
+     "link": 157,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 89,
+   "outputs": [
+    {
+     "links": null,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    3100,
+    4200
+   ],
+   "properties": {},
+   "size": [
+    270,
+    58
+   ],
+   "type": "SaveImage",
+   "widgets_values": [
+    "vx_vivid_ref"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "stars13_A_s1303"
+   }
+  },
+  {
+   "flags": {},
+   "id": 90,
+   "inputs": [
+    {
+     "link": 158,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 159,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 90,
+   "outputs": [
+    {
+     "links": [
+      160
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    4900
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "Redraw Picture 1 as a sharp, detailed, high-resolution photograph: a sepia-toned studio photograph with fine detail and a little film grain. Picture 1 is a low-resolution scan of a sepia-orange photo. Keep everything in Picture 1 exactly as it is: the composition and framing; the nude woman kneeling, curled forward with her head and arms resting on the floor and her long dark hair falling forward; her proportions, her face and her smile; the tattoo on her hip; the two small faint \"DSD\" logo stamps on her skin; the chequered floor in its perspective; the speckled sandy background; the title \"Vivid Experiment\" across the bottom in black serif letters with its faint grey shadow, with exactly these letters and this font; and all colours. Every part stays at the same position and size in the frame. Only the resolution and the detail change: remove the pixelation. Do not add, remove or move anything, do not crop or zoom."
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 91,
+   "inputs": [
+    {
+     "link": 160,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 161,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 91,
+   "outputs": [
+    {
+     "links": [
+      162
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    4900
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 92,
+   "inputs": [
+    {
+     "link": 162,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 92,
+   "outputs": [
+    {
+     "links": [
+      169
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    4900
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 93,
+   "inputs": [
+    {
+     "link": 163,
+     "name": "clip",
+     "type": "CLIP"
+    },
+    {
+     "link": null,
+     "name": "vae",
+     "shape": 7,
+     "type": "VAE"
+    },
+    {
+     "link": 164,
+     "name": "image1",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image2",
+     "shape": 7,
+     "type": "IMAGE"
+    },
+    {
+     "link": null,
+     "name": "image3",
+     "shape": 7,
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 93,
+   "outputs": [
+    {
+     "links": [
+      165
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    900,
+    5240
+   ],
+   "properties": {
+    "Node name for S&R": "TextEncodeQwenImageEditPlus"
+   },
+   "size": [
+    400,
+    200
+   ],
+   "type": "TextEncodeQwenImageEditPlus",
+   "widgets_values": [
+    "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, mosaic, censored, extra limbs, extra fingers, deformed, border around the figure, halo, glow, clothes, extra text, wrong letters, misspelled title, two women"
+   ],
+   "widgets_values_named": {
+    "prompt": "pixelated, pixel art, jagged edges, dithering, blurry, low resolution, jpeg artifacts, clothes, dress, stockings, extra limbs, extra fingers, deformed, light border around the figure, sticker outline, halo, glow, red hair"
+   }
+  },
+  {
+   "flags": {},
+   "id": 94,
+   "inputs": [
+    {
+     "link": 165,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 166,
+     "name": "latent",
+     "shape": 7,
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 94,
+   "outputs": [
+    {
+     "links": [
+      167
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    1400,
+    5240
+   ],
+   "properties": {
+    "Node name for S&R": "ReferenceLatent"
+   },
+   "size": [
+    204.134765625,
+    46
+   ],
+   "type": "ReferenceLatent"
+  },
+  {
+   "flags": {},
+   "id": 95,
+   "inputs": [
+    {
+     "link": 167,
+     "name": "conditioning",
+     "type": "CONDITIONING"
+    }
+   ],
+   "mode": 0,
+   "order": 95,
+   "outputs": [
+    {
+     "links": [
+      170
+     ],
+     "name": "CONDITIONING",
+     "type": "CONDITIONING"
+    }
+   ],
+   "pos": [
+    2000,
+    5240
+   ],
+   "properties": {
+    "Node name for S&R": "FluxKontextMultiReferenceLatentMethod"
+   },
+   "size": [
+    311.1640625,
+    58
+   ],
+   "type": "FluxKontextMultiReferenceLatentMethod",
+   "widgets_values": [
+    "index_timestep_zero"
+   ],
+   "widgets_values_named": {
+    "reference_latents_method": "index_timestep_zero"
+   }
+  },
+  {
+   "flags": {},
+   "id": 96,
+   "inputs": [
+    {
+     "link": 168,
+     "name": "model",
+     "type": "MODEL"
+    },
+    {
+     "link": 169,
+     "name": "positive",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 170,
+     "name": "negative",
+     "type": "CONDITIONING"
+    },
+    {
+     "link": 171,
+     "name": "latent_image",
+     "type": "LATENT"
+    }
+   ],
+   "mode": 0,
+   "order": 96,
+   "outputs": [
+    {
+     "links": [
+      172
+     ],
+     "name": "LATENT",
+     "type": "LATENT"
+    }
+   ],
+   "pos": [
+    2400,
+    4900
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "size": [
+    270,
+    262
+   ],
+   "type": "KSampler",
+   "widgets_values": [
+    1303,
+    "fixed",
+    30,
+    4,
+    "euler",
+    "simple",
+    1
+   ],
+   "widgets_values_named": {
+    "cfg": 4,
+    "control_after_generate": "randomize",
+    "denoise": 1,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "seed": 1303,
+    "steps": 30
+   }
+  },
+  {
+   "flags": {},
+   "id": 97,
+   "inputs": [
+    {
+     "link": 172,
+     "name": "samples",
+     "type": "LATENT"
+    },
+    {
+     "link": 173,
+     "name": "vae",
+     "type": "VAE"
+    }
+   ],
+   "mode": 0,
+   "order": 97,
+   "outputs": [
+    {
+     "links": [
+      174
+     ],
+     "name": "IMAGE",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    2800,
+    4900
+   ],
+   "properties": {
+    "Node name for S&R": "VAEDecode"
+   },
+   "size": [
+    140,
+    46
+   ],
+   "type": "VAEDecode"
+  },
+  {
+   "flags": {},
+   "id": 98,
+   "inputs": [
+    {
+     "link": 174,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "mode": 0,
+   "order": 98,
+   "outputs": [
+    {
+     "links": null,
+     "name": "images",
+     "type": "IMAGE"
+    }
+   ],
+   "pos": [
+    3100,
+    4900
+   ],
+   "properties": {},
+   "size": [
+    270,
+    58
+   ],
+   "type": "SaveImage",
+   "widgets_values": [
+    "vx_vivid_noref"
+   ],
+   "widgets_values_named": {
+    "filename_prefix": "stars13_A_s1303"
+   }
+  }
+ ],
+ "revision": 0,
+ "version": 0.4
+}
