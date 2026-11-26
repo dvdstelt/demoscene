@@ -28,11 +28,17 @@ does not have does not count): a brute-force search over scale and offset, then 
 It prints the residual (RMS of the colour difference 0..255 in the original's grid, plain and with a 1-pixel blur,
 the share of pixels where one picture is background and the other is not, and the correlation of the detail).
 --match gives the redraw the original's colour distribution per channel (quantile matching in the original's grid).
+--tint, for a picture in one hue (the title photo's sepia): each channel becomes a smooth cubic of the redraw's
+lightness, fitted to the original's colours in the original's grid; it keeps gradients smooth where --match makes
+flat light areas blotchy. --nofit places the redraw over the whole frame as it is, for a redraw whose figure the
+generator changed (the fit would only stretch it).
 
 Options:
   --range R         search offsets up to R original pixels and scales up to 1 +- R/100 (default 12)
   --uniform         one scale for x and y
   --match           match the colours to the original's
+  --tint            give a one-hue redraw the original's colours as a function of its lightness
+  --nofit           no fit: the redraw covers the frame as it is
   --out FILE        output (default ../art/NAME.png next to this script)
 """
 import argparse
@@ -203,6 +209,30 @@ def unmix(img, key=KEY, t=0.0):
     a = np.clip((a - 0.03) / 0.94, 0.0, 1.0)
     c = np.where(a[..., None] > 1e-3, (img - (1 - a[..., None]) * key) / np.maximum(a[..., None], 1e-3), 0.0)
     return np.clip(c, 0, 255), a
+
+
+def despill_bleed(c, a):
+    """A keyed redraw's colour, ready for filtering with straight alpha: where the picture is partly transparent its
+    blue is held to max(R, G) (the generator's key that is left in hair and edges), and the transparent pixels take
+    the colour of the opaque ones near them (a normalised Gaussian of 3 pixels, repeated outwards), so that a filtered
+    or mipmapped read of the edge mixes in the picture's own colours, not black."""
+    c = c.copy()
+    edge = (a > 0.0) & (a < 0.98)
+    c[..., 2] = np.where(edge, np.minimum(c[..., 2], np.maximum(c[..., 0], c[..., 1])), c[..., 2])
+    w = a.copy()
+    acc = c * a[..., None]
+    out = c.copy()
+    filled = a > 0.5
+    for _ in range(6):
+        wb = blur(w[..., None], 3.0)[..., 0]
+        cb = blur(acc, 3.0) / np.maximum(wb, 1e-6)[..., None]
+        new = (~filled) & (wb > 1e-3)
+        out[new] = cb[new]
+        filled |= new
+        w = np.where(filled, 1.0, 0.0)
+        acc = out * w[..., None]
+    t = np.clip(a * 2.0, 0.0, 1.0)[..., None]   # partly transparent pixels keep their own colour
+    return c * t + out * (1 - t)
 
 
 def normalise_key(red, t=0.0):
@@ -473,6 +503,20 @@ def colour_match(orig, alpha, red, p):
     return out
 
 
+def tint(orig, red, p):
+    """Each channel a cubic of the redraw's lightness, fitted (least squares) to the original's colours where the
+    redraw falls on them, both blurred by one original pixel."""
+    fit = Fit(orig, np.zeros(3), red)
+    fit.prepare(p[0])
+    lum = np.array([0.299, 0.587, 0.114]) / 255.0
+    L = (blur(fit.warp(p, ss=4), 1.0) @ lum).ravel()
+    O = blur(orig, 1.0).reshape(-1, 3)
+    X = np.stack([L ** k for k in range(4)], axis=1)
+    coef = [np.linalg.lstsq(X, O[:, c], rcond=None)[0] for c in range(3)]
+    Lf = red @ lum
+    return np.stack([sum(coef[c][k] * Lf ** k for k in range(4)) for c in range(3)], axis=2)
+
+
 def write_redraw(name, red, p, W, H, out_path=None):
     """The redraw resampled to cover the original's frame (a name: its whole 1280x200 picture), at the redraw's own
     resolution; text pictures as a grey coverage mask."""
@@ -499,6 +543,7 @@ def write_redraw(name, red, p, W, H, out_path=None):
         out = render(img, (ow, oh), p, (W / ow, H / oh), tuple(int(c) for c in background(name)))
         if keyed(name):
             c, al = unmix(np.asarray(out, np.float64), KEY, s.get('key_t', 0.0))
+            c = despill_bleed(c, al)
             out = Image.fromarray(np.clip(np.round(np.concatenate([c, al[..., None] * 255.0], axis=2)), 0, 255)
                                   .astype(np.uint8), 'RGBA')
     if s.get('text'):
@@ -516,10 +561,17 @@ def fit_one(name, red, p0, a):
     bg = background(name)
     H, W = alpha.shape
     fit = Fit(orig, bg, red)
-    p = refine(fit, coarse_search(fit, p0, a.range, a.uniform), a.uniform)
+    p = p0 if a.nofit else refine(fit, coarse_search(fit, p0, a.range, a.uniform), a.uniform)
+    if a.nofit:
+        fit.prepare(p0[0])
     res, res0 = fit.residual(p), fit.residual(p0)
-    print('%s: picture %dx%d' % (name, W, H))
+    print('%s: picture %dx%d%s' % (name, W, H, ' (not fitted: the redraw as it is over the frame)' if a.nofit else ''))
     report(p, res, res0, p0)
+    if a.tint:
+        red = tint(orig, red, p)
+        fm = Fit(orig, bg, red)
+        fm.prepare(p[0])
+        print('  after the tint: residual %.1f / %.1f / %.2f %% / %.3f' % fm.residual(p))
     if a.match and not spec(name).get('text'):
         if keyed(name):
             c, al = unmix(red, KEY, spec(name).get('key_t', 0.0))
@@ -624,6 +676,8 @@ def main():
     ap.add_argument('--uniform', action='store_true')
     ap.add_argument('--range', type=float, default=12)
     ap.add_argument('--match', action='store_true')
+    ap.add_argument('--tint', action='store_true')
+    ap.add_argument('--nofit', action='store_true')
     ap.add_argument('--sheet')
     ap.add_argument('--upload', action='store_true')
     ap.add_argument('--uncensored', action='store_true')
